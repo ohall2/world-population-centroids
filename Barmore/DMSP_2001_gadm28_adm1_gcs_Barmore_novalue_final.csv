@@ -1,0 +1,133 @@
+﻿OBJECTID;ID_0;ISO;NAME_0;ID_1;NAME_1
+6;1;AFG;Afghanistan;6;Daykundi
+10;1;AFG;Afghanistan;10;Ghor
+16;1;AFG;Afghanistan;16;Kapisa
+21;1;AFG;Afghanistan;21;Logar
+24;1;AFG;Afghanistan;24;Nuristan
+25;1;AFG;Afghanistan;25;Paktika
+28;1;AFG;Afghanistan;28;Parwan
+29;1;AFG;Afghanistan;29;Samangan
+32;1;AFG;Afghanistan;32;Uruzgan
+33;1;AFG;Afghanistan;33;Wardak
+44;3;ALA;Åland;8;Kökar
+115;6;ASM;American Samoa;3;Unorganized
+143;11;ATG;Antigua and Barbuda;2;Redonda
+185;15;AUS;Australia;1;Ashmore and Cartier Islands
+187;15;AUS;Australia;3;Coral Sea Islands
+247;18;BHS;Bahamas;31;Spanish Wells
+310;27;BTN;Bhutan;1;Bumthang
+312;27;BTN;Bhutan;3;Dagana
+313;27;BTN;Bhutan;4;Gasa
+315;27;BTN;Bhutan;6;Lhuentse
+318;27;BTN;Bhutan;9;Pemagatshel
+325;27;BTN;Bhutan;16;Trongsa
+326;27;BTN;Bhutan;17;Tsirang
+328;27;BTN;Bhutan;19;Yangtse
+329;27;BTN;Bhutan;20;Zhemgang
+442;39;BDI;Burundi;5;Cankuzo
+445;39;BDI;Burundi;8;Karuzi
+447;39;BDI;Burundi;10;Kirundo
+448;39;BDI;Burundi;11;Makamba
+449;39;BDI;Burundi;12;Muramvya
+454;39;BDI;Burundi;17;Ruyigi
+464;40;KHM;Cambodia;10;Kep
+498;42;CAN;Canada;8;Nunavut
+499;42;CAN;Canada;8;Nunavut
+522;43;CPV;Cape Verde;18;Santa Catarina do Fogo
+537;46;CAF;Central African Republic;4;Haut-Mbomou
+539;46;CAF;Central African Republic;6;Kémo
+542;46;CAF;Central African Republic;9;Mbomou
+543;46;CAF;Central African Republic;10;Nana-Grébizi
+555;47;TCD;Chad;5;Ennedi Est
+556;47;TCD;Chad;6;Ennedi Ouest
+569;47;TCD;Chad;19;Sila
+571;47;TCD;Chad;21;Tibesti
+573;47;TCD;Chad;23;Wadi Fira
+860;71;GNQ;Equatorial Guinea;1;Annobón
+861;71;GNQ;Equatorial Guinea;2;Bioko Norte
+862;71;GNQ;Equatorial Guinea;3;Bioko Sur
+909;77;FJI;Fiji;4;Rotuma
+945;82;ATF;French Southern Territories;1;Îles Éparses
+946;82;ATF;French Southern Territories;2;Îles Crozet
+947;82;ATF;French Southern Territories;3;Îles Saint Paul et Amsterdam
+1003;89;GRC;Greece;2;Athos
+1011;90;GRL;Greenland;2;Northeast Greenland National Park
+1013;90;GRL;Greenland;4;Qeqqata
+1070;95;GGY;Guernsey;6;Jethou
+1080;96;GNB;Guinea-Bissau;1;Bafatá
+1083;96;GNB;Guinea-Bissau;4;Bolama
+1086;96;GNB;Guinea-Bissau;7;Oio
+1087;96;GNB;Guinea-Bissau;8;Quinara
+1088;96;GNB;Guinea-Bissau;9;Tombali
+1534;123;LAO;Laos;7;Louang Namtha
+1571;127;LBR;Liberia;3;Gbapolu
+1572;127;LBR;Liberia;4;Grand Cape Mount
+1574;127;LBR;Liberia;6;GrandGedeh
+1576;127;LBR;Liberia;8;Lofa
+1581;127;LBR;Liberia;13;River Cess
+1732;135;MWI;Malawi;10;Likoma
+1793;143;MUS;Mauritius;1;Agalega Islands
+1803;143;MUS;Mauritius;11;Saint Brandon
+1995;156;NRU;Nauru;1;Aiwo
+2034;160;NZL;New Zealand;4;Chatham Islands
+2078;163;NGA;Nigeria;6;Bayelsa
+2174;172;PLW;Palau;4;Hatohobei
+2175;172;PLW;Palau;5;Kayangel
+2180;172;PLW;Palau;10;Ngardmau
+2184;172;PLW;Palau;14;Ngiwal
+2186;172;PLW;Palau;16;Sonsorol
+2194;174;PAN;Panama;6;Emberá
+2209;175;PNG;Papua New Guinea;8;Gulf
+2222;175;PNG;Papua New Guinea;21;Western Highlands
+2275;179;PHL;Philippines;7;Apayao
+2473;185;COG;Republic of Congo;3;Cuvette-Ouest
+2476;185;COG;Republic of Congo;6;Lékoumou
+2621;192;SHN;Saint Helena;3;Tristan da Cunha
+2696;201;SEN;Senegal;8;Louga
+2785;209;SLB;Solomon Islands;2;Choiseul
+2788;209;SLB;Solomon Islands;5;Isabel
+2789;209;SLB;Solomon Islands;6;Makira Ulawa
+2791;209;SLB;Solomon Islands;8;Rennell and Bellona
+2795;210;SOM;Somalia;2;Bakool
+2799;210;SOM;Somalia;6;Galguduud
+2840;214;SSD;South Sudan;3;Jungoli
+2841;214;SSD;South Sudan;4;Lakes
+2842;214;SSD;South Sudan;5;North Bahr-al-Ghazal
+2919;220;SJM;Svalbard and Jan Mayen;1;Jan Mayen
+2920;220;SJM;Svalbard and Jan Mayen;2;Svalbard
+3123;231;TKL;Tokelau;1;Anafu
+3124;231;TKL;Tokelau;2;Fakaofo
+3125;231;TKL;Tokelau;3;Nukunonu
+3128;232;TON;Tonga;3;Niuas
+3264;238;TUV;Tuvalu;2;Nanumanga
+3265;238;TUV;Tuvalu;3;Nanumea
+3266;238;TUV;Tuvalu;4;Niulakita
+3267;238;TUV;Tuvalu;5;Niutao
+3268;238;TUV;Tuvalu;6;Nui
+3269;238;TUV;Tuvalu;7;Nukufetau
+3270;238;TUV;Tuvalu;8;Nukulaelae
+3271;238;TUV;Tuvalu;9;Vaitupu
+3276;239;UGA;Uganda;5;Bundibugyo
+3285;239;UGA;Uganda;14;Kaberamaido
+3286;239;UGA;Uganda;15;Kalangala
+3289;239;UGA;Uganda;18;Kamwenge
+3290;239;UGA;Uganda;19;Kanungu
+3291;239;UGA;Uganda;20;Kapchorwa
+3293;239;UGA;Uganda;22;Katakwi
+3295;239;UGA;Uganda;24;Kibale
+3299;239;UGA;Uganda;28;Kotido
+3301;239;UGA;Uganda;30;Kyenjojo
+3302;239;UGA;Uganda;31;Lake Albert
+3308;239;UGA;Uganda;37;Mayuge
+3312;239;UGA;Uganda;41;Moyo
+3317;239;UGA;Uganda;46;Nakasongola
+3318;239;UGA;Uganda;47;Nebbi
+3369;243;UMI;United States Minor Outlying Islands;1;Baker
+3370;243;UMI;United States Minor Outlying Islands;2;Howland
+3371;243;UMI;United States Minor Outlying Islands;3;Jarvis island
+3373;243;UMI;United States Minor Outlying Islands;5;Kingman Reef
+3375;243;UMI;United States Minor Outlying Islands;7;Navassa
+3376;243;UMI;United States Minor Outlying Islands;8;Palmyra
+3464;247;VUT;Vanuatu;2;Penama
+3468;247;VUT;Vanuatu;6;Torba
+3536;250;VNM;Vietnam;42;Ninh Bình
