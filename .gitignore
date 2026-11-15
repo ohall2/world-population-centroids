@@ -1,0 +1,11 @@
+# Data och resultat hålls utanför git
+data/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# macOS
+.DS_Store

@@ -1,0 +1,231 @@
+"""Kör centroidberäkningen för valda år och nivåer.
+
+Exempel (från projektmappen ~/wpc):
+  python -m wpc.run --years all --levels 0 1 2
+
+Varje kombination av gränsuppsättning, ljuskälla, nivå och år sparas som en
+CSV-fil. Färdiga filer hoppas över, så en avbruten körning kan startas om med
+samma kommando.
+
+Utdata:  <out>/<gränser>/<källa>/adm<N>/<år>.csv  samt  <år>.json (körningens metadata)
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import json
+import os
+import platform
+import sys
+import time
+from concurrent.futures import ProcessPoolExecutor
+from dataclasses import asdict
+from pathlib import Path
+
+import geopandas as gpd
+import numpy as np
+import pandas as pd
+import pyogrio
+import shapely
+
+from . import __version__
+from .centroids import UnitResult, compute_unit
+from .lights import DmspIrqr
+from .progress import Progress, fmt_seconds, log
+
+DMSP_YEARS = list(range(1992, 2014))
+
+# Gränsuppsättningar: lager och ID-kolumner per nivå.
+BOUNDARIES = {
+    "gadm41": {"layer": "ADM_{level}", "id": "GID_{level}",
+               "keep": {0: ["GID_0", "COUNTRY"],
+                        1: ["GID_0", "COUNTRY", "GID_1", "NAME_1"],
+                        2: ["GID_0", "COUNTRY", "GID_1", "NAME_1", "GID_2", "NAME_2"]}},
+    "gadm28": {"layer": "adm{level}", "id": "OBJECTID",
+               "keep": {0: ["OBJECTID", "ID_0", "ISO", "NAME_ENGLI"],
+                        1: ["OBJECTID", "ID_0", "ISO", "NAME_0", "ID_1", "NAME_1"],
+                        2: ["OBJECTID", "ID_0", "ISO", "NAME_0", "ID_1", "ID_2", "NAME_1", "NAME_2"]}},
+}
+
+
+def boundary_path(path: Path) -> str:
+    """En zip-fil läses direkt; GDAL behöver då /vsizip/ och gpkg-filens namn."""
+    if path.suffix == ".zip":
+        import zipfile
+        inner = [n for n in zipfile.ZipFile(path).namelist() if n.endswith(".gpkg")]
+        if len(inner) != 1:
+            raise ValueError(f"{path}: väntade en .gpkg i zip-filen, hittade {inner}")
+        return f"/vsizip/{path}/{inner[0]}"
+    return str(path)
+
+
+def load_units(path: Path, bset: str, level: int) -> gpd.GeoDataFrame:
+    spec = BOUNDARIES[bset]
+    gdf = gpd.read_file(boundary_path(path), layer=spec["layer"].format(level=level),
+                        columns=spec["keep"][level], engine="pyogrio")
+    gdf = gdf.rename(columns={spec["id"].format(level=level): "unit_id"}) if spec["id"] != "OBJECTID" \
+        else gdf.assign(unit_id=gdf["OBJECTID"])
+    if gdf["unit_id"].duplicated().any():
+        raise ValueError(f"Dubbletter av enhets-ID på nivå {level}")
+    return gdf
+
+
+# --------------------------------------------------------------------------
+# Arbetsprocesser
+# --------------------------------------------------------------------------
+
+_SOURCE = None
+_SOURCE_KEY = None
+
+
+def _get_source(key: tuple):
+    global _SOURCE, _SOURCE_KEY
+    if _SOURCE_KEY != key:
+        if _SOURCE is not None:
+            _SOURCE.close()
+        name, year, raw_dir, calibration, flares = key
+        if name != "dmsp-irqr":
+            raise ValueError(f"Okänd ljuskälla: {name}")
+        _SOURCE = DmspIrqr(year, Path(raw_dir), Path(calibration), Path(flares) if flares else None)
+        _SOURCE_KEY = key
+    return _SOURCE
+
+
+def _work(args) -> tuple[int, dict]:
+    idx, wkb, key = args
+    geom = shapely.from_wkb(wkb) if wkb is not None else None
+    return idx, asdict(compute_unit(geom, _get_source(key)))
+
+
+# --------------------------------------------------------------------------
+# Flaggor
+# --------------------------------------------------------------------------
+
+def flags(units: gpd.GeoDataFrame, lon: np.ndarray, lat: np.ndarray) -> np.ndarray:
+    """0 = i egen enhet, 1 = utanför alla enheter, 2 = i en annan enhet, -1 = ingen centroid.
+
+    Samma kodning som OUT_FLAG i v1.
+    """
+    out = np.full(len(units), -1, dtype="int8")
+    have = ~np.isnan(lon)
+    pts = shapely.points(lon[have], lat[have])
+    own = units.geometry.values[have]
+    inside = shapely.covers(own, pts)
+    idx_have = np.flatnonzero(have)
+    out[idx_have[inside]] = 0
+    rest = idx_have[~inside]
+    if len(rest):
+        tree = shapely.STRtree(units.geometry.values)
+        q = tree.query(shapely.points(lon[rest], lat[rest]), predicate="covered_by")
+        hit = np.zeros(len(rest), dtype=bool)
+        hit[np.unique(q[0])] = True
+        out[rest] = np.where(hit, 2, 1)
+    return out
+
+
+# --------------------------------------------------------------------------
+# Huvudflöde
+# --------------------------------------------------------------------------
+
+def run_one(units: gpd.GeoDataFrame, level: int, year: int, args, out_csv: Path) -> None:
+    key = ("dmsp-irqr", year, str(args.raw_dir), str(args.calibration),
+           str(args.flares) if args.flares else None)
+    # Stora enheter först, så att inga långa jobb blir kvar i slutet.
+    b = units.geometry.bounds
+    order = np.argsort(-((b.maxx - b.minx) * (b.maxy - b.miny)).fillna(0).to_numpy())
+    tasks = [(int(i), shapely.to_wkb(units.geometry.iloc[i]) if units.geometry.iloc[i] is not None else None, key)
+             for i in order]
+    results: list[dict | None] = [None] * len(units)
+    t0 = time.time()
+    with Progress(f"adm{level} {year}", total=len(tasks)) as p:
+        if args.workers == 1:
+            for t in tasks:
+                i, r = _work(t)
+                results[i] = r
+                p.advance()
+        else:
+            with ProcessPoolExecutor(max_workers=args.workers) as pool:
+                for i, r in pool.map(_work, tasks, chunksize=8):
+                    results[i] = r
+                    p.advance()
+
+    df = pd.DataFrame(results)
+    meta_cols = [c for c in units.columns if c != "geometry"]
+    df = pd.concat([units[meta_cols].reset_index(drop=True), df], axis=1)
+    df.insert(0, "year", year)
+    df.insert(0, "level", level)
+    df.insert(0, "source", "dmsp-irqr")
+    df["aa_flag"] = flags(units, df["aa_lon"].to_numpy(), df["aa_lat"].to_numpy())
+    df["bm_flag"] = flags(units, df["bm_lon"].to_numpy(), df["bm_lat"].to_numpy())
+
+    out_csv.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out_csv.with_suffix(".part")
+    df.to_csv(tmp, index=False, float_format="%.8f")
+    tmp.replace(out_csv)
+
+    src = _get_source(key)
+    meta = {"wpc_version": __version__, "created_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+            "seconds": round(time.time() - t0, 1), "level": level, "year": year,
+            "boundaries": {"set": args.boundary_set, "path": str(args.boundaries)},
+            "light_source": src.describe(), "units": int(len(df)),
+            "with_centroid": int(df["aa_lon"].notna().sum()),
+            "aa_flag_counts": {str(k): int(v) for k, v in df["aa_flag"].value_counts().sort_index().items()},
+            "python": platform.python_version(), "platform": platform.platform(),
+            "workers": args.workers}
+    out_csv.with_suffix(".json").write_text(json.dumps(meta, indent=2, ensure_ascii=False) + "\n")
+    log(f"adm{level} {year}: {meta['with_centroid']} av {meta['units']} enheter har centroid, "
+        f"flaggor {meta['aa_flag_counts']} -> {out_csv}")
+
+
+def parse_years(vals: list[str]) -> list[int]:
+    if vals == ["all"]:
+        return DMSP_YEARS
+    years = []
+    for v in vals:
+        if "-" in v:
+            a, b = v.split("-")
+            years += list(range(int(a), int(b) + 1))
+        else:
+            years.append(int(v))
+    return years
+
+
+def main(argv: list[str] | None = None) -> None:
+    p = argparse.ArgumentParser(description="Befolkningscentroider från nattljus (v2).")
+    p.add_argument("--years", nargs="+", default=["all"], help="t.ex. all, 2010, 1992-1995")
+    p.add_argument("--levels", nargs="+", type=int, default=[0, 1, 2])
+    p.add_argument("--boundary-set", choices=list(BOUNDARIES), default="gadm41")
+    p.add_argument("--boundaries", type=Path, default=Path("data/raw/gadm41/gadm_410-levels.zip"))
+    p.add_argument("--raw-dir", type=Path, default=Path("data/raw/dmsp"))
+    p.add_argument("--calibration", type=Path, default=Path("config/calibration_v1.csv"))
+    p.add_argument("--flares", type=Path, default=Path("data/processed/flares_dmsp.gpkg"))
+    p.add_argument("--out", type=Path, default=Path("data/results"))
+    p.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 2) - 1))
+    p.add_argument("--limit", type=int, default=None, help="Bara de N första enheterna (för test).")
+    args = p.parse_args(argv)
+
+    years = parse_years(args.years)
+    log(f"wpc {__version__}: källa dmsp-irqr, gränser {args.boundary_set}, nivåer {args.levels}, "
+        f"år {years[0]}–{years[-1]} ({len(years)} st), {args.workers} parallella processer")
+    t_all = time.time()
+    for level in args.levels:
+        units = None
+        for year in years:
+            out_csv = args.out / args.boundary_set / "dmsp-irqr" / f"adm{level}" / f"{year}.csv"
+            if args.limit is not None:
+                out_csv = out_csv.with_name(f"{year}_test{args.limit}.csv")
+            if out_csv.exists() and out_csv.with_suffix(".json").exists():
+                log(f"adm{level} {year}: finns redan – hoppar över")
+                continue
+            if units is None:
+                with Progress(f"Läser gränser adm{level}"):
+                    units = load_units(args.boundaries, args.boundary_set, level)
+                    if args.limit is not None:
+                        units = units.iloc[:args.limit].copy()
+            run_one(units, level, year, args, out_csv)
+    log(f"Klart på {fmt_seconds(time.time() - t_all)}.")
+
+
+if __name__ == "__main__":
+    main()
