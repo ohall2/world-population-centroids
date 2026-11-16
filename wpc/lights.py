@@ -164,6 +164,8 @@ ANNUAL = {
              "note": "CCNL v1, 30 bågsekunder (Zhao m.fl. 2022, doi:10.5281/zenodo.6644980)"},
     "viirs": {"glob": "VIIRS_*_average_masked",
               "note": "VIIRS VNL v2 årskompositer, average_masked (nW/cm2/sr)"},
+    "viirs-dmsp": {"glob": "VDMSP_*",
+                   "note": "VIIRS VNL v2 harmoniserad till DMSP-IRQR (tools/harmonize_viirs.py)"},
 }
 
 

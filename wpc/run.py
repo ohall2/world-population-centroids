@@ -248,9 +248,11 @@ def main(argv: list[str] | None = None) -> None:
     args = p.parse_args(argv)
 
     if args.raw_dir is None:
-        args.raw_dir = Path("data/raw") / ("dmsp" if args.source == "dmsp-irqr" else args.source)
+        args.raw_dir = {"dmsp-irqr": Path("data/raw/dmsp"),
+                        "viirs-dmsp": Path("data/derived/viirs_dmsp")}.get(
+                            args.source, Path("data/raw") / args.source)
     if args.flares is None:
-        args.flares = Path("data/processed") / ("flares_viirs_r2km.gpkg" if args.source == "viirs"
+        args.flares = Path("data/processed") / ("flares_viirs_r2km.gpkg" if args.source.startswith("viirs")
                                                 else "flares_dmsp.gpkg")
     if str(args.flares).lower() == "none":
         args.flares = None

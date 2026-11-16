@@ -131,3 +131,36 @@ och 1 km (2024: Ryssland 310 km, Kanada 91 km, Mexiko 96 km); mellan 1 och
 2 km högst 58 km (2013) och 31 km (2024); därefter jämnt med radien i länder
 där facklor ligger nära städer (Kanada, USA, Kina). **Standard är 2 km**;
 1 och 3 km redovisas som känslighetsanalys (data/sensitivity/).
+
+## Harmonisering VIIRS → DMSP (källan `viirs-dmsp`)
+
+DMSP och VIIRS ger olika centroider samma år. För 2013 är medianavståndet
+mellan dem 12,5 km för land, 3,6 km för adm1 och 1,3 km för adm2; för stora
+länder upp till 150–250 km (Indien 146, Brasilien 159, Kanada 253 km).
+Orsaken är sensorerna: DMSP är mättat i stadskärnor, har en
+detektionströskel och smetar ut ljus över flera kilometer; VIIRS har högre
+upplösning, ingen mättnad och ser svagare ljus. Att foga ihop serierna
+direkt skulle ge ett falskt hopp mellan 2013 och 2014.
+
+VIIRS förs därför över till DMSP-IRQR:s skala (tools/harmonize_viirs.py,
+wpc/harmonize.py), i linje med Li m.fl. (2020, Scientific Data 7:168) men med
+en icke-parametrisk överföringsfunktion:
+
+1. VIIRS (15″) aggregeras ytviktat till DMSP:s 30″-rutnät. Rutnäten är
+   förskjutna en halv VIIRS-cell; varje DMSP-cell består av en hel VIIRS-cell
+   och halva grannceller (faltning med [¼, ½, ¼] i båda led).
+2. Bilden smetas ut med en gaussisk kärna (σ i DMSP-pixlar).
+3. För 2013 och för klasser av log10(utsmetad radians) beräknas andelen
+   pixlar som är tända i DMSP-IRQR och medelvärdet bland de tända. Båda görs
+   monotona (viktad pool-adjacent-violators). En pixel får medelvärdet om
+   andelen är minst ½, annars 0, vilket efterliknar DMSP:s tröskel.
+4. σ väljs med tvåfaldig rumslig korsvalidering (10°-band i longitud,
+   varannat band i varje vikning). Fackelmasken (2 km + 2009-polygoner)
+   tillämpas på VIIRS före aggregeringen och på DMSP i anpassningen.
+5. Samma σ och funktion tillämpas på alla VIIRS-år 2013–2025.
+
+Provkörning på ett band 55,7–60° N: korsvaliderat R² 0,80 (σ = 0,5), 0,84
+(1), 0,87 (1,5), 0,89 (2), 0,892 (2,5) och 0,88 (3); vald σ = 2,5 (ca 2,3 km).
+I bandet blev ljussumman 97 % av DMSP:s, korrelationen per pixel 0,94 och den
+ljusviktade medelbreddgraden över Sverige och västra Ryssland lika inom
+0,02°. Resultat för hela jorden följer när den globala körningen är gjord.
