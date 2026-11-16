@@ -73,3 +73,14 @@ def test_snap_transform():
     assert snap_transform(rounded) == DMSP_TRANSFORM
     other = Affine(0.008983152841195215, 0, -180.0044, 0, -0.008983152841195215, 75.0003)
     assert snap_transform(other) == other
+
+
+def test_flare_circles_have_correct_radius():
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
+    import prepare_flares_viirs as pf
+    from wpc.centroids import great_circle_m
+    poly = pf.circles(np.array([75.0]), np.array([61.0]), 2.0)[0]
+    xy = np.asarray(poly.exterior.coords)[:-1]
+    d = [great_circle_m(75.0, 61.0, x, y) for x, y in xy]
+    assert np.allclose(d, 2000.0, rtol=1e-9)
