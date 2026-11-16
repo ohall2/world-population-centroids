@@ -167,6 +167,23 @@ ANNUAL = {
 }
 
 
+def snap_transform(t: Affine, tol: float = 1e-8) -> Affine:
+    """Rätta avrundade 30"/15"-rutnät till exakta värden.
+
+    CCNL-filerna anger skalan 0.0083333333 och hörnet -180.00416666665, dvs.
+    1/120 grad avrundat till tio decimaler (fel ca 0,2 m över hela bredden).
+    Ligger skalan och hörnet inom `tol` från ett exakt rutnät med 1/120 eller
+    1/240 grad används det exakta, så att rutnätet blir identiskt med DMSP:s.
+    """
+    for step in (1 / 120, 1 / 240):
+        if abs(t.a - step) < tol and abs(t.e + step) < tol and t.b == 0 and t.d == 0:
+            c = round(t.c / (step / 2)) * (step / 2)
+            f = round(t.f / (step / 2)) * (step / 2)
+            if abs(c - t.c) < 100 * tol and abs(f - t.f) < 100 * tol:
+                return Affine(step, 0.0, c, 0.0, -step, f)
+    return t
+
+
 def annual_files(name: str, raw_dir: Path) -> dict[int, Path]:
     """År -> GeoTIFF, ur metadatafilerna som download_ee.py skriver."""
     spec = ANNUAL[name]
@@ -195,7 +212,7 @@ class Annual:
         if self._src.crs is None or not self._src.crs.is_geographic:
             raise ValueError(f"{self.path.name}: väntade geografiska koordinater, fick {self._src.crs}")
         self.nodata = self._src.nodata
-        self.transform = self._src.transform
+        self.transform = snap_transform(self._src.transform)
         self.width, self.height = self._src.width, self._src.height
         self.flares = gpd.read_file(flares, engine="pyogrio") if flares else None
         self._flare_index = self.flares.sindex if self.flares is not None else None
