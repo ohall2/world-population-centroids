@@ -20,13 +20,13 @@ class FakeSource:
         self.grid = np.zeros((self.height, self.width), dtype="float32")
 
     def light(self, lon_center, lat_center, value):
-        col, row = ~self.transform * (lon_center, lat_center)
+        col, row = ~self.transform @ (lon_center, lat_center)
         self.grid[int(row), int(col)] = value
 
     def read_window(self, win):
         r0, c0 = int(win.row_off), int(win.col_off)
         data = self.grid[r0:r0 + int(win.height), c0:c0 + int(win.width)].copy()
-        return Window2D(data=data, transform=self.transform * Affine.translation(c0, r0))
+        return Window2D(data=data, transform=self.transform @ Affine.translation(c0, r0))
 
     def read(self, bounds):
         win = grid_window(bounds, self.transform, self.width, self.height)

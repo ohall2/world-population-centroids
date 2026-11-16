@@ -25,7 +25,8 @@ def make_fake_ee():
         def getInfo(self):
             return {"bands": [{"id": "stable_lights", "crs": "EPSG:4326",
                                "crs_transform": [SX, 0, TX, 0, SY, TY],
-                               "dimensions": [W, H]}]}
+                               "dimensions": [W, H],
+                               "data_type": {"type": "PixelType", "precision": "int", "min": 0, "max": 63}}]}
     class Coll:
         def __init__(self, c): pass
         def aggregate_array(self, p):
@@ -49,7 +50,9 @@ def make_fake_ee():
         out = np.zeros((h, w), dtype=[("stable_lights", "u1")])
         out["stable_lights"] = TRUTH[row0:row0 + h, col0:col0 + w]
         return out
-    data.computePixels = computePixels; ee.data = data
+    data.computePixels = computePixels
+    data.setDeadline = lambda ms: calls.__setitem__("deadline", ms)
+    ee.data = data
     return ee, calls
 
 def test_end_to_end(tmp_path, monkeypatch):
@@ -59,6 +62,7 @@ def test_end_to_end(tmp_path, monkeypatch):
     download_ee.main(["--project", "test-proj", "--out", str(tmp_path),
                       "--years", "1994", "2010", "--tile", "128", "--workers", "4"])
     assert calls["init"] == ("test-proj", download_ee.HIGHVOLUME_URL)
+    assert calls["deadline"] == download_ee.REQUEST_TIMEOUT_MS
     files = sorted(p.name for p in tmp_path.glob("*.tif"))
     assert files == ["DMSP_F101994_stable_lights.tif",
                      "DMSP_F121994_stable_lights.tif",
@@ -85,3 +89,17 @@ def test_tiles_cover_grid_exactly():
     cover = np.zeros((H, W), int)
     for c, r, w, h in tiles: cover[r:r+h, c:c+w] += 1
     assert (cover == 1).all()
+
+def test_dtype_and_tile_size():
+    import download_ee as d
+    assert d.numpy_dtype({"precision": "int", "min": 0, "max": 63}) == "uint8"
+    assert d.numpy_dtype({"precision": "int", "min": 0, "max": 1000}) == "uint16"
+    assert d.numpy_dtype({"precision": "int", "min": -5, "max": 1000}) == "int16"
+    assert d.numpy_dtype({"precision": "float"}) == "float32"
+    assert d.numpy_dtype({"precision": "double"}) == "float32"
+    assert d.tile_size("uint8") == 4096 and d.tile_size("float32") == 2048
+
+def test_parse_years():
+    import download_ee as d
+    assert d.parse_years(["all"]) is None
+    assert d.parse_years(["1992-1994", "2010"]) == [1992, 1993, 1994, 2010]

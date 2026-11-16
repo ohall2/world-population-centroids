@@ -7,11 +7,19 @@ Allt annat i pipelinen är oberoende av vilken källa som används.
 Implementerat:
   DmspIrqr  DMSP-OLS v4 Stable Lights, kalibrerade med IRQR-koefficienterna i
             Hall m.fl. (2019, tabell 2), medelvärde per år, gasfacklor maskade.
+  Annual    En färdig årsprodukt med en fil per år, hämtad med
+            tools/download_ee.py: CCNL (Zhao m.fl. 2022) och VIIRS VNL v2.
+            Värdena används som de är (negativa sätts till 0), gasfacklor
+            maskas om en fackelfil anges.
+
+make_source(name, year, ...) skapar rätt källa; available_years(name, ...)
+anger vilka år som finns på disk.
 """
 
 from __future__ import annotations
 
 import csv
+import json
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -123,25 +131,110 @@ class DmspIrqr:
             cal = calibrate(src.read(1, window=win), c0, c1, c2)
             acc = cal if acc is None else acc + cal
         data = acc / len(self._srcs)
-        transform = DMSP_TRANSFORM * Affine.translation(win.col_off, win.row_off)
+        transform = DMSP_TRANSFORM @ Affine.translation(win.col_off, win.row_off)
         out = Window2D(data=data, transform=transform)
         self._mask_flares(out)
         return out
 
     def _mask_flares(self, w: Window2D) -> None:
-        if self._flare_index is None:
-            return
-        hits = self._flare_index.query(_box(w.bounds))
-        if len(hits) == 0:
-            return
-        mask = rasterize(((g, 1) for g in self.flares.geometry.iloc[hits]),
-                         out_shape=w.data.shape, transform=w.transform,
-                         fill=0, all_touched=True, dtype="uint8")
-        w.data[mask.astype(bool)] = 0.0
+        mask_flares(w, self.flares, self._flare_index)
 
     def close(self) -> None:
         for s in self._srcs:
             s.close()
+
+
+def mask_flares(w: Window2D, flares, index) -> None:
+    """Sätt alla pixlar som en fackelpolygon berör till 0 (all_touched)."""
+    if index is None:
+        return
+    hits = index.query(_box(w.bounds))
+    if len(hits) == 0:
+        return
+    mask = rasterize(((g, 1) for g in flares.geometry.iloc[hits]),
+                     out_shape=w.data.shape, transform=w.transform,
+                     fill=0, all_touched=True, dtype="uint8")
+    w.data[mask.astype(bool)] = 0.0
+
+
+# Årsprodukter: filnamnsprefix och band (se tools/download_ee.py).
+ANNUAL = {
+    "ccnl": {"prefix": "CCNL", "band": "b1",
+             "note": "CCNL v1 (Zhao m.fl. 2022), BNU/FGS/CCNL/v1"},
+    "viirs": {"prefix": "VIIRS", "band": "average_masked",
+              "note": "VIIRS VNL v2 årskompositer, average_masked (nW/cm2/sr)"},
+}
+
+
+def annual_files(name: str, raw_dir: Path) -> dict[int, Path]:
+    """År -> GeoTIFF, ur metadatafilerna som download_ee.py skriver."""
+    spec = ANNUAL[name]
+    out: dict[int, Path] = {}
+    for js in sorted(raw_dir.glob(f"{spec['prefix']}_*_{spec['band']}.json")):
+        meta = json.loads(js.read_text())
+        tif = js.with_suffix(".tif")
+        if not tif.exists():
+            continue
+        year = int(meta["year"])
+        if year in out:
+            raise ValueError(f"Två filer för {name} {year}: {out[year].name} och {tif.name}")
+        out[year] = tif
+    return out
+
+
+class Annual:
+    """En årsprodukt med en fil per år, i filens eget rutnät."""
+
+    def __init__(self, name: str, year: int, raw_dir: Path, flares: Path | None):
+        files = annual_files(name, raw_dir)
+        if year not in files:
+            raise FileNotFoundError(f"Ingen {name}-fil för {year} i {raw_dir}")
+        self.name, self.year, self.path = name, year, files[year]
+        self._src = rasterio.open(self.path)
+        self.transform = self._src.transform
+        self.width, self.height = self._src.width, self._src.height
+        self.flares = gpd.read_file(flares, engine="pyogrio") if flares else None
+        self._flare_index = self.flares.sindex if self.flares is not None else None
+
+    def describe(self) -> dict:
+        return {"source": self.name, "year": self.year, "file": str(self.path),
+                "product": ANNUAL[self.name]["note"],
+                "grid": {"width": self.width, "height": self.height,
+                         "transform": list(self.transform)[:6]},
+                "flares": "maskade" if self.flares is not None else "ej maskade"}
+
+    def read(self, bounds) -> Window2D | None:
+        win = grid_window(bounds, self.transform, self.width, self.height)
+        return None if win is None else self.read_window(win)
+
+    def read_window(self, win: Window) -> Window2D:
+        data = self._src.read(1, window=win).astype("float32")
+        data[~np.isfinite(data) | (data < 0)] = 0.0
+        out = Window2D(data=data,
+                       transform=self.transform @ Affine.translation(win.col_off, win.row_off))
+        mask_flares(out, self.flares, self._flare_index)
+        return out
+
+    def close(self) -> None:
+        self._src.close()
+
+
+SOURCES = ["dmsp-irqr", *ANNUAL]
+
+
+def make_source(name: str, year: int, raw_dir: Path, calibration: Path | None,
+                flares: Path | None):
+    if name == "dmsp-irqr":
+        return DmspIrqr(year, raw_dir, calibration, flares)
+    if name in ANNUAL:
+        return Annual(name, year, raw_dir, flares)
+    raise ValueError(f"Okänd ljuskälla: {name}")
+
+
+def available_years(name: str, raw_dir: Path, calibration: Path | None) -> list[int]:
+    if name == "dmsp-irqr":
+        return sorted({y for (_, y) in read_calibration(calibration)})
+    return sorted(annual_files(name, raw_dir))
 
 
 def _box(bounds):
