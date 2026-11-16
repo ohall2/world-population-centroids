@@ -4,8 +4,11 @@ World Population Centroids v2 – hämta nattljusdata från Google Earth Engine.
 
 Produkter (--product):
   dmsp   NOAA/DMSP-OLS/NIGHTTIME_LIGHTS, bandet stable_lights (1992–2013)
-  ccnl   BNU/FGS/CCNL/v1, bandet b1 (Zhao m.fl. 2022, 1992–2013)
   viirs  NOAA/VIIRS/DNB/ANNUAL_V22, banden average_masked och cf_cvg
+
+CCNL hämtas inte härifrån: BNU/FGS/CCNL/v1 i Earth Engine är omsamplad till
+0,008983° (1 km vid ekvatorn). Originalet i 30" hämtas med
+tools/download_zenodo.py --product ccnl.
 
 Skriptet laddar ner banden direkt till disk, utan Google Drive och utan
 kodeditorn. Varje bild och band blir en GeoTIFF i källans eget rutnät
@@ -31,10 +34,10 @@ beräknad återstående tid.
 
 Exempel
   # Visa vad som finns (år, band, rutnät, datatyp) utan att hämta:
-  python tools/download_ee.py --product ccnl --project mitt-projekt --dry-run
+  python tools/download_ee.py --product viirs --project mitt-projekt --dry-run
 
-  # Hämta alla år av CCNL till data/raw/ccnl:
-  python tools/download_ee.py --product ccnl --project mitt-projekt
+  # Hämta alla år av VIIRS till data/raw/viirs:
+  python tools/download_ee.py --product viirs --project mitt-projekt
 """
 
 from __future__ import annotations
@@ -63,8 +66,6 @@ from wpc.progress import Progress, fmt_seconds, log  # noqa: E402
 PRODUCTS = {
     "dmsp": {"collection": "NOAA/DMSP-OLS/NIGHTTIME_LIGHTS",
              "bands": ["stable_lights"], "prefix": "DMSP"},
-    "ccnl": {"collection": "BNU/FGS/CCNL/v1",
-             "bands": ["b1"], "prefix": "CCNL"},
     "viirs": {"collection": "NOAA/VIIRS/DNB/ANNUAL_V22",
               "bands": ["average_masked", "cf_cvg"], "prefix": "VIIRS"},
 }

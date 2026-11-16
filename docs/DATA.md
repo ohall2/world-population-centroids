@@ -5,7 +5,7 @@ Alla filer läggs under `data/`, som inte ingår i git. Sökvägarna nedan är d
 | Data | Sökväg | Hur den hämtas |
 | --- | --- | --- |
 | DMSP-OLS v4 Stable Lights, 35 kompositer | `data/raw/dmsp/DMSP_<satellit><år>_stable_lights.tif` + `.json` | `python tools/download_ee.py --product dmsp --project <earth-engine-projekt>` (kräver Earth Engine-konto och `earthengine authenticate`) |
-| CCNL v1 (Zhao m.fl. 2022), en fil per år 1992–2013 | `data/raw/ccnl/CCNL_<id>_b1.tif` + `.json` | `python tools/download_ee.py --product ccnl --project <earth-engine-projekt>` (Earth Engine `BNU/FGS/CCNL/v1`) |
+| CCNL v1 (Zhao m.fl. 2022), 30″, en fil per år 1992–2013 | `data/raw/ccnl/CCNL_DMSP_<år>_V1.tif` + `.json` | `python tools/download_zenodo.py --product ccnl` (Zenodo doi:10.5281/zenodo.6644980, 22 filer, 7,3 GB; md5 kontrolleras mot Zenodo). Versionen i Earth Engine (`BNU/FGS/CCNL/v1`) är omsamplad till 0,008983° (1 km vid ekvatorn, 40 076 × 15 585 pixlar) och används inte. |
 | VIIRS VNL v2, årskompositer | `data/raw/viirs/VIIRS_<id>_{average_masked,cf_cvg}.tif` + `.json` | `python tools/download_ee.py --product viirs --project <earth-engine-projekt>` (Earth Engine `NOAA/VIIRS/DNB/ANNUAL_V22`) |
 | Fackelpolygoner (Elvidge m.fl. 2009) | `data/raw/flares/` → `data/processed/flares_dmsp.gpkg` | `python tools/prepare_flares.py` |
 | GADM 4.1, nivåer | `data/raw/gadm41/gadm_410-levels.gpkg` | Manuell nedladdning från https://geodata.ucdavis.edu/gadm/gadm4.1/gadm_410-levels.zip (2,5 GB), uppackad med `unzip` (5,0 GB). Zip-filen fungerar också, men är mycket långsam att läsa. |
@@ -16,7 +16,7 @@ Alla filer läggs under `data/`, som inte ingår i git. Sökvägarna nedan är d
 ## Licenser
 
 - DMSP-OLS (NOAA/EOG): public domain.
-- CCNL (Zhao m.fl. 2022, doi:10.5194/essd-14-517-2022): CC BY 4.0.
+- CCNL (Zhao m.fl. 2022, Scientific Data 9:424, doi:10.1038/s41597-022-01540-x; data doi:10.5281/zenodo.6644980): CC BY 4.0.
 - VIIRS VNL v2 (Elvidge m.fl. 2021, EOG): CC BY 4.0.
 - GADM: fritt för akademiskt och annat icke-kommersiellt bruk; vidarespridning och kommersiellt bruk kräver tillstånd.
 

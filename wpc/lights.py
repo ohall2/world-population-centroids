@@ -157,11 +157,12 @@ def mask_flares(w: Window2D, flares, index) -> None:
     w.data[mask.astype(bool)] = 0.0
 
 
-# Årsprodukter: filnamnsprefix och band (se tools/download_ee.py).
+# Årsprodukter: filnamn (utan .tif/.json). Varje fil har en JSON-fil bredvid
+# med fältet "year", skriven av tools/download_zenodo.py eller download_ee.py.
 ANNUAL = {
-    "ccnl": {"prefix": "CCNL", "band": "b1",
-             "note": "CCNL v1 (Zhao m.fl. 2022), BNU/FGS/CCNL/v1"},
-    "viirs": {"prefix": "VIIRS", "band": "average_masked",
+    "ccnl": {"glob": "CCNL_DMSP_*_V1",
+             "note": "CCNL v1, 30 bågsekunder (Zhao m.fl. 2022, doi:10.5281/zenodo.6644980)"},
+    "viirs": {"glob": "VIIRS_*_average_masked",
               "note": "VIIRS VNL v2 årskompositer, average_masked (nW/cm2/sr)"},
 }
 
@@ -170,7 +171,7 @@ def annual_files(name: str, raw_dir: Path) -> dict[int, Path]:
     """År -> GeoTIFF, ur metadatafilerna som download_ee.py skriver."""
     spec = ANNUAL[name]
     out: dict[int, Path] = {}
-    for js in sorted(raw_dir.glob(f"{spec['prefix']}_*_{spec['band']}.json")):
+    for js in sorted(raw_dir.glob(spec["glob"] + ".json")):
         meta = json.loads(js.read_text())
         tif = js.with_suffix(".tif")
         if not tif.exists():
@@ -191,6 +192,9 @@ class Annual:
             raise FileNotFoundError(f"Ingen {name}-fil för {year} i {raw_dir}")
         self.name, self.year, self.path = name, year, files[year]
         self._src = rasterio.open(self.path)
+        if self._src.crs is None or not self._src.crs.is_geographic:
+            raise ValueError(f"{self.path.name}: väntade geografiska koordinater, fick {self._src.crs}")
+        self.nodata = self._src.nodata
         self.transform = self._src.transform
         self.width, self.height = self._src.width, self._src.height
         self.flares = gpd.read_file(flares, engine="pyogrio") if flares else None
@@ -199,6 +203,7 @@ class Annual:
     def describe(self) -> dict:
         return {"source": self.name, "year": self.year, "file": str(self.path),
                 "product": ANNUAL[self.name]["note"],
+                "nodata": self.nodata, "dtype": self._src.dtypes[0],
                 "grid": {"width": self.width, "height": self.height,
                          "transform": list(self.transform)[:6]},
                 "flares": "maskade" if self.flares is not None else "ej maskade"}
@@ -208,8 +213,12 @@ class Annual:
         return None if win is None else self.read_window(win)
 
     def read_window(self, win: Window) -> Window2D:
-        data = self._src.read(1, window=win).astype("float32")
-        data[~np.isfinite(data) | (data < 0)] = 0.0
+        raw = self._src.read(1, window=win)
+        data = raw.astype("float32")
+        bad = ~np.isfinite(data) | (data < 0)
+        if self.nodata is not None:
+            bad |= raw == self.nodata
+        data[bad] = 0.0
         out = Window2D(data=data,
                        transform=self.transform @ Affine.translation(win.col_off, win.row_off))
         mask_flares(out, self.flares, self._flare_index)
