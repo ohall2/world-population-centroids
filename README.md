@@ -25,7 +25,7 @@ pip install -r requirements.txt
 
 # 1. Indata (se docs/DATA.md)
 python tools/download_ee.py --product dmsp --project <earth-engine-projekt>
-python tools/download_ee.py --product ccnl --project <earth-engine-projekt>
+python tools/download_zenodo.py --product ccnl
 python tools/prepare_flares.py
 #    GADM 4.1: ladda ner gadm_410-levels.zip till data/raw/gadm41/ och packa upp den (unzip)
 

@@ -18,12 +18,13 @@ from wpc import run
 from wpc.lights import Annual, available_years
 
 
-def write_ccnl(raw: Path, year: int, data: np.ndarray, transform: Affine) -> None:
+def write_ccnl(raw: Path, year: int, data: np.ndarray, transform: Affine,
+               nodata=None) -> None:
     raw.mkdir(parents=True, exist_ok=True)
-    tif = raw / f"CCNL_{year}_b1.tif"
+    tif = raw / f"CCNL_DMSP_{year}_V1.tif"
     with rasterio.open(tif, "w", driver="GTiff", dtype="float32", count=1,
                        width=data.shape[1], height=data.shape[0],
-                       crs="EPSG:4326", transform=transform) as dst:
+                       crs="EPSG:4326", transform=transform, nodata=nodata) as dst:
         dst.write(data.astype("float32"), 1)
     tif.with_suffix(".json").write_text(json.dumps({"year": year, "band": "b1"}))
 
@@ -37,7 +38,9 @@ def test_annual_end_to_end(tmp_path):
     data[50, 50] = -3.0                       # negativt värde ska bli 0
     raw = tmp_path / "raw" / "ccnl"
     write_ccnl(raw, 2005, data, t)
-    write_ccnl(raw, 2006, data * 2, t)
+    d2 = data * 2
+    d2[0, 0] = -999                           # nodata ska bli 0
+    write_ccnl(raw, 2006, d2, t, nodata=-999)
     assert available_years("ccnl", raw, None) == [2005, 2006]
 
     src = Annual("ccnl", 2005, raw, None)

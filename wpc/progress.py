@@ -69,6 +69,9 @@ class Progress:
         with self._done.get_lock():
             self._done.value += n
 
+    def set_done(self, n: int) -> None:
+        self._done.value = n
+
     def set_text(self, text: str) -> None:
         raw = text.encode("utf-8")[:_TEXT_BYTES - 1]
         self._text[:] = raw + b"\0" * (_TEXT_BYTES - len(raw))
