@@ -8,6 +8,9 @@ Alla filer läggs under `data/`, som inte ingår i git. Sökvägarna nedan är d
 | CCNL v1 (Zhao m.fl. 2022), 30″, en fil per år 1992–2013 | `data/raw/ccnl/CCNL_DMSP_<år>_V1.tif` + `.json` | `python tools/download_zenodo.py --product ccnl` (Zenodo doi:10.5281/zenodo.6644980, 22 filer, 7,3 GB; md5 kontrolleras mot Zenodo). Versionen i Earth Engine (`BNU/FGS/CCNL/v1`) är omsamplad till 0,008983° (1 km vid ekvatorn, 40 076 × 15 585 pixlar) och används inte. |
 | VIIRS VNL v2, årskompositer | `data/raw/viirs/VIIRS_<id>_{average_masked,cf_cvg}.tif` + `.json` | `python tools/download_ee.py --product viirs --project <earth-engine-projekt>` (Earth Engine `NOAA/VIIRS/DNB/ANNUAL_V22`) |
 | Fackelpolygoner (Elvidge m.fl. 2009) | `data/raw/flares/` → `data/processed/flares_dmsp.gpkg` | `python tools/prepare_flares.py` |
+| Fackelkatalog MYC25Q4 (VIIRS Nightfire 2012–2025) | `data/raw/flares_viirs/annual_flare_site_records.csv` m.fl. | `python tools/download_zenodo.py --product flares-viirs` (Zenodo doi:10.5281/zenodo.23091822) |
+| EOG:s årliga fackelkataloger 2012–2024 (Excel) | `data/raw/flares_viirs/legacy/*.xlsx` + `SHA256SUMS` | https://eogdata.mines.edu/global_flare_data/ (nio filer, länkade från https://eogdata.mines.edu/products/vnf/global_gas_flare.html) |
+| Fackelmasker för VIIRS | `data/processed/flares_viirs_r<r>km.gpkg`, `flares_viirs_sites.csv`, `flares_viirs_report.json` | `python tools/prepare_flares_viirs.py --radii 0 1 2 3 5` |
 | GADM 4.1, nivåer | `data/raw/gadm41/gadm_410-levels.gpkg` | Manuell nedladdning från https://geodata.ucdavis.edu/gadm/gadm4.1/gadm_410-levels.zip (2,5 GB), uppackad med `unzip` (5,0 GB). Zip-filen fungerar också, men är mycket långsam att läsa. |
 | GADM 2.8, geometrier (för jämförelse med v1) | `data/raw/gadm28/gadm28_adm{0,1,2}.{shp,shx,prj,cpg}` | https://gml.noaa.gov/aftp/pub/basu/Borders/GADM/ |
 | GADM 2.8, adm0-tabell | `data/raw/gadm28_levels.shp.zip` | Zenodo, doi:10.5281/zenodo.5103739 (md5 090efe30d3cb99f04a4814966832da6e) |
@@ -18,6 +21,8 @@ Alla filer läggs under `data/`, som inte ingår i git. Sökvägarna nedan är d
 - DMSP-OLS (NOAA/EOG): public domain.
 - CCNL (Zhao m.fl. 2022, Scientific Data 9:424, doi:10.1038/s41597-022-01540-x; data doi:10.5281/zenodo.6644980): CC BY 4.0.
 - VIIRS VNL v2 (Elvidge m.fl. 2021, EOG): CC BY 4.0.
+- MYC25Q4 (Zhizhin m.fl. 2026): CC BY-NC 4.0, dvs. bara icke-kommersiellt bruk. Masken som byggs av katalogen omfattas.
+- EOG:s årliga fackelkataloger: ingen licenstext på nedladdningssidan; EOG ska anges som källa.
 - GADM: fritt för akademiskt och annat icke-kommersiellt bruk; vidarespridning och kommersiellt bruk kräver tillstånd.
 
 ## Om nedladdningen

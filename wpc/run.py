@@ -236,8 +236,10 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--raw-dir", type=Path, default=None,
                    help="Rådata (standard data/raw/dmsp, data/raw/ccnl eller data/raw/viirs).")
     p.add_argument("--calibration", type=Path, default=Path("config/calibration_v1.csv"))
-    p.add_argument("--flares", type=Path, default=Path("data/processed/flares_dmsp.gpkg"),
-                   help="Fackelpolygoner (Elvidge m.fl. 2009); 'none' för ingen maskning.")
+    p.add_argument("--flares", type=Path, default=None,
+                   help="Fackelmask. Standard: data/processed/flares_dmsp.gpkg (Elvidge m.fl. "
+                        "2009) för dmsp-irqr och ccnl, data/processed/flares_viirs_r2km.gpkg "
+                        "för viirs (se tools/prepare_flares_viirs.py). 'none' = ingen maskning.")
     p.add_argument("--out", type=Path, default=Path("data/results"))
     p.add_argument("--cache-dir", type=Path, default=Path("data/processed/boundaries"),
                    help="Okomprimerade kopior av gränslagren (byggs automatiskt).")
@@ -247,8 +249,13 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.raw_dir is None:
         args.raw_dir = Path("data/raw") / ("dmsp" if args.source == "dmsp-irqr" else args.source)
-    if args.flares is not None and str(args.flares).lower() == "none":
+    if args.flares is None:
+        args.flares = Path("data/processed") / ("flares_viirs_r2km.gpkg" if args.source == "viirs"
+                                                else "flares_dmsp.gpkg")
+    if str(args.flares).lower() == "none":
         args.flares = None
+    elif not args.flares.exists():
+        sys.exit(f"Fackelmasken {args.flares} finns inte.")
     available = available_years(args.source, args.raw_dir, args.calibration)
     if not available:
         sys.exit(f"Inga filer för {args.source} i {args.raw_dir}.")
