@@ -231,7 +231,7 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--years", nargs="+", default=["all"], help="t.ex. all, 2010, 1992-1995")
     p.add_argument("--levels", nargs="+", type=int, default=[0, 1, 2])
     p.add_argument("--boundary-set", choices=list(BOUNDARIES), default="gadm41")
-    p.add_argument("--boundaries", type=Path, default=Path("data/raw/gadm41/gadm_410-levels.zip"))
+    p.add_argument("--boundaries", type=Path, default=Path("data/raw/gadm41/gadm_410-levels.gpkg"))
     p.add_argument("--raw-dir", type=Path, default=Path("data/raw/dmsp"))
     p.add_argument("--calibration", type=Path, default=Path("config/calibration_v1.csv"))
     p.add_argument("--flares", type=Path, default=Path("data/processed/flares_dmsp.gpkg"))

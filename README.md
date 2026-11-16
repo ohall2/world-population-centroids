@@ -26,7 +26,7 @@ pip install -r requirements.txt
 # 1. Indata (se docs/DATA.md)
 python tools/download_ee.py --project <earth-engine-projekt> --out data/raw/dmsp --years all
 python tools/prepare_flares.py
-#    GADM 4.1: ladda ner gadm_410-levels.zip till data/raw/gadm41/
+#    GADM 4.1: ladda ner gadm_410-levels.zip till data/raw/gadm41/ och packa upp den (unzip)
 
 # 2. Centroider
 python -m wpc.run --years all --levels 0 1 2
