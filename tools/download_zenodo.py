@@ -2,7 +2,7 @@
 """
 World Population Centroids v2 – hämta filer från en Zenodo-post.
 
-Används för CCNL v1 (Zhao m.fl. 2022), som i originalet har 30 bågsekunders
+Används för fackelkatalogen MYC25Q4 (--product flares-viirs) och för CCNL v1 (Zhao m.fl. 2022), som i originalet har 30 bågsekunders
 upplösning. Versionen i Earth Engine (BNU/FGS/CCNL/v1) är omsamplad till ett
 rutnät på 0,008983° (1 km vid ekvatorn) och används därför inte.
 
@@ -43,6 +43,11 @@ PRODUCTS = {
              "citation": "Zhao, C., Cao, X., Chen, X., Cui, X. (2022). A consistent and "
                          "corrected nighttime light dataset (CCNL 1992–2013) from DMSP-OLS "
                          "data. Scientific Data 9, 424. doi:10.1038/s41597-022-01540-x"},
+    # Fackelplatser för VIIRS-perioden (CC BY-NC 4.0).
+    "flares-viirs": {"record": "23091822", "pattern": "*", "out": "data/raw/flares_viirs",
+                     "citation": "Zhizhin, M., Ghosh, T., Gleason, G., Elvidge, C. D., Bazilian, M. "
+                                 "(2026). VIIRS Nightfire upstream gas-flaring volumes, 2012–2025 "
+                                 "(MYC25Q4), version 1.0. Zenodo. doi:10.5281/zenodo.23091822"},
 }
 API = "https://zenodo.org/api/records/{record}"
 TIMEOUT = (30, 120)          # (anslutning, läsning) i sekunder
