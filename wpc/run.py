@@ -60,10 +60,45 @@ def boundary_path(path: Path) -> str:
     return str(path)
 
 
-def load_units(path: Path, bset: str, level: int) -> gpd.GeoDataFrame:
+def cache_path(cache_dir: Path, bset: str, level: int) -> Path:
+    return cache_dir / f"{bset}_adm{level}.gpkg"
+
+
+def build_cache(path: Path, bset: str, level: int, cache_dir: Path) -> None:
+    """Läs ett lager ur gränsfilen (t.ex. en zip) och spara det okomprimerat.
+
+    Att läsa en GeoPackage inuti en zip-fil är mycket långsamt, eftersom
+    GDAL måste packa upp från början vid varje hopp i filen. Lagret sparas
+    därför en gång som en egen GeoPackage med bara de kolumner som behövs.
+    """
     spec = BOUNDARIES[bset]
     gdf = gpd.read_file(boundary_path(path), layer=spec["layer"].format(level=level),
                         columns=spec["keep"][level], engine="pyogrio")
+    out = cache_path(cache_dir, bset, level)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out.with_suffix(".part.gpkg")
+    tmp.unlink(missing_ok=True)
+    gdf.to_file(tmp, driver="GPKG", engine="pyogrio")
+    tmp.replace(out)
+
+
+def load_units(path: Path, bset: str, level: int, cache_dir: Path | None = None) -> gpd.GeoDataFrame:
+    """Läs enheterna på en nivå, via cachen om den finns.
+
+    Byggs cachen körs läsningen i en egen process, så att förloppsvisningen i
+    huvudprocessen fortsätter att uppdateras (GDAL-läsningen blockerar annars
+    Python och klockan står still).
+    """
+    spec = BOUNDARIES[bset]
+    if cache_dir is not None:
+        cached = cache_path(cache_dir, bset, level)
+        if not cached.exists():
+            with ProcessPoolExecutor(max_workers=1) as ex:
+                ex.submit(build_cache, path, bset, level, cache_dir).result()
+        gdf = gpd.read_file(cached, engine="pyogrio")
+    else:
+        gdf = gpd.read_file(boundary_path(path), layer=spec["layer"].format(level=level),
+                            columns=spec["keep"][level], engine="pyogrio")
     gdf = gdf.rename(columns={spec["id"].format(level=level): "unit_id"}) if spec["id"] != "OBJECTID" \
         else gdf.assign(unit_id=gdf["OBJECTID"])
     if gdf["unit_id"].duplicated().any():
@@ -201,6 +236,8 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--calibration", type=Path, default=Path("config/calibration_v1.csv"))
     p.add_argument("--flares", type=Path, default=Path("data/processed/flares_dmsp.gpkg"))
     p.add_argument("--out", type=Path, default=Path("data/results"))
+    p.add_argument("--cache-dir", type=Path, default=Path("data/processed/boundaries"),
+                   help="Okomprimerade kopior av gränslagren (byggs automatiskt).")
     p.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 2) - 1))
     p.add_argument("--limit", type=int, default=None, help="Bara de N första enheterna (för test).")
     args = p.parse_args(argv)
@@ -219,8 +256,11 @@ def main(argv: list[str] | None = None) -> None:
                 log(f"adm{level} {year}: finns redan – hoppar över")
                 continue
             if units is None:
-                with Progress(f"Läser gränser adm{level}"):
-                    units = load_units(args.boundaries, args.boundary_set, level)
+                first = not cache_path(args.cache_dir, args.boundary_set, level).exists()
+                text = (f"Förbereder gränser adm{level} (bara första gången, några minuter)"
+                        if first else f"Läser gränser adm{level}")
+                with Progress(text):
+                    units = load_units(args.boundaries, args.boundary_set, level, args.cache_dir)
                     if args.limit is not None:
                         units = units.iloc[:args.limit].copy()
             run_one(units, level, year, args, out_csv)
