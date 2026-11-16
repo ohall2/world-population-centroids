@@ -65,3 +65,11 @@ def test_annual_end_to_end(tmp_path):
         assert df.loc[0, "aa_flag"] == 0
     meta = json.loads((out / "gadm41" / "ccnl" / "adm0" / "2005.json").read_text())
     assert meta["light_source"]["source"] == "ccnl"
+
+
+def test_snap_transform():
+    from wpc.lights import DMSP_TRANSFORM, snap_transform
+    rounded = Affine(0.0083333333, 0, -180.00416666665, 0, -0.0083333333, 75.00416666665)
+    assert snap_transform(rounded) == DMSP_TRANSFORM
+    other = Affine(0.008983152841195215, 0, -180.0044, 0, -0.008983152841195215, 75.0003)
+    assert snap_transform(other) == other

@@ -58,3 +58,21 @@ v1 går inte att återskapa exakt med Earth Engine-rastren. Ett test för 2010, 
 - Hall, O., Archila Bustos, M. F., Olén, N. B. & Niedomysl, T. (2019). Population centroids of the world administrative units from nighttime lights 1992–2013. *Scientific Data* 6, 235.
 - Elvidge, C. D. m.fl. (2009). A fifteen year record of global natural gas flaring derived from satellite data. *Energies* 2, 595–622.
 - Elvidge, C. D. m.fl. (2014). National trends in satellite-observed lighting 1992–2012. I *Global Urban Monitoring and Assessment through Earth Observation*. CRC Press.
+
+
+## CCNL (Zhao m.fl. 2022) som alternativ ljuskälla
+
+- Källa: originalfilerna på Zenodo (doi:10.5281/zenodo.6644980), 30″, en fil
+  per år 1992–2013. Versionen i Earth Engine (`BNU/FGS/CCNL/v1`) är omsamplad
+  till 0,008983° (1 km vid ekvatorn) och används inte.
+- Filerna har 43 201 × 16 802 pixlar (en rad mer än DMSP v4, längst i söder),
+  float64, nodata −1,797·10³⁰⁸ (förekommer inte i 2010-filen). Skalan anges
+  avrundad till 0,0083333333; koden använder exakt 1/120° och hörnet
+  (−180,0041667; 75,0041667), dvs. samma rutnät som DMSP.
+- Värdena är DN efter korrigering för mellanårsskillnader, mättnad och
+  blooming; de är inte heltal och kan överstiga 63 (max 238 år 2010). De
+  används direkt som ljusvikt, utan ytterligare kalibrering.
+- Korrigeringen lämnar många mycket små positiva värden (10⁻¹⁵–10⁻⁶). De
+  påverkar inte centroiderna märkbart men räknas som lysande pixlar i
+  kolumnen `n_lit`.
+- Gasfacklor maskas med samma polygoner som för DMSP (Elvidge m.fl. 2009).
