@@ -11,8 +11,8 @@ Befolkningscentroider för världens administrativa enheter (nivå 0–2), berä
 | --- | --- |
 | DMSP-OLS 1992–2013, IRQR-kalibrering som i v1 | Kod klar och testad |
 | Gränser GADM 4.1 (v2) och GADM 2.8 (jämförelse med v1) | Klart |
-| VIIRS 2012– | Planerad |
-| Alternativa DMSP-källor (CCNL m.fl.) | Planerad |
+| CCNL 1992–2013 (Zhao m.fl. 2022) | Kod klar och testad, körning pågår |
+| VIIRS 2012– | Nedladdning och källa klara, körning planerad |
 | Validering mot SCB, Eurostat GISCO, US Census | Planerad |
 
 ## Snabbstart
@@ -24,12 +24,14 @@ python -m venv ~/wpc-venv && source ~/wpc-venv/bin/activate
 pip install -r requirements.txt
 
 # 1. Indata (se docs/DATA.md)
-python tools/download_ee.py --project <earth-engine-projekt> --out data/raw/dmsp --years all
+python tools/download_ee.py --product dmsp --project <earth-engine-projekt>
+python tools/download_ee.py --product ccnl --project <earth-engine-projekt>
 python tools/prepare_flares.py
 #    GADM 4.1: ladda ner gadm_410-levels.zip till data/raw/gadm41/ och packa upp den (unzip)
 
 # 2. Centroider
-python -m wpc.run --years all --levels 0 1 2
+python -m wpc.run --source dmsp-irqr      # alla år 1992–2013, adm0–2
+python -m wpc.run --source ccnl
 
 # 3. Tester
 python -m pytest -q tests

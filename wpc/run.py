@@ -31,10 +31,9 @@ import shapely
 
 from . import __version__
 from .centroids import UnitResult, compute_unit
-from .lights import DmspIrqr
+from .lights import SOURCES, available_years, make_source
 from .progress import Progress, fmt_seconds, log
 
-DMSP_YEARS = list(range(1992, 2014))
 
 # Gränsuppsättningar: lager och ID-kolumner per nivå.
 BOUNDARIES = {
@@ -120,9 +119,8 @@ def _get_source(key: tuple):
         if _SOURCE is not None:
             _SOURCE.close()
         name, year, raw_dir, calibration, flares = key
-        if name != "dmsp-irqr":
-            raise ValueError(f"Okänd ljuskälla: {name}")
-        _SOURCE = DmspIrqr(year, Path(raw_dir), Path(calibration), Path(flares) if flares else None)
+        _SOURCE = make_source(name, year, Path(raw_dir), Path(calibration),
+                              Path(flares) if flares else None)
         _SOURCE_KEY = key
     return _SOURCE
 
@@ -164,7 +162,7 @@ def flags(units: gpd.GeoDataFrame, lon: np.ndarray, lat: np.ndarray) -> np.ndarr
 # --------------------------------------------------------------------------
 
 def run_one(units: gpd.GeoDataFrame, level: int, year: int, args, out_csv: Path) -> None:
-    key = ("dmsp-irqr", year, str(args.raw_dir), str(args.calibration),
+    key = (args.source, year, str(args.raw_dir), str(args.calibration),
            str(args.flares) if args.flares else None)
     # Stora enheter först, så att inga långa jobb blir kvar i slutet.
     b = units.geometry.bounds
@@ -190,7 +188,7 @@ def run_one(units: gpd.GeoDataFrame, level: int, year: int, args, out_csv: Path)
     df = pd.concat([units[meta_cols].reset_index(drop=True), df], axis=1)
     df.insert(0, "year", year)
     df.insert(0, "level", level)
-    df.insert(0, "source", "dmsp-irqr")
+    df.insert(0, "source", args.source)
     df["aa_flag"] = flags(units, df["aa_lon"].to_numpy(), df["aa_lat"].to_numpy())
     df["bm_flag"] = flags(units, df["bm_lon"].to_numpy(), df["bm_lat"].to_numpy())
 
@@ -213,9 +211,9 @@ def run_one(units: gpd.GeoDataFrame, level: int, year: int, args, out_csv: Path)
         f"flaggor {meta['aa_flag_counts']} -> {out_csv}")
 
 
-def parse_years(vals: list[str]) -> list[int]:
+def parse_years(vals: list[str], available: list[int]) -> list[int]:
     if vals == ["all"]:
-        return DMSP_YEARS
+        return available
     years = []
     for v in vals:
         if "-" in v:
@@ -228,13 +226,18 @@ def parse_years(vals: list[str]) -> list[int]:
 
 def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(description="Befolkningscentroider från nattljus (v2).")
-    p.add_argument("--years", nargs="+", default=["all"], help="t.ex. all, 2010, 1992-1995")
+    p.add_argument("--source", choices=SOURCES, default="dmsp-irqr",
+                   help="Ljuskälla (standard dmsp-irqr).")
+    p.add_argument("--years", nargs="+", default=["all"],
+                   help="t.ex. all (alla år som finns för källan), 2010, 1992-1995")
     p.add_argument("--levels", nargs="+", type=int, default=[0, 1, 2])
     p.add_argument("--boundary-set", choices=list(BOUNDARIES), default="gadm41")
     p.add_argument("--boundaries", type=Path, default=Path("data/raw/gadm41/gadm_410-levels.gpkg"))
-    p.add_argument("--raw-dir", type=Path, default=Path("data/raw/dmsp"))
+    p.add_argument("--raw-dir", type=Path, default=None,
+                   help="Rådata (standard data/raw/dmsp, data/raw/ccnl eller data/raw/viirs).")
     p.add_argument("--calibration", type=Path, default=Path("config/calibration_v1.csv"))
-    p.add_argument("--flares", type=Path, default=Path("data/processed/flares_dmsp.gpkg"))
+    p.add_argument("--flares", type=Path, default=Path("data/processed/flares_dmsp.gpkg"),
+                   help="Fackelpolygoner (Elvidge m.fl. 2009); 'none' för ingen maskning.")
     p.add_argument("--out", type=Path, default=Path("data/results"))
     p.add_argument("--cache-dir", type=Path, default=Path("data/processed/boundaries"),
                    help="Okomprimerade kopior av gränslagren (byggs automatiskt).")
@@ -242,14 +245,24 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--limit", type=int, default=None, help="Bara de N första enheterna (för test).")
     args = p.parse_args(argv)
 
-    years = parse_years(args.years)
-    log(f"wpc {__version__}: källa dmsp-irqr, gränser {args.boundary_set}, nivåer {args.levels}, "
+    if args.raw_dir is None:
+        args.raw_dir = Path("data/raw") / ("dmsp" if args.source == "dmsp-irqr" else args.source)
+    if args.flares is not None and str(args.flares).lower() == "none":
+        args.flares = None
+    available = available_years(args.source, args.raw_dir, args.calibration)
+    if not available:
+        sys.exit(f"Inga filer för {args.source} i {args.raw_dir}.")
+    years = parse_years(args.years, available)
+    missing = sorted(set(years) - set(available))
+    if missing:
+        sys.exit(f"{args.source}: inga data för år {missing} i {args.raw_dir}.")
+    log(f"wpc {__version__}: källa {args.source}, gränser {args.boundary_set}, nivåer {args.levels}, "
         f"år {years[0]}–{years[-1]} ({len(years)} st), {args.workers} parallella processer")
     t_all = time.time()
     for level in args.levels:
         units = None
         for year in years:
-            out_csv = args.out / args.boundary_set / "dmsp-irqr" / f"adm{level}" / f"{year}.csv"
+            out_csv = args.out / args.boundary_set / args.source / f"adm{level}" / f"{year}.csv"
             if args.limit is not None:
                 out_csv = out_csv.with_name(f"{year}_test{args.limit}.csv")
             if out_csv.exists() and out_csv.with_suffix(".json").exists():

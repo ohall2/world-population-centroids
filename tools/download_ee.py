@@ -1,34 +1,40 @@
 #!/usr/bin/env python3
 """
-World Population Centroids v2 – hämta DMSP-OLS v4 från Google Earth Engine.
+World Population Centroids v2 – hämta nattljusdata från Google Earth Engine.
 
-Skriptet laddar ner bandet `stable_lights` ur Earth Engine-katalogen
-NOAA/DMSP-OLS/NIGHTTIME_LIGHTS direkt till disk, utan Google Drive och utan
-kodeditorn. Varje satellit-år blir en GeoTIFF i källans eget rutnät
+Produkter (--product):
+  dmsp   NOAA/DMSP-OLS/NIGHTTIME_LIGHTS, bandet stable_lights (1992–2013)
+  ccnl   BNU/FGS/CCNL/v1, bandet b1 (Zhao m.fl. 2022, 1992–2013)
+  viirs  NOAA/VIIRS/DNB/ANNUAL_V22, banden average_masked och cf_cvg
+
+Skriptet laddar ner banden direkt till disk, utan Google Drive och utan
+kodeditorn. Varje bild och band blir en GeoTIFF i källans eget rutnät
 (samma CRS, samma affina transform, samma antal rader och kolumner), så att
 inga pixlar resamplas.
 
 Hur det fungerar
-  1. Kompositerna för de valda åren listas ur katalogen.
-  2. För varje komposit läses källans rutnät (crs, crs_transform, dimensions).
-  3. Rutnätet delas i rutor (standard 4096 x 4096 pixlar) som hämtas med
+  1. Bilderna för de valda åren listas ur katalogen.
+  2. För varje bild och band läses källans rutnät och datatyp.
+  3. Rutnätet delas i rutor (ca 16 MB per ruta) som hämtas med
      ee.data.computePixels i formatet NUMPY_NDARRAY, flera samtidigt.
+     Varje anrop har en tidsgräns på 2 minuter och görs om vid fel.
   4. Rutorna skrivs på rätt plats i en GeoTIFF (DEFLATE-komprimerad).
   5. Bredvid varje GeoTIFF skrivs en JSON-fil med ursprung, rutnät och
-     SHA-256-checksumma. Finns båda filerna redan hoppas kompositen över.
+     SHA-256-checksumma. Finns båda filerna redan hoppas filen över, så ett
+     avbrutet körning kan startas om med samma kommando.
 
 Maskade pixlar sätts till 0 (unmask(0)), vilket motsvarar EOG:s
-originalfiler där pixlar utan stabilt ljus har värdet 0.
+originalfiler där pixlar utan ljus har värdet 0.
+
+Under nedladdningen visas en rad med snurra, antal rutor, tid och
+beräknad återstående tid.
 
 Exempel
-  # De sju kompositerna som Fas 1 behöver (1992, 1994, 2004, 2010, 2013):
-  python download_ee.py --project mitt-projekt-id --out data/raw/dmsp
+  # Visa vad som finns (år, band, rutnät, datatyp) utan att hämta:
+  python tools/download_ee.py --product ccnl --project mitt-projekt --dry-run
 
-  # Alla år 1992–2013:
-  python download_ee.py --project mitt-projekt-id --out data/raw/dmsp --years all
-
-  # Bara lista vad som skulle hämtas, utan att hämta:
-  python download_ee.py --project mitt-projekt-id --dry-run
+  # Hämta alla år av CCNL till data/raw/ccnl:
+  python tools/download_ee.py --product ccnl --project mitt-projekt
 """
 
 from __future__ import annotations
@@ -37,7 +43,7 @@ import argparse
 import datetime as dt
 import hashlib
 import json
-import logging
+import math
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -49,13 +55,22 @@ import rasterio
 from rasterio.transform import Affine
 from rasterio.windows import Window
 
-COLLECTION = "NOAA/DMSP-OLS/NIGHTTIME_LIGHTS"
-DEFAULT_BAND = "stable_lights"
-PHASE1_YEARS = [1992, 1994, 2004, 2010, 2013]
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from wpc.progress import Progress, fmt_seconds, log  # noqa: E402
+
+# Produkter som kan hämtas. "prefix" ger filnamnet <prefix>_<id>_<band>.tif;
+# för DMSP behålls namnen från första nedladdningen.
+PRODUCTS = {
+    "dmsp": {"collection": "NOAA/DMSP-OLS/NIGHTTIME_LIGHTS",
+             "bands": ["stable_lights"], "prefix": "DMSP"},
+    "ccnl": {"collection": "BNU/FGS/CCNL/v1",
+             "bands": ["b1"], "prefix": "CCNL"},
+    "viirs": {"collection": "NOAA/VIIRS/DNB/ANNUAL_V22",
+              "bands": ["average_masked", "cf_cvg"], "prefix": "VIIRS"},
+}
 HIGHVOLUME_URL = "https://earthengine-highvolume.googleapis.com"
-
-log = logging.getLogger("download_ee")
-
+REQUEST_TIMEOUT_MS = 120_000     # ett anrop som inte svarat på 2 min avbryts
+TILE_BYTES = 16 * 2**20          # rutstorlek styrs av ca 16 MB per ruta
 
 # --------------------------------------------------------------------------
 # Rutnät och rutor
@@ -100,6 +115,36 @@ def sha256(path: Path) -> str:
 
 
 # --------------------------------------------------------------------------
+# Datatyper
+# --------------------------------------------------------------------------
+
+_CASTERS = {"uint8": "toUint8", "uint16": "toUint16", "int16": "toInt16",
+            "int32": "toInt32", "float32": "toFloat"}
+
+
+def numpy_dtype(data_type: dict) -> str:
+    """Minsta numpy-typ som rymmer bandets värden enligt Earth Engine."""
+    if data_type.get("precision") != "int":
+        return "float32"
+    lo, hi = data_type.get("min", -2**31), data_type.get("max", 2**31 - 1)
+    if lo >= 0 and hi <= 255:
+        return "uint8"
+    if lo >= 0 and hi <= 65535:
+        return "uint16"
+    if lo >= -32768 and hi <= 32767:
+        return "int16"
+    if lo >= -2**31 and hi <= 2**31 - 1:
+        return "int32"
+    raise ValueError(f"Heltalsintervall {lo}..{hi} ryms inte i int32")
+
+
+def tile_size(dtype: str) -> int:
+    """Rutsida i pixlar, multipel av 256, så att en ruta blir ca TILE_BYTES."""
+    side = int(math.sqrt(TILE_BYTES / np.dtype(dtype).itemsize))
+    return max(256, side // 256 * 256)
+
+
+# --------------------------------------------------------------------------
 # Sammansättning (oberoende av Earth Engine, så att den kan testas lokalt)
 # --------------------------------------------------------------------------
 
@@ -117,22 +162,23 @@ def assemble(out_tif: Path, crs: str, transform: list[float], width: int,
         "width": width, "height": height,
         "crs": crs, "transform": Affine(*transform),
         "tiled": True, "blockxsize": 512, "blockysize": 512,
-        "compress": "deflate", "predictor": 2, "BIGTIFF": "IF_SAFER",
+        "compress": "deflate", "predictor": 3 if dtype == "float32" else 2,
+        "BIGTIFF": "IF_SAFER",
     }
     tmp = out_tif.with_suffix(out_tif.suffix + ".part")
-    with rasterio.open(tmp, "w", **profile) as dst:
-        with ThreadPoolExecutor(max_workers=workers) as pool:
-            futures = {pool.submit(fetch, *t): t for t in tiles}
-            for i, fut in enumerate(as_completed(futures), start=1):
-                col0, row0, w, h = futures[fut]
-                arr = fut.result()
-                if arr.shape != (h, w):
-                    raise RuntimeError(
-                        f"Ruta col0={col0} row0={row0}: fick {arr.shape}, väntade {(h, w)}")
-                dst.write(arr.astype(dtype, copy=False), 1,
-                          window=Window(col0, row0, w, h))
-                if i % 10 == 0 or i == len(tiles):
-                    log.info("  %d/%d rutor klara", i, len(tiles))
+    with Progress(out_tif.name, total=len(tiles)) as prog, \
+            rasterio.open(tmp, "w", **profile) as dst, \
+            ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(fetch, *t): t for t in tiles}
+        for fut in as_completed(futures):
+            col0, row0, w, h = futures[fut]
+            arr = fut.result()
+            if arr.shape != (h, w):
+                raise RuntimeError(
+                    f"Ruta col0={col0} row0={row0}: fick {arr.shape}, väntade {(h, w)}")
+            dst.write(arr.astype(dtype, copy=False), 1,
+                      window=Window(col0, row0, w, h))
+            prog.advance()
     tmp.replace(out_tif)
     return len(tiles)
 
@@ -153,14 +199,17 @@ def init_ee(project: str, highvolume: bool) -> None:
             "Kunde inte ansluta till Earth Engine.\n"
             f"Fel: {exc}\n\n"
             "Kontrollera att du har kört 'earthengine authenticate' och att\n"
-            "projekt-ID:t är rätt och registrerat för Earth Engine."
-        )
+            "projekt-ID:t är rätt och registrerat för Earth Engine.")
+    # Utan tidsgräns kan ett anrop hänga i det oändliga när uppkopplingen
+    # tappas; då avbryts det i stället och görs om.
+    if hasattr(ee.data, "setDeadline"):
+        ee.data.setDeadline(REQUEST_TIMEOUT_MS)
 
 
-def list_images(years: list[int] | None) -> list[dict]:
-    """Lista kompositerna i katalogen, eventuellt filtrerade på år."""
+def list_images(collection: str, years: list[int] | None) -> list[dict]:
+    """Lista bilderna i katalogen, eventuellt filtrerade på år."""
     import ee
-    coll = ee.ImageCollection(COLLECTION)
+    coll = ee.ImageCollection(collection)
     ids = coll.aggregate_array("system:index").getInfo()
     starts = coll.aggregate_array("system:time_start").getInfo()
     images = []
@@ -172,13 +221,25 @@ def list_images(years: list[int] | None) -> list[dict]:
     return images
 
 
+def band_info(asset_id: str, band: str) -> dict:
+    """Rutnät och datatyp för ett band, ur katalogen."""
+    import ee
+    info = ee.Image(asset_id).select(band).getInfo()["bands"][0]
+    if "dimensions" not in info:
+        raise RuntimeError(f"{asset_id}/{band}: saknar fasta dimensioner i katalogen.")
+    return {"crs": info["crs"],
+            "transform": [float(v) for v in info["crs_transform"]],
+            "width": int(info["dimensions"][0]),
+            "height": int(info["dimensions"][1]),
+            "data_type": info.get("data_type", {}),
+            "dtype": numpy_dtype(info.get("data_type", {}))}
+
+
 def fetch_tile_factory(asset_id: str, band: str, crs: str,
-                       transform: list[float], ee_dtype: str,
+                       transform: list[float], dtype: str,
                        retries: int = 6) -> Callable[[int, int, int, int], np.ndarray]:
     import ee
-    caster = {"uint8": "toUint8", "uint16": "toUint16",
-              "float32": "toFloat"}[ee_dtype]
-    image = getattr(ee.Image(asset_id).select(band).unmask(0), caster)()
+    image = getattr(ee.Image(asset_id).select(band).unmask(0), _CASTERS[dtype])()
 
     def fetch(col0: int, row0: int, w: int, h: int) -> np.ndarray:
         request = {
@@ -196,49 +257,50 @@ def fetch_tile_factory(asset_id: str, band: str, crs: str,
                         f"Ruta col0={col0} row0={row0} misslyckades efter "
                         f"{retries} försök: {exc}") from exc
                 wait = min(60, 2 ** attempt)
-                log.warning("  ruta col0=%d row0=%d: %s – nytt försök om %d s",
-                            col0, row0, exc, wait)
+                log(f"  ruta col0={col0} row0={row0}: {str(exc)[:120]} "
+                    f"– nytt försök om {wait} s")
                 time.sleep(wait)
         raise AssertionError("unreachable")
 
     return fetch
 
 
-def download_image(img: dict, band: str, out_dir: Path, tile: int,
-                   workers: int, project: str) -> None:
+def out_name(prefix: str, img_id: str, band: str) -> str:
+    return f"{prefix}_{img_id}_{band}.tif"
+
+
+def download_band(img: dict, band: str, collection: str, prefix: str,
+                  out_dir: Path, tile: int | None, workers: int,
+                  project: str) -> None:
     import ee
-    asset_id = f"{COLLECTION}/{img['id']}"
-    out_tif = out_dir / f"DMSP_{img['id']}_{band}.tif"
+    asset_id = f"{collection}/{img['id']}"
+    out_tif = out_dir / out_name(prefix, img["id"], band)
     out_json = out_tif.with_suffix(".json")
     if out_tif.exists() and out_json.exists():
-        log.info("%s finns redan – hoppar över", out_tif.name)
+        log(f"{out_tif.name} finns redan – hoppar över")
         return
 
-    info = ee.Image(asset_id).select(band).getInfo()["bands"][0]
-    if "dimensions" not in info:
-        raise RuntimeError(f"{asset_id}: saknar fasta dimensioner i katalogen.")
-    crs = info["crs"]
-    transform = [float(v) for v in info["crs_transform"]]
-    width, height = (int(v) for v in info["dimensions"])
-    dtype = "uint8"  # stable_lights är DN 0–63
-
-    log.info("%s: %d x %d pixlar, %s, transform %s",
-             img["id"], width, height, crs, transform)
-    fetch = fetch_tile_factory(asset_id, band, crs, transform, dtype)
+    g = band_info(asset_id, band)
+    tile = tile or tile_size(g["dtype"])
+    log(f"{out_tif.name}: {g['width']} x {g['height']} pixlar, {g['dtype']}, "
+        f"rutor {tile} px")
+    fetch = fetch_tile_factory(asset_id, band, g["crs"], g["transform"], g["dtype"])
     t0 = time.time()
-    n_tiles = assemble(out_tif, crs, transform, width, height, dtype,
-                       tile, workers, fetch)
+    n_tiles = assemble(out_tif, g["crs"], g["transform"], g["width"], g["height"],
+                       g["dtype"], tile, workers, fetch)
 
     meta = {
         "source": "Google Earth Engine",
+        "collection": collection,
         "asset_id": asset_id,
         "band": band,
         "year": img["year"],
-        "crs": crs,
-        "crs_transform": transform,
-        "width": width,
-        "height": height,
-        "dtype": dtype,
+        "crs": g["crs"],
+        "crs_transform": g["transform"],
+        "width": g["width"],
+        "height": g["height"],
+        "ee_data_type": g["data_type"],
+        "dtype": g["dtype"],
         "masked_pixels_set_to": 0,
         "tile_size": tile,
         "n_tiles": n_tiles,
@@ -249,7 +311,23 @@ def download_image(img: dict, band: str, out_dir: Path, tile: int,
         "sha256": sha256(out_tif),
     }
     out_json.write_text(json.dumps(meta, indent=2, ensure_ascii=False) + "\n")
-    log.info("%s klar (%.0f s)", out_tif.name, meta["seconds"])
+
+
+def dry_run(images: list[dict], collection: str, bands: list[str]) -> None:
+    """Skriv ut år, band, rutnät och datatyp, och uppskattad storlek."""
+    seen = set()
+    for img in images:
+        for band in bands:
+            g = band_info(f"{collection}/{img['id']}", band)
+            key = (band, g["width"], g["height"], tuple(g["transform"]), g["dtype"])
+            mark = "" if key in seen else "   <- nytt rutnät/typ"
+            seen.add(key)
+            gb = g["width"] * g["height"] * np.dtype(g["dtype"]).itemsize / 1e9
+            print(f"  {img['id']:>12} {img['year']}  {band:<15} "
+                  f"{g['width']} x {g['height']}  {g['dtype']:<7} "
+                  f"({g['data_type'].get('precision')}, "
+                  f"{g['data_type'].get('min')}..{g['data_type'].get('max')})  "
+                  f"okomprimerat {gb:.1f} GB  transform {g['transform']}{mark}")
 
 
 # --------------------------------------------------------------------------
@@ -258,48 +336,68 @@ def download_image(img: dict, band: str, out_dir: Path, tile: int,
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="Hämta DMSP-OLS v4 stable_lights från Earth Engine till disk.")
+        description="Hämta nattljusdata från Earth Engine till disk.")
+    p.add_argument("--product", choices=sorted(PRODUCTS), default="dmsp")
     p.add_argument("--project", required=True,
                    help="Ditt Google Cloud-projekt-ID för Earth Engine.")
-    p.add_argument("--out", default="data/raw/dmsp",
-                   help="Mapp för GeoTIFF-filerna (skapas vid behov).")
-    p.add_argument("--years", nargs="+", default=[str(y) for y in PHASE1_YEARS],
-                   help="År att hämta, eller 'all'. Standard: Fas 1-åren "
-                        "1992 1994 2004 2010 2013.")
-    p.add_argument("--band", default=DEFAULT_BAND)
-    p.add_argument("--tile", type=int, default=4096,
-                   help="Rutstorlek i pixlar (standard 4096).")
+    p.add_argument("--out", default=None,
+                   help="Mapp för GeoTIFF-filerna (standard data/raw/<produkt>).")
+    p.add_argument("--years", nargs="+", default=["all"],
+                   help="År att hämta, t.ex. 1992 1993 eller 1992-2000, eller "
+                        "'all' (standard).")
+    p.add_argument("--bands", nargs="+", default=None,
+                   help="Band att hämta (standard: produktens band).")
+    p.add_argument("--collection", default=None,
+                   help="Annan katalogsamling än produktens standard.")
+    p.add_argument("--tile", type=int, default=None,
+                   help="Rutstorlek i pixlar (standard: ca 16 MB per ruta).")
     p.add_argument("--workers", type=int, default=8,
                    help="Antal rutor som hämtas samtidigt (standard 8).")
     p.add_argument("--no-highvolume", action="store_true",
                    help="Använd standardslutpunkten i stället för high-volume.")
     p.add_argument("--dry-run", action="store_true",
-                   help="Lista kompositerna utan att hämta något.")
+                   help="Visa vad som finns, utan att hämta något.")
     return p.parse_args(argv)
+
+
+def parse_years(tokens: list[str]) -> list[int] | None:
+    if tokens == ["all"]:
+        return None
+    years: list[int] = []
+    for t in tokens:
+        if "-" in t:
+            a, b = (int(x) for x in t.split("-"))
+            years.extend(range(a, b + 1))
+        else:
+            years.append(int(t))
+    return sorted(set(years))
 
 
 def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
-    logging.basicConfig(level=logging.INFO,
-                        format="%(asctime)s %(levelname)s %(message)s",
-                        datefmt="%H:%M:%S")
-    years = None if args.years == ["all"] else [int(y) for y in args.years]
+    prod = PRODUCTS[args.product]
+    collection = args.collection or prod["collection"]
+    bands = args.bands or prod["bands"]
+    years = parse_years(args.years)
 
     init_ee(args.project, highvolume=not args.no_highvolume)
-    images = list_images(years)
+    images = list_images(collection, years)
     if not images:
-        sys.exit("Inga kompositer hittades för de valda åren.")
-    log.info("%d kompositer: %s", len(images),
-             ", ".join(f"{d['id']} ({d['year']})" for d in images))
+        sys.exit(f"Inga bilder i {collection} för de valda åren.")
+    log(f"{collection}: {len(images)} bilder, år "
+        f"{images[0]['year']}–{images[-1]['year']}, band {', '.join(bands)}")
     if args.dry_run:
+        dry_run(images, collection, bands)
         return
 
-    out_dir = Path(args.out)
+    out_dir = Path(args.out or f"data/raw/{args.product}")
     out_dir.mkdir(parents=True, exist_ok=True)
+    t0 = time.time()
     for img in images:
-        download_image(img, args.band, out_dir, args.tile, args.workers,
-                       args.project)
-    log.info("Klart. Filerna ligger i %s", out_dir.resolve())
+        for band in bands:
+            download_band(img, band, collection, prod["prefix"], out_dir,
+                          args.tile, args.workers, args.project)
+    log(f"Klart på {fmt_seconds(time.time() - t0)}. Filerna ligger i {out_dir.resolve()}")
 
 
 if __name__ == "__main__":
