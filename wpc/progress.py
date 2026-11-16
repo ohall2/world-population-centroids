@@ -91,5 +91,7 @@ class Progress:
 
 
 def log(msg: str) -> None:
-    sys.stdout.write(f"{time.strftime('%H:%M:%S')} {msg}\n")
+    # \r + rensa raden: skriver över en eventuell förloppsrad i stället för
+    # att hamna efter den.
+    sys.stdout.write(f"\r{_CLEAR}{time.strftime('%H:%M:%S')} {msg}\n")
     sys.stdout.flush()

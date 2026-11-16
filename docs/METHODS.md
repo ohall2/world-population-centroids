@@ -76,3 +76,19 @@ v1 går inte att återskapa exakt med Earth Engine-rastren. Ett test för 2010, 
   påverkar inte centroiderna märkbart men räknas som lysande pixlar i
   kolumnen `n_lit`.
 - Gasfacklor maskas med samma polygoner som för DMSP (Elvidge m.fl. 2009).
+
+### Jämförelse CCNL – DMSP-IRQR (GADM 4.1, Barmore, 1992–2013)
+
+| Nivå | Medianhopp per år, DMSP | Medianhopp, CCNL | 99 %-percentil DMSP / CCNL | Avstånd DMSP–CCNL samma år, median (90 %) |
+| --- | --- | --- | --- | --- |
+| adm0 | 4,2 km | 4,3 km | 164 / 157 km | 4,4 km (24,6 km) |
+| adm1 | 1,3 km | 1,3 km | 46 / 47 km | 0,9 km (5,5 km) |
+| adm2 | 0,53 km | 0,58 km | 14,3 / 14,8 km | 0,3 km (1,3 km) |
+
+CCNL minskar inte hoppen mellan åren. De stora hoppen kommer samma år i båda
+källorna (t.ex. Norge 1993, 1997, 2000; Sverige 2003; Kanada 1995–1998), och
+bara en tredjedel av enheterna får lägre medianhopp med CCNL. Bruset ligger
+alltså i de underliggande DMSP-kompositerna och inte i IRQR-kalibreringen.
+Avståndet mellan källorna samma år är ett mått på hur känsliga centroiderna
+är för valet av korrigering; det är störst där mättnad och blooming är stora
+(Brasilien 55 km, Kanada 48 km, Ryssland 27 km på nationell nivå).
