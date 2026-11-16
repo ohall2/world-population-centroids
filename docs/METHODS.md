@@ -92,3 +92,42 @@ alltså i de underliggande DMSP-kompositerna och inte i IRQR-kalibreringen.
 Avståndet mellan källorna samma år är ett mått på hur känsliga centroiderna
 är för valet av korrigering; det är störst där mättnad och blooming är stora
 (Brasilien 55 km, Kanada 48 km, Ryssland 27 km på nationell nivå).
+
+## VIIRS VNL v2 (2013–2025)
+
+- Källa: Earth Engine `NOAA/VIIRS/DNB/ANNUAL_V21` (2013–2021) och
+  `ANNUAL_V22` (2022–2025), bandet `average_masked` (nW/cm²/sr), i källans
+  eget rutnät: 86 401 × 33 601 pixlar à 15″, hörn (−180,0020833; 75,0020833).
+  Skalan anges avrundad till 0,0041666667; koden använder exakt 1/240°.
+  2012 saknas i Earth Engine (och bygger bara på april–december).
+- Negativa värden (47 905 pixlar 2013) sätts till 0.
+- Ljuset vägs med cellarea som för DMSP; ingen kalibrering mellan åren.
+
+### Fackelmask för VIIRS
+
+Gasfacklor dominerar VIIRS-ljuset i oljeländer (2013: Nigerdeltat tre gånger
+Stockholmsområdets ljussumma; högsta pixel 104 816 nW/cm²/sr). Polygonerna
+från 2009 täcker 95 % av fackelljuset i Nigerdeltat men 0 % i Bakken och 10 %
+i Permian. Masken byggs därför av fackelplatser från VIIRS Nightfire
+(MYC25Q4 2012–2025 och EOG:s årskataloger 2012–2024, inklusive LNG,
+gasbehandling och raffinaderier) plus 2009-polygonerna; varje plats får en
+sfärisk cirkel med radien r (tools/prepare_flares_viirs.py). Masken är
+statisk, som för DMSP.
+
+Val av radie (VIIRS 2013, andel av ljuset i rutan som maskas):
+
+| Område | 1 km | 2 km | 3 km | 5 km |
+| --- | --- | --- | --- | --- |
+| Bakken (fält) | 91 % | 99 % | 99 % | 100 % |
+| Permian (fält) | 72 % | 83 % | 89 % | 96 % |
+| Edmonton | 3 % | 7 % | 12 % | 24 % |
+| Houston | 7 % | 10 % | 15 % | 26 % |
+| Oklahoma City | 2 % | 6 % | 13 % | 31 % |
+| Midland-Odessa (i fältet) | 37 % | 65 % | 84 % | 100 % |
+
+Över 2 km växer andelen maskat stadsljus snabbare än andelen fackelljus.
+Nationella centroider (adm0, Barmore) flyttar sig mest mellan 2009-polygonerna
+och 1 km (2024: Ryssland 310 km, Kanada 91 km, Mexiko 96 km); mellan 1 och
+2 km högst 58 km (2013) och 31 km (2024); därefter jämnt med radien i länder
+där facklor ligger nära städer (Kanada, USA, Kina). **Standard är 2 km**;
+1 och 3 km redovisas som känslighetsanalys (data/sensitivity/).
