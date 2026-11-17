@@ -7,6 +7,14 @@ Huvudserien är den bakåt skarvade (`spliced-back`, tools/splice_series.py
 enhet till rå VIIRS 2013, och rå VIIRS VNL v2 2013–2025. Valet och
 valideringen beskrivs i docs/HARMONIZATION.md (avsnitt 10).
 
+Nivå 0 (länder) tas från körningen där ljuset norr om 65° N är maskat, som i
+v1 (`wpc.run --max-lat 65`, data/results_m65); nivå 1 och 2 från körningen
+utan den maskningen (data/results_mask2km). Maskningen tar bort ett
+nord–sydligt fel i ljus per invånare som bara märks när en enhet spänner över
+gradienten (de nordiska ländernas centroider låg 50–150 km för långt
+norrut); på nivå 1 och 2 skulle den i stället ta bort hela enheter och ge
+stora fel i enheter som skärs av 65° N (avsnitt 11).
+
 En CSV-fil per nivå, i långt format (en rad per enhet och år):
 
   unit_id, GID_0, COUNTRY[, GID_1, NAME_1[, GID_2, NAME_2]], year, sensor,
@@ -26,6 +34,8 @@ En CSV-fil per nivå, i långt format (en rad per enhet och år):
                   VIIRS-åren – ett mått på brus, inte ett konfidensintervall
   n_cells         antal rutnätsceller som enheten täcker i källan
   area_km2        enhetens yta enligt rutnätet
+  max_lat         nordligaste latitud med ljus som används (65 på nivå 0,
+                  tom på nivå 1–2 där inget är maskat)
 
 Dessutom skrivs metadata.json (källor, versioner, valideringens lägesfel
 per nivå) och en kort README.md i utdatamappen.
@@ -82,7 +92,7 @@ def git_commit() -> str | None:
         return None
 
 
-def build_level(src_dir: Path, level: int, year0: int) -> pd.DataFrame:
+def build_level(src_dir: Path, level: int, year0: int, max_lat: float | None = None) -> pd.DataFrame:
     files = sorted(src_dir.glob("*.csv"))
     d = pd.concat([read_results(f) for f in files], ignore_index=True)
     d["sensor"] = np.where(d.year >= year0, "VIIRS", "DMSP")
@@ -98,16 +108,21 @@ def build_level(src_dir: Path, level: int, year0: int) -> pd.DataFrame:
     noise = d.groupby(["unit_id", "sensor"])["_jump"].median().unstack()
     d["noise_dmsp_km"] = d.unit_id.map(noise.get("DMSP", pd.Series(dtype=float)))
     d["noise_viirs_km"] = d.unit_id.map(noise.get("VIIRS", pd.Series(dtype=float)))
+    d["max_lat"] = max_lat if max_lat is not None else np.nan
     cols = (["unit_id"] + [c for c in ID_COLS[level] if c in d.columns and c != f"GID_{level}"]
             + ["year", "sensor", "bm_lon", "bm_lat", "aa_lon", "aa_lat", "bm_flag", "aa_flag",
-               "splice_ok", "splice_shift_km", "noise_dmsp_km", "noise_viirs_km", "n_cells", "area_km2"])
+               "splice_ok", "splice_shift_km", "noise_dmsp_km", "noise_viirs_km", "n_cells", "area_km2", "max_lat"])
     return d[[c for c in cols if c in d.columns]]
 
 
 def main(argv=None):
     p = argparse.ArgumentParser(description="Bygg den publicerbara datamängden.")
     p.add_argument("--source", default="spliced-back")
-    p.add_argument("--results", type=Path, default=Path("data/results_mask2km"))
+    p.add_argument("--results", type=Path, default=Path("data/results_mask2km"),
+                   help="Körning för nivå 1 och 2 (utan maskning norr om 65° N).")
+    p.add_argument("--results-adm0", type=Path, default=Path("data/results_m65"),
+                   help="Körning för nivå 0 (wpc.run --max-lat 65).")
+    p.add_argument("--adm0-max-lat", type=float, default=65.0)
     p.add_argument("--boundary-set", default="gadm41")
     p.add_argument("--validation", type=Path, default=Path("docs/validation"))
     p.add_argument("--out", type=Path, default=None, help="Standard: data/release/v<version>.")
@@ -120,14 +135,15 @@ def main(argv=None):
             "git_commit": git_commit(), "source_series": args.source, "boundaries": "GADM 4.1",
             "method": "docs/METHODS.md, docs/HARMONIZATION.md", "files": {}}
     for level in (0, 1, 2):
-        src = args.results / args.boundary_set / args.source / f"adm{level}"
+        root, max_lat = (args.results_adm0, args.adm0_max_lat) if level == 0 else (args.results, None)
+        src = root / args.boundary_set / args.source / f"adm{level}"
         splice = json.loads((src / "splice.json").read_text())
         year0 = splice["splice_year"]
-        d = build_level(src, level, year0)
+        d = build_level(src, level, year0, max_lat)
         f = out / f"wpc_v2_gadm41_adm{level}.csv"
         d.to_csv(f, index=False, float_format="%.6f")
         meta["files"][f.name] = {
-            "level": level, "rows": int(len(d)), "units": int(d.unit_id.nunique()),
+            "level": level, "results": str(root), "max_lat": max_lat, "rows": int(len(d)), "units": int(d.unit_id.nunique()),
             "years": [int(d.year.min()), int(d.year.max())], "splice": splice,
             "units_not_spliced": int(d[d.year == year0 - 1].splice_ok.eq(0).sum()),
             "noise_km_median": {"DMSP": float(d.drop_duplicates("unit_id").noise_dmsp_km.median()),
@@ -135,11 +151,11 @@ def main(argv=None):
             "sha256": sha256(f)}
         print(f"adm{level}: {len(d)} rader, {d.unit_id.nunique()} enheter -> {f}")
     val = {}
-    for ds in ("census", "geostat"):
+    for ds in ("census", "geostat", "inegi"):
         vp = args.validation / f"{ds}_position.csv"
         if vp.exists():
             v = pd.read_csv(vp)
-            v = v[v.series == "back"]
+            v = v[v.series == "release"]
             val[ds] = {f"adm{int(r.level)}_{int(r.year)}": {"n": int(r.n), "bm_median_km": round(r.bm_median, 3),
                                                            "bm_p90_km": round(r.bm_p90, 3)}
                        for r in v.itertuples()}
@@ -156,10 +172,17 @@ def main(argv=None):
         "https://github.com/ohall2/world-population-centroids (gren v2).\n\n"
         "## Filer\n\nEn CSV-fil per nivå" + doc +
         "\n## Lägesfel mot folkräkningar (Barmore, km)\n\n"
+        "census = USA (block groups), geostat = Europa (1 km-rutor), inegi = Mexiko (orter). "
+        "Nivå 0 mäts med maskning norr om 65° N, nivå 1–2 utan.\n\n"
         "| Facit | Nivå och år | Enheter | Median | 90 % |\n| --- | --- | --- | --- | --- |\n" + vtab + "\n\n"
         "## Begränsningar\n\n"
         "- Förändring över tio år kan inte mätas på subnationell nivå i USA och Europa: felet i "
         "förändringen är större än befolkningens faktiska förflyttning.\n"
+        "- Mexikos nationella centroid ligger omkring 130 km fel: ljus per invånare följer inkomst, "
+        "som är högre i norr. Liknande fel kan finnas i andra länder med stora regionala "
+        "inkomstskillnader.\n"
+        "- Nivå 0 använder inget ljus norr om 65° N (som v1); nivå 1–2 använder allt ljus. "
+        "Enheter helt norr om 65° N, som Svalbard, saknar därför nationell centroid.\n"
         "- Enheter med splice_ok = 0 har DMSP-år som inte är jämförbara med VIIRS-åren.\n"
         "- Enhets-ID och namn följer GADM 4.1, inklusive dess egna koder som \"?\" för okända enheter.\n")
     print(f"metadata och README -> {out}")
