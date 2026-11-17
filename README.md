@@ -1,19 +1,26 @@
-# World Population Centroids – v2 (under arbete)
+# World Population Centroids – v2 (utvecklingsversion)
 
 Befolkningscentroider för världens administrativa enheter (nivå 0–2), beräknade från satellitobserverat nattljus.
 
 - **v1** (Hall m.fl. 2019, *Scientific Data* 6:235, [doi:10.1038/s41597-019-0250-z](https://doi.org/10.1038/s41597-019-0250-z)) täcker 1992–2013 med DMSP-OLS och GADM 2.8. Originalfilerna ligger orörda i [`legacy/v1/`](legacy/v1/).
 - **v2** räknas om från grunden med en öppen, testad pipeline och förlängs med VIIRS. Arbetet pågår på grenen `v2`.
 
-## Status
+## Status (17 november 2026)
+
+Huvudserien är klar som utvecklingsversion: GADM 4.1 nivå 0–2, 1992–2025. Den är
+validerad mot US Census (2000, 2010, 2020) och Eurostat GEOSTAT (2011, 2021).
+Resonemang och resultat steg för steg: [`docs/HARMONIZATION.md`](docs/HARMONIZATION.md).
 
 | Del | Status |
 | --- | --- |
-| DMSP-OLS 1992–2013, IRQR-kalibrering som i v1 | Kod klar och testad |
-| Gränser GADM 4.1 (v2) och GADM 2.8 (jämförelse med v1) | Klart |
-| CCNL 1992–2013 (Zhao m.fl. 2022) | Kod klar och testad, körning pågår |
-| VIIRS 2012– | Nedladdning och källa klara, körning planerad |
-| Validering mot SCB, Eurostat GISCO, US Census | Planerad |
+| DMSP-OLS 1992–2013, IRQR-kalibrering som i v1 | Klar |
+| Samregistrering av DMSP-kompositerna mot VIIRS | Klar |
+| VIIRS VNL v2 2013–2025, fackelmask 2 km | Klar |
+| Skarvning per enhet (DMSP flyttad till VIIRS 2013) = huvudserien | Klar |
+| Validering mot folkräkningar (USA, Europa) | Klar |
+| Jämförelser: CCNL, Li m.fl. 2020, Chiovelli m.fl. 2026, VIIRS harmoniserad till DMSP | Klara |
+| Oberoende validering i ett tredje område | Planerad |
+| Publicering (Zenodo-DOI, licens, dataartikel) | Planerad |
 
 ## Snabbstart
 
@@ -25,19 +32,34 @@ pip install -r requirements.txt
 
 # 1. Indata (se docs/DATA.md)
 python tools/download_ee.py --product dmsp --project <earth-engine-projekt>
-python tools/download_zenodo.py --product ccnl
+python tools/download_ee.py --product viirs --collection NOAA/VIIRS/DNB/ANNUAL_V21 --bands average_masked --project <projekt>
+python tools/download_ee.py --product viirs --bands average_masked --project <projekt>
+python tools/download_zenodo.py --product flares-viirs
 python tools/prepare_flares.py
+python tools/prepare_flares_viirs.py --radii 2
 #    GADM 4.1: ladda ner gadm_410-levels.zip till data/raw/gadm41/ och packa upp den (unzip)
 
-# 2. Centroider
-python -m wpc.run --source dmsp-irqr      # alla år 1992–2013, adm0–2
-python -m wpc.run --source ccnl
+# 2. Samregistrering av DMSP (kräver VDMSP_2013.tif från tools/harmonize_viirs.py)
+python tools/harmonize_viirs.py --fit-only && python tools/harmonize_viirs.py --years 2013
+python tools/coregister_dmsp.py
 
-# 3. Tester
+# 3. Centroider och huvudserien
+python -m wpc.run --source dmsp-irqr-reg --flares data/processed/flares_viirs_r2km.gpkg --out data/results_mask2km
+python -m wpc.run --source viirs
+python tools/splice_series.py --direction backward --viirs viirs --viirs-results data/results --name spliced-back
+python tools/build_release.py             # -> data/release/v<version>/
+
+# 4. Validering
+python tools/download_validation.py
+python tools/validation_centroids.py --dataset census --years 2000 2010 2020
+python tools/validation_centroids.py --dataset geostat --years 2011 2021
+python tools/validate_series.py --dataset census --years 2000 2010 2020 --series back=spliced-back:1992-2025
+
+# 5. Tester
 python -m pytest -q tests
 ```
 
-Resultaten skrivs till `data/results/<gränser>/<ljuskälla>/adm<N>/<år>.csv`, med en JSON-fil per år som beskriver körningen. Färdiga år hoppas över, så en avbruten körning kan startas om med samma kommando.
+Resultaten skrivs till `data/results*/<gränser>/<källa>/adm<N>/<år>.csv`, med en JSON-fil per år som beskriver körningen. Färdiga år hoppas över, så en avbruten körning kan startas om med samma kommando.
 
 ## Metod i korthet
 
