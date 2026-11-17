@@ -68,6 +68,14 @@ PRODUCTS = {
              "bands": ["stable_lights"], "prefix": "DMSP"},
     "viirs": {"collection": "NOAA/VIIRS/DNB/ANNUAL_V22",
               "bands": ["average_masked", "cf_cvg"], "prefix": "VIIRS"},
+    # Publicerade harmoniserade serier, för jämförelse (docs/HARMONIZATION.md).
+    # bands None = alla band i bilden (namnen läses från katalogen).
+    "li2020-dmsp": {"collection": "projects/sat-io/open-datasets/Harmonized_NTL/dmsp",
+                    "bands": None, "prefix": "LI2020"},
+    "li2020-viirs": {"collection": "projects/sat-io/open-datasets/Harmonized_NTL/viirs",
+                     "bands": None, "prefix": "LI2020"},
+    "svnl": {"collection": "projects/sat-io/open-datasets/srunet-npp-viirs-ntl",
+             "bands": None, "prefix": "SVNL"},
 }
 HIGHVOLUME_URL = "https://earthengine-highvolume.googleapis.com"
 REQUEST_TIMEOUT_MS = 120_000     # ett anrop som inte svarat på 2 min avbryts
@@ -342,7 +350,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--project", required=True,
                    help="Ditt Google Cloud-projekt-ID för Earth Engine.")
     p.add_argument("--out", default=None,
-                   help="Mapp för GeoTIFF-filerna (standard data/raw/<produkt>).")
+                   help="Mapp för GeoTIFF-filerna (standard data/raw/<produkt>; li2020-* -> data/raw/li2020).")
     p.add_argument("--years", nargs="+", default=["all"],
                    help="År att hämta, t.ex. 1992 1993 eller 1992-2000, eller "
                         "'all' (standard).")
@@ -385,13 +393,16 @@ def main(argv: list[str] | None = None) -> None:
     images = list_images(collection, years)
     if not images:
         sys.exit(f"Inga bilder i {collection} för de valda åren.")
+    if bands is None:
+        import ee
+        bands = ee.Image(f"{collection}/{images[0]['id']}").bandNames().getInfo()
     log(f"{collection}: {len(images)} bilder, år "
         f"{images[0]['year']}–{images[-1]['year']}, band {', '.join(bands)}")
     if args.dry_run:
         dry_run(images, collection, bands)
         return
 
-    out_dir = Path(args.out or f"data/raw/{args.product}")
+    out_dir = Path(args.out or f"data/raw/{args.product.split('-')[0]}")
     out_dir.mkdir(parents=True, exist_ok=True)
     t0 = time.time()
     for img in images:
