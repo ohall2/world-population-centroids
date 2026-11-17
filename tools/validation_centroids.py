@@ -55,15 +55,14 @@ import time
 import zipfile
 from pathlib import Path
 
-import geopandas as gpd
 import numpy as np
 import pandas as pd
-from pyproj import Transformer
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from wpc.centroids import aboufadel_austin, barmore  # noqa: E402
 from wpc.progress import Progress, log  # noqa: E402
-from wpc.run import load_units  # noqa: E402
+
+# geopandas, pyproj och wpc.centroids/wpc.run importeras i de funktioner som
+# behöver dem, så att läsarna kan testas där bara pandas finns.
 
 CENSUS_COLS = ["STATEFP", "COUNTYFP", "TRACTCE", "BLKGRPCE", "POPULATION", "LATITUDE", "LONGITUDE"]
 
@@ -118,9 +117,10 @@ def read_inegi(root: Path, year: int):
     name = next(n for n in zf.namelist() if "conjunto_de_datos/" in n and n.endswith(".csv"))
     d = pd.read_csv(zf.open(name), encoding="utf-8-sig", dtype=str, low_memory=False)
     d.columns = [c.lower() for c in d.columns]
-    total = pd.to_numeric(d.pobtot[(d.entidad == "00") & (d.loc == "0000")], errors="coerce").iloc[0]
-    agg = d.loc.isin(["0000", "9998", "9999"])
-    small = pd.to_numeric(d.pobtot[(d.entidad != "00") & (d.mun != "000") & d.loc.isin(["9998", "9999"])],
+    loc = d["loc"]                      # obs: d.loc är pandas indexering, inte kolumnen
+    total = pd.to_numeric(d.pobtot[(d.entidad == "00") & (loc == "0000")], errors="coerce").iloc[0]
+    agg = loc.isin(["0000", "9998", "9999"])
+    small = pd.to_numeric(d.pobtot[(d.entidad != "00") & (d.mun != "000") & loc.isin(["9998", "9999"])],
                           errors="coerce").sum()
     d = d[~agg]
     lon = -d.longitud.map(_dms) if year == 2010 else d.longitud.map(_dms)
@@ -134,6 +134,7 @@ def read_inegi(root: Path, year: int):
 
 
 def _laea_centres(ids: pd.Series, pattern: str, scale: float) -> tuple[np.ndarray, np.ndarray]:
+    from pyproj import Transformer
     m = ids.str.extract(pattern)
     n = m[0].astype(float) * scale + 500.0
     e = m[1].astype(float) * scale + 500.0
@@ -173,15 +174,17 @@ def read_geostat(root: Path, year: int):
     return pd.DataFrame({"lon": lon, "lat": lat, "pop": pop}), info
 
 
-def assign(points: pd.DataFrame, units: gpd.GeoDataFrame) -> np.ndarray:
+def assign(points: pd.DataFrame, units) -> np.ndarray:
     """Index i `units` för varje punkt (−1 om punkten ligger utanför alla)."""
+    import geopandas as gpd
     pts = gpd.GeoDataFrame(geometry=gpd.points_from_xy(points.lon, points.lat), crs=4326)
     j = gpd.sjoin(pts, units[["geometry"]].reset_index(drop=True), how="left", predicate="within")
     j = j[~j.index.duplicated(keep="first")]
     return j["index_right"].fillna(-1).astype(int).values
 
 
-def centroids(points: pd.DataFrame, idx: np.ndarray, units: gpd.GeoDataFrame, label: str):
+def centroids(points: pd.DataFrame, idx: np.ndarray, units, label: str):
+    from wpc.centroids import aboufadel_austin, barmore
     rows = []
     order = np.argsort(idx, kind="stable")
     sidx = idx[order]
@@ -232,6 +235,7 @@ def main(argv=None):
     p.add_argument("--max-missing", type=float, default=0.01)
     args = p.parse_args(argv)
 
+    from wpc.run import load_units
     units = {lv: load_units(args.boundaries, "gadm41", lv, args.cache_dir) for lv in (0, 1, 2)}
     light = {}
     for lv in (0, 1, 2):
