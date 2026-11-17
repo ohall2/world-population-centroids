@@ -414,3 +414,27 @@ och motsvarar vanlig retropolering. Vilken skattning av skillnaden som ligger
 närmast verkligheten avgörs med extern validering mot befolkningsdata
 (US Census befolkningsmittpunkter 2000, 2010 och 2020; SCB:s rutnät;
 Eurostat GISCO), som kan jämföra både DMSP- och VIIRS-delen med kända lägen.
+
+## 10. Validering mot folkräkningar (påbörjad 2026-11-17)
+
+Syfte: avgöra hur nära befolkningens verkliga centroider nattljusets
+centroider ligger, före och efter samregistrering, harmonisering och
+skarvning, och om serierna fångar verklig förändring.
+
+Facit (tools/download_validation.py, tools/validation_centroids.py):
+
+- **USA:** U.S. Census Bureaus befolkning och befolkningsmittpunkt per
+  kvartersgrupp (omkring 220 000 punkter) 2000, 2010 och 2020.
+- **Europa:** Eurostat GEOSTAT, folkräkningsbefolkning per km²-ruta, 2011
+  (bara rutor som bygger på aggregerade folkräkningsdata, METHD_CL = A) och
+  2021 (version 3, januari 2025). JRC-rutnätet 2018 används inte, eftersom
+  det är modellerat.
+
+Befolkningscentroiderna beräknas med samma metoder som nattljusets
+(Aboufadel–Austin och Barmore), med befolkningen som vikt, för alla
+GADM-enheter som täcks helt.
+
+Mått (tools/validate_series.py): (1) lägesfel samma år; (2) förändringsfel
+– skillnaden mellan facits och seriens förflyttning mellan två folkräkningar,
+jämfört med facits egen förflyttning. Förändringen 2010 → 2020 (USA) och
+2011 → 2021 (Europa) går över sensorbytet och prövar skarvningen direkt.
