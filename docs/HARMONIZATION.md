@@ -767,4 +767,18 @@ log 2013 → 2014 är +0,13 (Li, DN > 7) och −0,06 (Chiovelli), mot −0,16 �
    +0,12). Det kan bero på en förändring i VIIRS-underlaget det året. Det
    ska kontrolleras i vår egen serie.
 
+   *Kontrollerat 2026-11-17:* den publicerade v2.0.0-serien har också ett
+   större hopp 2016 → 2017. Median för Barmore i km:
+
+   | Nivå | 2014–15 | 2015–16 | **2016–17** | 2017–18 | 2018–19 |
+   | --- | --- | --- | --- | --- | --- |
+   | 0 | 2,28 | 2,31 | **3,06** | 2,16 | 2,31 |
+   | 1 | 0,68 | 0,70 | **0,97** | 0,67 | 0,65 |
+
+   Hoppet är omkring 1,4 gånger ett vanligt VIIRS-år och finns i alla tre
+   serierna, som alla bygger på VIIRS. Orsaken är troligen en förändring i
+   VIIRS-underlaget 2016 eller 2017. Det är inte utrett. Skarven 2013 → 2014
+   i vår serie (0,80 km på nivå 1) är, som avsett, ungefär ett vanligt
+   VIIRS-hopp.
+
 Data: docs/check_seam/*.csv.gz (ett värde per enhet och år).
