@@ -126,8 +126,9 @@ och att de beräknas ur rutnätsdata som själva kan vara modellerade.
   Geng m.fl. 2020), att DMSP och VIIRS måste registreras mot varandra
   (Shen m.fl. 2019), hopp i regionala summor i Li-serien (Li, S. m.fl. 2023)
   och förbehåll om stabilitet per enhet (Li, X. m.fl. 2026). *Nytt:* en
-  global mätning per enhet med fem mått och två serier, som visar att
-  skarven gäller alla mått, även summor; samregistrering per komposit mot
+  global mätning per enhet med fem mått och tre serier: i Li m.fl. och
+  Chiovelli m.fl. gäller skarven alla mått, även summor, medan PCNL (anpassad
+  pixel för pixel) i stort sett saknar skarv utom i tänd yta; samregistrering per komposit mot
   VIIRS; att bakåtskarvning förankrad i VIIRS ger bäst lägen mot tre facit.
 - **P2.** *Känt:* identiteten (Price 1970, 1972); att ljus per invånare
   följer inkomst (Mirza m.fl. 2021). *Nytt:* att identiteten förklarar
