@@ -163,4 +163,27 @@ Provkörning på ett band 55,7–60° N: korsvaliderat R² 0,80 (σ = 0,5), 0,84
 (1), 0,87 (1,5), 0,89 (2), 0,892 (2,5) och 0,88 (3); vald σ = 2,5 (ca 2,3 km).
 I bandet blev ljussumman 97 % av DMSP:s, korrelationen per pixel 0,94 och den
 ljusviktade medelbreddgraden över Sverige och västra Ryssland lika inom
-0,02°. Resultat för hela jorden följer när den globala körningen är gjord.
+0,02°.
+
+### Resultat för hela jorden (körning 2026-11-17)
+
+Korsvaliderat R² per σ (DMSP-pixlar): 0 → 0,790; 0,5 → 0,820; 1 → 0,868;
+1,5 → 0,895; **2 → 0,900**; 2,5 → 0,891; 3 → 0,875. Vald σ = 2,0 (ca 1,9 km).
+
+Avstånd mellan centroider (Barmore, km; median / 90 %):
+
+| | adm0 | adm1 | adm2 |
+| --- | --- | --- | --- |
+| DMSP 2013 – VIIRS rå 2013 | 12,5 / 65,5 | 3,6 / 19,9 | 1,34 / 5,2 |
+| DMSP 2013 – VIIRS harmoniserad 2013 | 7,7 / 44,2 | 2,2 / 12,6 | 0,80 / 3,7 |
+| Hopp DMSP 2013 → harmoniserad 2014 | 8,2 / 44,2 | 2,2 / 13,1 | 0,85 / 3,9 |
+| DMSP, vanliga årshopp 2004–2013 | 3,9 / 23,8 | 1,2 / 8,0 | 0,53 / 2,5 |
+| Harmoniserad, årshopp 2013–2025 | 2,3 / 14,8 | 0,7 / 5,1 | 0,25 / 1,7 |
+
+Harmoniseringen minskar brottet mellan sensorerna med omkring 40 % på alla
+nivåer, men hoppet 2013 → 2014 är fortfarande ungefär dubbelt så stort som
+ett vanligt DMSP-årshopp. Stora länder: Brasilien 159 → 48 km, Ryssland
+148 → 62 km, Argentina 85 → 19 km, Indien 146 → 127 km, Kina 106 → 77 km;
+Kanada blir sämre (253 → 325 km) och Sverige något sämre (33 → 48 km). En
+enda global överföringsfunktion räcker alltså inte; nästa steg är att pröva
+regionala funktioner.
