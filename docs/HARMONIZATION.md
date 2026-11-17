@@ -231,10 +231,11 @@ dy = för långt norrut.)
 Tolkning:
 1. Förskjutningarna är upp till 1,4 pixlar (ca 1,3 km) och väl bestämda.
 2. Nästan alla kompositer ligger nordväst om VIIRS, i genomsnitt omkring en
-   halv pixel i båda led. Det stämmer med att DMSP-filerna egentligen hör
-   till rutnätet med hörnet (−180; 75), som Earth Engine anger, och inte till
-   EOG:s rutnät (−180,0042; 75,0042), som vi har använt. Ovanpå det varierar
-   varje komposit.
+   halv pixel i båda led. ~~Det stämmer med att DMSP-filerna egentligen hör
+   till rutnätet med hörnet (−180; 75), som Earth Engine anger.~~ *Rättat
+   2026-11-17, se 7.1: Earth Engine anger samma rutnät som EOG för 32 av 35
+   kompositer, så rutnätet förklarar inte förskjutningen.* Ovanpå det
+   varierar varje komposit.
 3. Förskjutningen är i stort sett densamma i Amerika och resten av världen
    (skillnad ≤ 0,1 px), utom F16 2008 (dy −1,23 mot −0,76). En förskjutning
    per komposit räcker som första steg; rutvärdena sparas för att kunna pröva
@@ -244,6 +245,38 @@ Tolkning:
    Harmoniseringen görs därför om med samregistrerad DMSP
    (`tools/harmonize_viirs.py --dmsp-offsets config/dmsp_offsets.csv`,
    källan `viirs-dmsp-reg`).
+
+### 7.1 Kontroll av rutnätet (2026-11-17, inför artikeln)
+
+Påståendet i punkt 2 ovan kontrollerades mot metadata från nedladdningen
+(`data/raw/dmsp/*.json`, fältet `crs_transform` som Earth Engine returnerar):
+
+| Kompositer | Hörn enligt Earth Engine |
+| --- | --- |
+| 32 av 35 | (−180,0041667; 75,0041667), samma som EOG |
+| F162009, F182010, F182011 | (−180; 75) |
+
+Earth Engine och EOG anger alltså samma rutnät för nästan alla kompositer,
+och pipelinen (`DMSP_TRANSFORM` i wpc/lights.py) använder det. Den
+genomsnittliga förskjutningen åt nordväst mot VIIRS kan därför inte
+förklaras av rutnätet. Den är en verklig skillnad mellan DMSP-kompositernas
+och VIIRS-produktens lägen. Att DMSP ligger för långt norrut är känt:
+Tuttle m.fl. (2013) fann med GPS-placerade lampor en förskjutning på i medel
+2,9 km nästan rakt norrut i överflygningsdata (se docs/LITERATURE.md).
+
+De tre undantagen är ett känt problem: rastren saknar TFW-filer och är
+förskjutna av okänd anledning (Geng m.fl. 2020; Stathakis 2016).
+Pipelinen läser dem med EOG:s rutnät, som de övriga. Det spelar ingen roll
+för huvudserien, eftersom samregistreringen mäter och korrigerar varje
+komposits förskjutning empiriskt. Relativt grannkompositerna (medlet av
+F162008 och F182012, samma referens som Geng m.fl.) ger vår samregistrering
+x −0,43 / −1,06 / +0,49 px och y +0,69 / +0,45 / +0,61 px för F162009 /
+F182010 / F182011. Geng m.fl. fick x −0,64 / −1,27 / +0,27 och y +0,55 /
+±0,09 / +0,36 (positivt y = söderut). Tecknen stämmer i x för alla tre och
+i y för två; för F182010 är tecknet i y motstridigt hos Geng m.fl. Det är ett
+oberoende stöd för att samregistreringen fungerar.
+
+Kommentaren i wpc/lights.py har rättats.
 
 ### Resultat för alla 35 kompositer (2026-11-17)
 
@@ -659,3 +692,79 @@ skillnader i ljus per invånare som följer inkomst – och redovisas som en
 begränsning. Det tidigare arbetet (Niedomysl m.fl. 2017) prövade felets
 samband med enheternas yta, form och befolkningstäthet i Sverige; bara ytan
 hade ett signifikant samband (R² = 0,12).
+
+## 12. Gäller skarven bara centroider? (kontroll inför artikeln, 2026-11-17)
+
+**Fråga.** Är skarven vid sensorbytet ett problem för just centroider, eller
+för alla mått på hur ljuset fördelar sig inom en enhet? Och klarar de
+harmoniserade serierna åtminstone summorna?
+
+**Metod.** Ett fristående skript, med egen kod och utan pipelinen
+(`tools/check_seam_measures.py`, sammanfattning med
+`tools/check_seam_summary.py`). Enheterna är GADM 4.1 nivå 1, förenklad med
+0,002°, och pixlar räknas med mittpunkten i polygonen. Fackelmasken har
+2 km buffert, och vikten är ljus × cos(latitud). För varje enhet och år
+beräknas:
+- centroid (Aboufadel–Austin);
+- standardavstånd på sfären, R·√(2(1 − |m|)), där m är medelvektorn;
+- koncentration som effektivt antal tända pixlar, Neff = exp(entropin av
+  vikterna);
+- tänd yta (antal pixlar med ljus);
+- total ljusmängd.
+
+Årshoppen 2010–2017 jämförs: skarven 2013 → 2014 mot medianen av de övriga
+sex hoppen. Bara enheter med minst 10 tända pixlar alla år tas med. Serier:
+Li m.fl. 2020 (alla pixlar, och DN > 7 som författarna rekommenderar) och
+Chiovelli m.fl. bloomtopcode_fix.
+
+**Kontroll av skriptet.** Centroidskarven blir 4,87 km (Li) och 2,26 km
+(Chiovelli). Pipelinen gav 4,75 och 2,20 km (avsnitt 6), trots annan kod,
+rastrering och andra år.
+
+**Resultat** (median över enheterna; |Δlog| för alla mått utom centroiden):
+
+| Serie | Enheter | Mått | Vanligt hopp | Skarv | Kvot |
+| --- | --- | --- | --- | --- | --- |
+| Li, alla pixlar | 3 336 | Centroid (km) | 1,28 | 4,87 | 3,8 |
+| | | Standardavstånd | 0,019 | 0,085 | 4,4 |
+| | | Koncentration (Neff) | 0,070 | 0,686 | 9,7 |
+| | | Tänd yta | 0,074 | 0,640 | 8,7 |
+| | | Total ljusmängd | 0,088 | 0,534 | 6,1 |
+| Li, DN > 7 | 3 004 | Centroid (km) | 1,25 | 2,27 | 1,8 |
+| | | Standardavstånd | 0,022 | 0,045 | 2,0 |
+| | | Koncentration (Neff) | 0,081 | 0,235 | 2,9 |
+| | | Tänd yta | 0,083 | 0,251 | 3,0 |
+| | | Total ljusmängd | 0,094 | 0,238 | 2,5 |
+| Chiovelli bloomtopcode_fix | 3 171 | Centroid (km) | 1,04 | 2,26 | 2,2 |
+| | | Standardavstånd | 0,026 | 0,051 | 2,0 |
+| | | Koncentration (Neff) | 0,096 | 0,243 | 2,5 |
+| | | Tänd yta | 0,080 | 0,234 | 2,9 |
+| | | Total ljusmängd | 0,122 | 0,220 | 1,8 |
+
+Kvoterna ändras lite om bara enheter med minst 100 eller 1 000 tända
+pixlar tas med (centroid 1,8–2,1, total ljusmängd 1,7–3,0).
+
+Den **globala** ljussumman hoppar inte ovanligt vid skarven. Förändringen i
+log 2013 → 2014 är +0,13 (Li, DN > 7) och −0,06 (Chiovelli), mot −0,16 …
++0,29 respektive −0,06 … +0,12 för de övriga åren.
+
+**Slutsatser.**
+1. **Skarven gäller inte bara centroider.** Alla mått på enhetsnivå hoppar
+   2–3 gånger mer än ett vanligt år vid sensorbytet (Li DN > 7 och
+   Chiovelli). Det gäller även enhetens totala ljusmängd. Centroiden är inte
+   känsligare än de andra måtten.
+2. **Problemet ligger på enhetsnivå, inte globalt.** De harmoniserade
+   serierna är sammanhängande i den globala summan, som de är anpassade och
+   utvärderade för, men inte enhet för enhet. Formuleringen av P1 i
+   artikeln ändras därför: skarven är en inkonsistens per enhet som
+   aggregerad eller pixelvis utvärdering inte avslöjar. Den är inte specifik
+   för lägen.
+3. Li m.fl. utan tröskel har en mycket större skarv i alla mått, särskilt i
+   tänd yta och koncentration. Det stämmer med författarnas egen varning för
+   svagt ljus.
+4. **Öppen fråga.** Hoppet 2016 → 2017 är ovanligt stort i båda serierna
+   (Li DN > 7: centroid 2,41 km, global summa +0,29; Chiovelli: global summa
+   +0,12). Det kan bero på en förändring i VIIRS-underlaget det året. Det
+   ska kontrolleras i vår egen serie.
+
+Data: docs/check_seam/*.csv.gz (ett värde per enhet och år).
