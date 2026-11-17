@@ -782,3 +782,35 @@ log 2013 → 2014 är +0,13 (Li, DN > 7) och −0,06 (Chiovelli), mot −0,16 �
    VIIRS-hopp.
 
 Data: docs/check_seam/*.csv.gz (ett värde per enhet och år).
+
+## 13. Förändring över 20 år (USA, kontroll inför artikeln, 2026-11-17)
+
+Avsnitt 10–11 visade att felet i förändring över tio år är större än
+befolkningens faktiska förflyttning på nivå 1 och 2. Gäller det också över
+längre tid? I USA finns facit för 2000 och 2020, alltså 20 år och över
+sensorbytet. Kommando (körs på några sekunder, kräver bara pandas):
+
+    python tools/validate_series.py --dataset census --years 2000 2010 2020 \
+        --change 2000 2020 --change 2000 2010 --change 2010 2020 \
+        --release data/release/v2.0.0 --levels 1 2
+
+Förändringsfel, Barmore, median i km (publicerade filer):
+
+| Nivå | Period | Enheter | Verklig förflyttning | Fel i förändring | Kvot | Korrelation |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 2000–2010 | 121 | 0,196 | 0,346 | 1,8 | 0,18 |
+| 1 | 2010–2020 | 120 | 0,149 | 0,309 | 2,1 | 0,01 |
+| 1 | **2000–2020** | 121 | **0,314** | **0,456** | **1,5** | 0,09 |
+| 2 | 2000–2010 | 2 381 | 0,370 | 0,741 | 2,0 | 0,31 |
+| 2 | 2010–2020 | 2 383 | 0,257 | 0,795 | 3,1 | 0,18 |
+| 2 | **2000–2020** | 2 373 | **0,540** | **1,048** | **1,9** | 0,34 |
+
+**Slutsats.** Över 20 år är felet fortfarande större än den verkliga
+förflyttningen, 1,5 gånger på nivå 1 och 1,9 gånger på nivå 2. Kvoten
+minskar något jämfört med tio år, eftersom den verkliga förflyttningen växer
+medan felet växer långsammare. Felet ligger alltså nära ett golv. Det
+bekräftar P3 för USA: förflyttningar av storleksordningen några hundra meter
+till en kilometer går inte att mäta, ens över 20 år. Hur stor förflyttning
+som krävs för att den ska synas kan uppskattas ur felets storlek, omkring
+1 km på nivå 2. Om nattljuset fångar större förflyttningar, i snabbt
+växande regioner, går inte att pröva med dessa facit.
