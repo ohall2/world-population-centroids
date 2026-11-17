@@ -49,3 +49,20 @@ def test_read_results_keeps_NA_id(tmp_path):
     d = S.read_results(f)
     assert list(d.unit_id) == ["NA", "SWE"] and d.COUNTRY[0] == "NA"
     assert d.bm_lon.dtype.kind == "f" and np.isnan(d.bm_lat[0]) and np.isnan(d.bm_lon[1])
+
+
+def test_trend_method_is_robust_to_one_noisy_year():
+    # Sann bana: 0.01° österut per år; DMSP ligger 0.1° väster om VIIRS
+    # (systematiskt), och DMSP 2013 har dessutom ett slumpfel på +0.05°.
+    def lon(y):
+        return 10 + 0.01 * (y - 2013)
+    dmsp = {y: frame(y, {"A": (lon(y) - 0.1 + (0.05 if y == 2013 else 0.0), 50.0)})
+            for y in range(2004, 2014)}
+    viirs = {y: frame(y, {"A": (lon(y), 50.0)}) for y in range(2013, 2026)}
+    _, dp = S.splice_level(dmsp, viirs, 2013, method="point")
+    _, dt = S.splice_level(dmsp, viirs, 2013, method="trend", ratio=2.0)
+    true_de = S.east_north_km(10.0, 50.0, 9.9, 50.0)[0]
+    err_p = abs(dp.loc["A", "d_east_km_bm"] - true_de)
+    err_t = abs(dt.loc["A", "d_east_km_bm"] - true_de)
+    assert err_t < err_p / 2           # trenden tar bara med en del av slumpfelet
+    assert dt.loc["A", "splice_ok"] == 1
