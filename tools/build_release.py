@@ -19,7 +19,7 @@ En CSV-fil per nivå, i långt format (en rad per enhet och år):
 
   unit_id, GID_0, COUNTRY[, GID_1, NAME_1[, GID_2, NAME_2]], year, sensor,
   bm_lon, bm_lat, aa_lon, aa_lat, bm_flag, aa_flag, splice_ok,
-  splice_shift_km, noise_dmsp_km, noise_viirs_km, n_cells, area_km2
+  splice_shift_km, noise_dmsp_km, noise_viirs_km, n_cells, area_km2, max_lat
 
   sensor          DMSP (1992–2012) eller VIIRS (2013–2025)
   bm_*, aa_*      Barmore- och Aboufadel–Austin-centroid (grader, WGS84)
@@ -175,6 +175,9 @@ def main(argv=None):
             f = out / f"wpc_v2_gadm41_adm{level}.csv.gz"
             prog.set_text(f"adm{level}: skriver {f.name}")
             write_csv(d, f)
+            stale = f.with_suffix("")  # okomprimerad CSV från en äldre körning
+            if stale.exists():
+                stale.unlink()
             prog.set_text(f"adm{level}: {len(d)} rader, {d.unit_id.nunique()} enheter -> {f.name}")
         files = {f.name: sha256(f)}
         if "gpkg" in args.formats:
