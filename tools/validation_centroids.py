@@ -5,8 +5,9 @@ World Population Centroids v2 – befolkningscentroider från folkräkningar
 
 Data (tools/download_validation.py):
   inegi    INEGI ITER, befolkning och läge per ort i Mexikos folkräkningar
-           2010 och 2020. Orter med en eller två bostäder redovisas bara
-           som summor utan läge och tas inte med (andelen redovisas). Stora
+           2010 och 2020. Summaraderna (land, delstat, kommun, och 9998/9999
+           för orter med en eller två bostäder) tas bort; de orterna finns
+           också var för sig med läge, så ingen befolkning saknas. Stora
            städer är ofta en enda ort per kommun, så facit är grovt för
            kommuner med stora städer.
   census   U.S. Census Bureau, befolkning och mittpunkt per kvartersgrupp,
@@ -128,7 +129,7 @@ def read_inegi(root: Path, year: int):
     pop = pd.to_numeric(d.pobtot, errors="coerce")
     info = {"file": zips[0].name, "localities": int(len(d)), "pop_national_total": float(total),
             "pop_in_localities": float(pop.sum()),
-            "pop_small_localities_without_position": float(small),
+            "pop_small_localities_summary_rows": float(small),
             "localities_without_position": int((lon.isna() | lat.isna()).sum())}
     return pd.DataFrame({"lon": lon.values, "lat": lat.values, "pop": pop.values}), info
 
