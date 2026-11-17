@@ -172,6 +172,9 @@ def main(argv=None):
         year0 = splice["splice_year"]
         with Progress(f"adm{level}: läser {src}") as prog:
             d = build_level(src, level, year0, max_lat)
+            # Samma precision i CSV och GeoPackage (6 decimaler ≈ 0,1 m).
+            fl = d.select_dtypes("float").columns
+            d[fl] = d[fl].round(6)
             f = out / f"wpc_v2_gadm41_adm{level}.csv.gz"
             prog.set_text(f"adm{level}: skriver {f.name}")
             write_csv(d, f)
