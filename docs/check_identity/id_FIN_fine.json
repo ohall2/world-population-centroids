@@ -1,0 +1,69 @@
+{
+ "country": "FIN",
+ "grid_deg": 0.0166667,
+ "max_lat": null,
+ "pop_points": 88014,
+ "pop": 5359114.0,
+ "light_share_in_populated_cells": 0.8350909005265986,
+ "error_gc_km": 70.87385340257691,
+ "light_centroid": [
+  24.31002721011679,
+  62.2868749408519
+ ],
+ "pop_centroid": [
+  24.881099902854917,
+  61.708622194618826
+ ],
+ "D_total": {
+  "east_km": -29.53,
+  "north_km": 64.42,
+  "length_km": 70.87
+ },
+ "A_light_unpopulated": {
+  "east_km": -8.84,
+  "north_km": 20.5,
+  "length_km": 22.32
+ },
+ "Bb_between_regions": {
+  "east_km": -8.07,
+  "north_km": 23.68,
+  "length_km": 25.02
+ },
+ "Bw_within_regions": {
+  "east_km": -12.63,
+  "north_km": 20.25,
+  "length_km": 23.87
+ },
+ "C_within_cells": {
+  "east_km": 0.01,
+  "north_km": -0.01,
+  "length_km": 0.02
+ },
+ "light_per_capita_by_region_rel": [
+  {
+   "name": "Southern Finland",
+   "r_rel": 0.637,
+   "P": 1925304.0
+  },
+  {
+   "name": "Oulu",
+   "r_rel": 1.013,
+   "P": 477531.0
+  },
+  {
+   "name": "Eastern Finland",
+   "r_rel": 1.04,
+   "P": 563058.0
+  },
+  {
+   "name": "Western Finland",
+   "r_rel": 1.26,
+   "P": 2227454.0
+  },
+  {
+   "name": "Lapland",
+   "r_rel": 1.556,
+   "P": 165767.0
+  }
+ ]
+}

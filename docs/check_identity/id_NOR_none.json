@@ -1,0 +1,139 @@
+{
+ "country": "NOR",
+ "grid_deg": 0.1666667,
+ "max_lat": null,
+ "pop_points": 43084,
+ "pop": 5104400.0,
+ "light_share_in_populated_cells": 0.9977490292363782,
+ "error_gc_km": 148.6626632058248,
+ "light_centroid": [
+  10.509953939909643,
+  62.234149351895695
+ ],
+ "pop_centroid": [
+  9.677564040085958,
+  60.95714487747215
+ ],
+ "D_total": {
+  "east_km": 43.06,
+  "north_km": 142.07,
+  "length_km": 148.45
+ },
+ "A_light_unpopulated": {
+  "east_km": 0.69,
+  "north_km": 1.56,
+  "length_km": 1.71
+ },
+ "Bb_between_regions": {
+  "east_km": 42.11,
+  "north_km": 139.44,
+  "length_km": 145.66
+ },
+ "Bw_within_regions": {
+  "east_km": 0.3,
+  "north_km": 1.27,
+  "length_km": 1.31
+ },
+ "C_within_cells": {
+  "east_km": -0.04,
+  "north_km": -0.21,
+  "length_km": 0.21
+ },
+ "light_per_capita_by_region_rel": [
+  {
+   "name": "Oslo",
+   "r_rel": 0.288,
+   "P": 684813.0
+  },
+  {
+   "name": "Vest-Agder",
+   "r_rel": 0.674,
+   "P": 189186.0
+  },
+  {
+   "name": "Ãstfold",
+   "r_rel": 0.717,
+   "P": 297344.0
+  },
+  {
+   "name": "Hordaland",
+   "r_rel": 0.762,
+   "P": 471381.0
+  },
+  {
+   "name": "Akershus",
+   "r_rel": 0.776,
+   "P": 641679.0
+  },
+  {
+   "name": "Vestfold",
+   "r_rel": 0.856,
+   "P": 243984.0
+  },
+  {
+   "name": "Sogn og Fjordane",
+   "r_rel": 0.859,
+   "P": 98538.0
+  },
+  {
+   "name": "Aust-Agder",
+   "r_rel": 0.955,
+   "P": 109323.0
+  },
+  {
+   "name": "Telemark",
+   "r_rel": 0.987,
+   "P": 167874.0
+  },
+  {
+   "name": "Sør-Trøndelag",
+   "r_rel": 1.039,
+   "P": 318303.0
+  },
+  {
+   "name": "Rogaland",
+   "r_rel": 1.113,
+   "P": 449256.0
+  },
+  {
+   "name": "Buskerud",
+   "r_rel": 1.135,
+   "P": 276117.0
+  },
+  {
+   "name": "Oppland",
+   "r_rel": 1.176,
+   "P": 184638.0
+  },
+  {
+   "name": "Hedmark",
+   "r_rel": 1.216,
+   "P": 197949.0
+  },
+  {
+   "name": "Møre og Romsdal",
+   "r_rel": 1.355,
+   "P": 224181.0
+  },
+  {
+   "name": "Nord-Trøndelag",
+   "r_rel": 1.699,
+   "P": 131943.0
+  },
+  {
+   "name": "Nordland",
+   "r_rel": 1.742,
+   "P": 218096.0
+  },
+  {
+   "name": "Troms",
+   "r_rel": 2.776,
+   "P": 134391.0
+  },
+  {
+   "name": "Finnmark",
+   "r_rel": 4.017,
+   "P": 65404.0
+  }
+ ]
+}

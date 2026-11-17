@@ -626,6 +626,12 @@ medianerna för USA, Europa och Mexiko ändras inte på nivå 0. Norge har kvar
 ett fel på omkring 60 km, eftersom ljus per invånare stiger norrut även söder
 om 65° N (Trøndelag, Nordland söder om polcirkeln).
 
+*Rättat 2026-11-17 (se §14):* med maskning ligger Norges ljuscentroid
+37 km för långt västerut och 49 km för långt **söderut**, inte norrut.
+Förklaringen ovan stämmer alltså inte. Maskningen tar bort ljuset från
+de nordligaste fylkena men inte befolkningen där, och det drar
+ljuscentroiden söderut.
+
 ### 11.2 Resultat på nivå 1 och 2
 
 Här gör maskningen mer skada än nytta:
@@ -814,3 +820,93 @@ till en kilometer går inte att mäta, ens över 20 år. Hur stor förflyttning
 som krävs för att den ska synas kan uppskattas ur felets storlek, omkring
 1 km på nivå 2. Om nattljuset fångar större förflyttningar, i snabbt
 växande regioner, går inte att pröva med dessa facit.
+
+## 14. Varför ligger landscentroiderna fel? Prövning av identiteten (2026-11-17)
+
+**Fråga.** Förklaras de stora nationella felen (Mexiko omkring 130 km,
+Norden 70–150 km) av att ljus per invånare samvarierar med läget, som
+identiteten x_ljus − x_bef = Cov_P(x, r) / E_P(r) säger (Price 1972)?
+
+**Metod** (`tools/check_identity.py`). Ljuset (rå VIIRS 2020 för Mexiko och
+2021 för Norden, fackelmask 2 km, vikt ljus × cos(lat)) och facit (INEGI:s
+orter 2020; GEOSTAT:s rutor 2021) läggs på ett gemensamt rutnät. Avvikelsen
+D mellan ljusets och befolkningens centroid (Aboufadel–Austin, som 3D-
+medelvektorer) delas då exakt i fyra delar:
+
+- **A**: ljus i celler utan befolkning;
+- **Bb**: skillnader i ljus per invånare *mellan* regioner (GADM nivå 1);
+- **Bw**: skillnader i ljus per invånare *inom* regioner;
+- **C**: att ljusets och befolkningens tyngdpunkt skiljer sig inom en cell.
+
+Skriptet kontrollerar att A + Bb + Bw + C = D (exakt, i vektorform).
+
+**Kontroll av skriptet.** Det totala felet blir 129,3 km (Mexiko),
+98,1 / 32,8 km (Sverige utan / med maskning), 148,7 / 61,1 km (Norge) och
+70,9 / 41,8 km (Finland). Valideringen i §10–11, med pipelinen och den
+publicerade serien, gav 133 / 98,1 / 32,7 / 149,3 / 61,1 / 71,2 / 42,0 km.
+
+**Resultat, rutnät 10′ (omkring 18 km i nord–syd).** Längder i km och, för
+D och Bb, riktning (öst, nord):
+
+| Land | Maskning | D (öst, nord) | A | **Bb** (öst, nord) | Bw | C |
+| --- | --- | --- | --- | --- | --- | --- |
+| Mexiko | – | 129 (−73, +107) | 0,5 | **125** (−74, +101) | 5,2 | 0,3 |
+| Sverige | – | 98 (+25, +95) | 0,7 | **95** (+26, +91) | 3,0 | 0,1 |
+| Sverige | 65° N | 33 (+4, +33) | 0,2 | **32** (+4, +31) | 1,0 | 0,1 |
+| Norge | – | 149 (+43, +142) | 1,7 | **146** (+42, +139) | 1,3 | 0,2 |
+| Norge | 65° N | 61 (−37, −49) | 0,1 | **61** (−37, −49) | 0,5 | 0,2 |
+| Finland | – | 71 (−30, +64) | 0,5 | 37 (−12, +35) | 34 | 0,4 |
+| Finland | 65° N | 42 (−36, +22) | 0,0 | 18 (−17, −8) | 35 | 0,4 |
+
+Ljus per invånare i förhållande till landets medel (rutnät 10′): i Mexiko
+från 0,54 (Guerrero), 0,62 (Distrito Federal) och 0,65 (Oaxaca) till
+1,72 (Chihuahua) och 1,75 (Sonora). I Sverige är Norrbotten 2,36, i Norge
+är Finnmark 3,03 och Troms 1,98, och i Finland är Lappland 1,56 och
+Södra Finland 0,64 (rutnät 1′).
+
+**Rutnätets betydelse.** Identiteten gäller exakt för varje rutnät, men
+fördelningen mellan A och B beror på cellstorleken:
+
+| Land | Rutnät | Andel ljus i befolkade celler | A | Bb | Bw |
+| --- | --- | --- | --- | --- | --- |
+| Mexiko | 1′ | 0,48 | 114 | 20 | 2,5 |
+| Mexiko | 2′ | 0,75 | 87 | 46 | 2,8 |
+| Mexiko | 5′ | 0,97 | 19 | 110 | 3,0 |
+| Mexiko | 10′ | 1,00 | 0,5 | 125 | 5,2 |
+| Mexiko | 30′ | 1,00 | 0,0 | 127 | 3,6 |
+| Sverige | 1′ | 0,90 | 34 | 63 | 1,0 |
+| Norge | 1′ | 0,81 | 78 | 70 | 0,4 |
+| Finland | 1′ | 0,84 | 22 | 25 | 24 |
+
+I Mexiko är A stor i fina rutnät, eftersom INEGI anger stora städer som en
+enda punkt per kommun. Stadens ljus hamnar då i celler utan facitpunkt. Från
+5′ och uppåt ligger nästan allt ljus i befolkade celler. Då förklarar
+skillnaderna mellan delstaterna 110–127 av 129 km. I Norden, där facit är
+rutor om 1 km², ligger 10–20 % av ljuset i rutor utan invånare (vägar,
+industri, gruvor). Det ljuset ligger mest norrut, och i 1′-rutnätet står det
+för 22–78 km. Men även där står skillnaderna mellan regioner för den största
+delen (25–70 km).
+
+**Slutsatser.**
+1. **Identiteten förklarar felen.** De nationella felen beror nästan helt på
+   att ljus per invånare samvarierar med läget. Det mesta ligger mellan
+   regioner (delstater, län, fylken). Ljusets läge inom cellerna (C) betyder
+   ingenting. Spridningen inom regioner (Bw) betyder lite, utom i Finland,
+   där GADM:s nivå 1 bara har fem stora regioner som spänner över stora
+   delar av landet.
+2. **Riktningen förutsägs av vilka regioner som är ljusa.** I Mexiko lyser de
+   rikare nordliga delstaterna 1,5–1,8 gånger medlet, och felet pekar mot
+   nordväst. I Norden lyser de glesa nordliga länen 1,5–3 gånger medlet, och
+   felet pekar norrut. Samma mekanism ger olika riktningar beroende på var
+   ljus per invånare är högt.
+3. **Maskningen norr om 65° N tar inte bort orsaken, den förskjuter den.** I
+   Norge vänder felet: utan maskning ligger centroiden 142 km för långt
+   norrut, med maskning 49 km för långt söderut, eftersom befolkningen norr
+   om 65° N då saknar ljus. Påståendet i §11.1 om orsaken har rättats.
+4. **Uppdelningen i "ljus utan invånare" och "olika ljus per invånare" beror
+   på skalan.** Det är två sidor av samma sak: ljus som inte följer
+   befolkningen. Artikeln bör redovisa identiteten på en skala där i stort
+   sett allt ljus ligger i befolkade celler (10′), och visa skalberoendet
+   som känslighetsanalys.
+
+Resultat: docs/check_identity/*.json.

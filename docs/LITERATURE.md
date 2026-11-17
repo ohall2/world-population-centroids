@@ -133,8 +133,9 @@ och att de beräknas ur rutnätsdata som själva kan vara modellerade.
   följer inkomst (Mirza m.fl. 2021). *Nytt:* att identiteten förklarar
   lägesfelet hos ljus som mått på befolkning, att felet därför är
   förutsägbart och att det går åt motsatta håll i Mexiko och Norden under
-  samma omvandling. Förutsätter att identiteten prövas mot facit
-  (planerad kontroll).
+  samma omvandling. *Prövat 2026-11-17 (HARMONIZATION.md §14):* skillnader i
+  ljus per invånare mellan regioner står för 110–146 av 129–149 km i Mexiko,
+  Sverige och Norge (rutnät 10′).
 - **P3.** *Känt:* nattljus fångar förändring sämre än nivåer (Asher m.fl.
   2021; Goldblatt m.fl. 2020; Martinez m.fl. 2023). *Nytt:* att det gäller
   befolkningens läge, mätt mot folkräkningar, och med ett brusgolv i km.
