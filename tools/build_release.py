@@ -176,7 +176,7 @@ def main(argv=None):
         "Nivå 0 mäts med maskning norr om 65° N, nivå 1–2 utan.\n\n"
         "| Facit | Nivå och år | Enheter | Median | 90 % |\n| --- | --- | --- | --- | --- |\n" + vtab + "\n\n"
         "## Begränsningar\n\n"
-        "- Förändring över tio år kan inte mätas på subnationell nivå i USA och Europa: felet i "
+        "- Förändring över tio år kan inte mätas på subnationell nivå i USA, Europa och Mexiko: felet i "
         "förändringen är större än befolkningens faktiska förflyttning.\n"
         "- Mexikos nationella centroid ligger omkring 130 km fel: ljus per invånare följer inkomst, "
         "som är högre i norr. Liknande fel kan finnas i andra länder med stora regionala "
