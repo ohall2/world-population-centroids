@@ -35,6 +35,21 @@ import pandas as pd
 R_KM = 6371.0
 
 
+def read_results(path) -> pd.DataFrame:
+    """Läs en resultatfil. ID-kolumner läses som text utan NA-tolkning: GADM
+    4.1 har en enhet med ID:t "NA", som pandas annars gör till ett saknat värde."""
+    df = pd.read_csv(path, keep_default_na=False, na_values={})
+    for c in df.columns:
+        if c in ("unit_id", "source", "COUNTRY") or c.startswith(("GID_", "NAME_", "TYPE_", "ENGTYPE_")):
+            continue
+        if not pd.api.types.is_numeric_dtype(df[c]):
+            try:
+                df[c] = pd.to_numeric(df[c].replace("", np.nan))
+            except (ValueError, TypeError):
+                pass
+    return df
+
+
 def gc_km(lon1, lat1, lon2, lat2):
     l1, p1, l2, p2 = map(np.radians, (lon1, lat1, lon2, lat2))
     h = np.sin((p2 - p1) / 2) ** 2 + np.cos(p1) * np.cos(p2) * np.sin((l2 - l1) / 2) ** 2
@@ -56,7 +71,7 @@ def load(results, boundary, source, level, years) -> pd.DataFrame:
         f = d / f"{y}.csv"
         if not f.exists():
             raise FileNotFoundError(f)
-        parts.append(pd.read_csv(f, usecols=["unit_id", "year", "bm_lon", "bm_lat"]).assign(src=source))
+        parts.append(read_results(f)[["unit_id", "year", "bm_lon", "bm_lat"]].assign(src=source))
     return pd.concat(parts, ignore_index=True)
 
 
