@@ -377,3 +377,40 @@ nivåskillnad och ett slumpfel i DMSP 2013 bekräftar att felet i Δ blir
 mindre än hälften av felet med ett år (tests/test_splice.py).
 
 Kommando: `python tools/splice_series.py --method trend --name spliced-reg-trend`.
+
+### Resultat och omprövning (2026-11-17)
+
+Den gemensamma trendmodellen gav större flyttar än skarvning på ett år
+(median 11,2 mot 7,6 km för adm0; 2,7 mot 2,0 km för adm1; 0,93 mot 0,66 km
+för adm2) och ett hopp 2013 → 2014 på 6,2 km (adm0) och 1,7 km (adm1). En
+opartisk skarv borde ge omkring 3 km respektive 0,9 km, en kombination av ett
+vanligt DMSP- och VIIRS-hopp. Modellen är alltså snedvriden. Ryssland flyttas
+till exempel 136 km i stället för 50.
+
+Orsaken syns när enheternas rörelseriktning under DMSP-åren (2004–2013)
+jämförs med VIIRS-åren (2013–2025): medianen av cosinus för vinkeln mellan
+lutningsvektorerna är 0,13 (adm0) och −0,02 (adm1), alltså ingen samvariation.
+Lutningarna är 0,8–0,9 km/år för adm0 och 0,23–0,26 km/år för adm1, men det
+som ser ut som en trend över tio år är till största delen brus och
+sensordrift, inte bestående rörelse. **Antagandet om en gemensam trend
+förkastas.** Metoden finns kvar i koden (--method trend) men används inte.
+
+Skillnaden i nivå med medelvärden av flera år på var sida, utan trend:
+
+| Hopp 2013 → 2014, median (km) | adm0 | adm1 |
+| --- | --- | --- |
+| Ett år (skarvåret) | 2,32 | 0,77 |
+| Medel av 2 år per sida (DMSP 2012–13, VIIRS 2013–14) | 1,77 | 0,68 |
+| Medel av 3 år per sida | 2,72 | 0,82 |
+
+Skillnaderna är små, och måttet gynnar skarvning på ett år, eftersom VIIRS
+då flyttas så att det träffar DMSP 2013 exakt: hoppet visar bara
+VIIRS-bruset. Den verkliga osäkerheten i skarven kan inte avläsas ur serien
+själv. Den är av samma storlek som DMSP:s årliga brus 2013 (vanligt årshopp
+3,6 / 1,0 / 0,40 km för adm0 / adm1 / adm2).
+
+**Beslut.** Skarvning på ett år behålls som standard: den är enkel, öppen
+och motsvarar vanlig retropolering. Vilken skattning av skillnaden som ligger
+närmast verkligheten avgörs med extern validering mot befolkningsdata
+(US Census befolkningsmittpunkter 2000, 2010 och 2020; SCB:s rutnät;
+Eurostat GISCO), som kan jämföra både DMSP- och VIIRS-delen med kända lägen.
