@@ -92,3 +92,48 @@ Möjliga följdsteg beroende på resultatet: (a) använda en publicerad serie
 som huvud- eller jämförelseserie; (b) förbättra vår metod för svagt ljus,
 t.ex. en tröskel som beror på lokal ljusmiljö; (c) regionala funktioner, med
 korsvalidering och kontroll av skarvar vid regiongränserna.
+
+## 5. Iakttagelser vid nedladdningen (2026-11-17)
+
+**Li m.fl. 2020.** DMSP-delen (1992–2013) och den DMSP-lika VIIRS-delen
+(2013–2021) är uint8 i 30″. VIIRS-delen innehåller även 2013, så serien har
+ett överlappsår. För 2012 och 2013 är Li-filernas pixlar identiska med de
+råa F18-kompositerna (kontrollerat för 25–60° N); andra år, t.ex. 2009, är
+kalibrerade (10 % av pixlarna ändrade, högst ±6 DN). 2009–2011 har hörnet
+(−180; 75) i Earth Engine, övriga år (−180,0042; 75,0042), dvs. en halv
+pixel förskjutet.
+
+**Lägesfel mellan DMSP-år.** Samma hörn (−180; 75) har våra egna
+DMSP-filer för F16 2009, F18 2010 och F18 2011. Pipelinen lägger alla
+DMSP-år på EOG:s rutnät oavsett metadata. För att se om pixlarna verkligen
+är förskjutna jämfördes korrelationen mellan på varandra följande år
+(25–60° N, 30° W–120° E) när det ena året flyttas en pixel i varje
+riktning. Toppen ligger ofta snett, och olika för olika år:
+
+| Par | −1 kol | 0 | +1 kol | −1 rad | +1 rad |
+| --- | --- | --- | --- | --- | --- |
+| 2009 F16 mot 2008 F16 | 0,973 | 0,970 | 0,955 | 0,944 | 0,972 |
+| 2010 F18 mot 2009 F16 | 0,949 | 0,949 | 0,938 | 0,945 | 0,931 |
+| 2011 F18 mot 2010 F18 | 0,923 | 0,949 | 0,965 | 0,935 | 0,940 |
+| 2012 F18 mot 2011 F18 | 0,972 | 0,970 | 0,955 | 0,978 | 0,937 |
+
+Kompositernas geografiska läge varierar alltså med omkring en halv pixel
+(ca 0,5 km) mellan åren, även mellan år med samma metadata (2010 och 2011).
+Det är lika stort som det vanliga årshoppet på adm2-nivå (0,53 km) och är
+troligen en del av DMSP-bruset. En möjlig förbättring är att passa ihop
+varje DMSP-år med ett referensår (subpixel-samregistrering) före
+centroidberäkningen. Ej gjort ännu.
+
+**Chiovelli m.fl. 2026.** Fyra varianter, 1992–2025: clean_dmsp (uint8),
+topcode_fix, bloom_fix och bloomtopcode_fix (int32, upp till 2 000 efter
+korrigering av mättnad). Rutnätet är 43 201 × 15 709 pixlar från (−180; 75),
+alltså söderut bara till 55,9° S. Andelen tända pixlar (25–60° N) är 10,6 %
+2013 och 19,9 % 2014 i clean_dmsp, men 7,5 % och 9,8 % i bloomtopcode_fix:
+skarven ligger mellan 2013 och 2014, och korrigeringen för blooming
+minskar ökningen av svagt ljus vid sensorbytet.
+
+**Fel i den första jämförelsen.** dmsp-irqr har beräknats med
+2009-polygonerna och viirs-dmsp med 2 km-masken (som även tar bort facklor
+som har tillkommit efter 2009, t.ex. i Bakken). En del av skarven i avsnitt 2
+kan alltså bero på olika masker. Alla serier jämförs därför nu med samma
+mask, `flares_viirs_r2km.gpkg`, i `data/results_mask2km/`.

@@ -166,6 +166,19 @@ ANNUAL = {
               "note": "VIIRS VNL v2 årskompositer, average_masked (nW/cm2/sr)"},
     "viirs-dmsp": {"glob": "VDMSP_*",
                    "note": "VIIRS VNL v2 harmoniserad till DMSP-IRQR (tools/harmonize_viirs.py)"},
+    # Publicerade harmoniserade serier, för jämförelse (docs/HARMONIZATION.md).
+    "li2020-dmsp": {"glob": "LI2020_*_calDMSP_b1",
+                    "note": "Li m.fl. 2020 v7, kalibrerad DMSP 1992–2013 (sat-io Harmonized_NTL/dmsp)"},
+    "li2020-viirs": {"glob": "LI2020_*_simVIIRS_b1",
+                     "note": "Li m.fl. 2020 v7, DMSP-lik VIIRS 2013–2021 (sat-io Harmonized_NTL/viirs)"},
+    "chiovelli-cln": {"glob": "DMSP*_cln",
+                      "note": "Chiovelli m.fl. 2026, clean_dmsp (zenodo 20558766)"},
+    "chiovelli-tc": {"glob": "DMSP*_tcfix",
+                     "note": "Chiovelli m.fl. 2026, topcode_fix (zenodo 20558766)"},
+    "chiovelli-bl": {"glob": "DMSP*_blfix",
+                     "note": "Chiovelli m.fl. 2026, bloom_fix (zenodo 20558766)"},
+    "chiovelli-bltc": {"glob": "DMSP*_bltcfix",
+                       "note": "Chiovelli m.fl. 2026, bloomtopcode_fix (zenodo 20558766)"},
 }
 
 

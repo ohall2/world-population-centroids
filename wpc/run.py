@@ -249,7 +249,13 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.raw_dir is None:
         args.raw_dir = {"dmsp-irqr": Path("data/raw/dmsp"),
-                        "viirs-dmsp": Path("data/derived/viirs_dmsp")}.get(
+                        "viirs-dmsp": Path("data/derived/viirs_dmsp"),
+                        "li2020-dmsp": Path("data/raw/li2020"),
+                        "li2020-viirs": Path("data/raw/li2020"),
+                        "chiovelli-cln": Path("data/raw/chiovelli/clean_dmsp"),
+                        "chiovelli-tc": Path("data/raw/chiovelli/topcode_fix"),
+                        "chiovelli-bl": Path("data/raw/chiovelli/bloom_fix"),
+                        "chiovelli-bltc": Path("data/raw/chiovelli/bloomtopcode_fix")}.get(
                             args.source, Path("data/raw") / args.source)
     if args.flares is None:
         args.flares = Path("data/processed") / ("flares_viirs_r2km.gpkg" if args.source.startswith("viirs")
