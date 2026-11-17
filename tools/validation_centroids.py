@@ -4,6 +4,11 @@ World Population Centroids v2 – befolkningscentroider från folkräkningar
 (facit för valideringen).
 
 Data (tools/download_validation.py):
+  inegi    INEGI ITER, befolkning och läge per ort i Mexikos folkräkningar
+           2010 och 2020. Orter med en eller två bostäder redovisas bara
+           som summor utan läge och tas inte med (andelen redovisas). Stora
+           städer är ofta en enda ort per kommun, så facit är grovt för
+           kommuner med stora städer.
   census   U.S. Census Bureau, befolkning och mittpunkt per kvartersgrupp,
            2000, 2010, 2020 (USA och Puerto Rico).
   geostat  Eurostat GEOSTAT, befolkning per ruta om 1 km² (ETRS89-LAEA),
@@ -84,6 +89,48 @@ def read_census(root: Path, year: int) -> pd.DataFrame:
         raise ValueError(f"{int((pop[nopos] > 0).sum())} kvartersgrupper med invånare saknar läge")
     return (pd.DataFrame({"lon": lon, "lat": lat, "pop": pop}),
             {"files": len(files), "block_groups": int(len(d)), "without_position_pop0": int(nopos.sum())})
+
+
+def _dms(v) -> float:
+    """INEGI-läge -> decimalgrader.
+
+    2010: heltal GGGMMSS / GGMMSS (longitud väst och latitud nord utan tecken).
+    2020: text som 102°17'45.768" W.
+    """
+    if pd.isna(v) or str(v).strip() == "":
+        return np.nan
+    t = str(v).strip()
+    m = re.match(r"(\d+)°(\d+)'([\d.]+)\"?\s*([NSEWO])", t)
+    if m:
+        d = int(m[1]) + int(m[2]) / 60 + float(m[3]) / 3600
+        return -d if m[4] in "SWO" else d
+    if t.isdigit():
+        n = int(t)
+        return n // 10000 + (n // 100 % 100) / 60 + (n % 100) / 3600
+    raise ValueError(f"Okänt INEGI-läge: {t!r}")
+
+
+def read_inegi(root: Path, year: int):
+    zips = sorted((root / str(year)).glob("*.zip"))
+    if not zips:
+        sys.exit(f"Ingen INEGI-fil för {year} i {root}")
+    zf = zipfile.ZipFile(zips[0])
+    name = next(n for n in zf.namelist() if "conjunto_de_datos/" in n and n.endswith(".csv"))
+    d = pd.read_csv(zf.open(name), encoding="utf-8-sig", dtype=str, low_memory=False)
+    d.columns = [c.lower() for c in d.columns]
+    total = pd.to_numeric(d.pobtot[(d.entidad == "00") & (d.loc == "0000")], errors="coerce").iloc[0]
+    agg = d.loc.isin(["0000", "9998", "9999"])
+    small = pd.to_numeric(d.pobtot[(d.entidad != "00") & (d.mun != "000") & d.loc.isin(["9998", "9999"])],
+                          errors="coerce").sum()
+    d = d[~agg]
+    lon = -d.longitud.map(_dms) if year == 2010 else d.longitud.map(_dms)
+    lat = d.latitud.map(_dms)
+    pop = pd.to_numeric(d.pobtot, errors="coerce")
+    info = {"file": zips[0].name, "localities": int(len(d)), "pop_national_total": float(total),
+            "pop_in_localities": float(pop.sum()),
+            "pop_small_localities_without_position": float(small),
+            "localities_without_position": int((lon.isna() | lat.isna()).sum())}
+    return pd.DataFrame({"lon": lon.values, "lat": lat.values, "pop": pop.values}), info
 
 
 def _laea_centres(ids: pd.Series, pattern: str, scale: float) -> tuple[np.ndarray, np.ndarray]:
@@ -173,7 +220,7 @@ def missing_light_share(have: dict, light: dict, u1: pd.DataFrame, u2: pd.DataFr
 
 def main(argv=None):
     p = argparse.ArgumentParser(description="Befolkningscentroider från folkräkningar.")
-    p.add_argument("--dataset", choices=["census", "geostat"], required=True)
+    p.add_argument("--dataset", choices=["census", "geostat", "inegi"], required=True)
     p.add_argument("--years", type=int, nargs="+", required=True)
     p.add_argument("--raw", type=Path, default=Path("data/raw/validation"))
     p.add_argument("--out", type=Path, default=Path("data/validation"))
@@ -197,7 +244,7 @@ def main(argv=None):
 
     for year in args.years:
         t0 = time.time()
-        reader = read_census if args.dataset == "census" else read_geostat
+        reader = {"census": read_census, "geostat": read_geostat, "inegi": read_inegi}[args.dataset]
         with Progress(f"Läser {args.dataset} {year}"):
             pts, info = reader(args.raw / args.dataset, year)
         pts = pts[(pts["pop"] > 0) & np.isfinite(pts.lon) & np.isfinite(pts.lat)].reset_index(drop=True)
