@@ -67,7 +67,7 @@ Valideringen mot US Census, Eurostat GEOSTAT och INEGI ger medianfel på 0,7–2
 
 ## Referenser
 
-- Hall, O., Archila Bustos, M. F., Olén, N. B. & Niedomysl, T. (2019). Population centroids of the world administrative units from nighttime lights 1992–2013. *Scientific Data* 6, 235. doi:10.1038/s41597-019-0250-z.
+- Hall, O., Archila Bustos, M. F., Boke Olén, N. & Niedomysl, T. (2019). Population centroids of the world administrative units from nighttime lights 1992–2013. *Scientific Data* 6, 235. doi:10.1038/s41597-019-0250-z.
 - Elvidge, C. D. m.fl. (2009). A fifteen year record of global natural gas flaring derived from satellite data. *Energies* 2, 595–622.
 - Elvidge, C. D. m.fl. (2014). National trends in satellite-observed lighting 1992–2012. I *Global Urban Monitoring and Assessment through Earth Observation*. CRC Press.
 - Chiovelli, G., Michalopoulos, S., Papaioannou, E. & Regan, T. (2026). Illuminating the Global South. *The Economic Journal*. doi:10.1093/ej/ueaf134.

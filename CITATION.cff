@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+message: "Om du använder datamängden, citera den enligt nedan och v1-artikeln."
+title: "World Population Centroids v2: population centroids of the world's administrative units from nighttime lights, 1992–2025"
+type: dataset
+version: 2.0.0
+date-released: 2026-11-17
+authors:
+  - family-names: Hall
+    given-names: Ola
+    affiliation: Lund University
+repository-code: "https://github.com/ohall2/world-population-centroids"
+keywords:
+  - population centroids
+  - nighttime lights
+  - DMSP-OLS
+  - VIIRS
+  - GADM
+references:
+  - type: article
+    title: "Population centroids of the world administrative units from nighttime lights 1992–2013"
+    authors:
+      - family-names: Hall
+        given-names: Ola
+      - family-names: Archila Bustos
+        given-names: Maria Francisca
+      - family-names: Boke Olén
+        given-names: Niklas
+      - family-names: Niedomysl
+        given-names: Thomas
+    journal: Scientific Data
+    volume: 6
+    start: 235
+    year: 2019
+    doi: 10.1038/s41597-019-0250-z

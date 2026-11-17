@@ -635,7 +635,7 @@ Felet i förändringen över tio år är fortfarande större än befolkningens
 faktiska förflyttning på nivå 1 och 2 i alla tre områdena. I Mexiko är det
 till exempel 0,85 mot 0,25 km på nivå 2.
 
-### 11.4 Kvarstående begränsningar (inför v2.0.0)
+### 11.4 Kvarstående begränsningar i v2.0.0
 
 1. **Nationella centroider i länder med stora regionala skillnader i ljus per
    invånare** kan ligga långt fel: Mexiko omkring 130 km, Norge omkring 60 km

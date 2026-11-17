@@ -1,4 +1,4 @@
-# World Population Centroids – v2 (utvecklingsversion)
+# World Population Centroids – v2
 
 Befolkningscentroider för världens administrativa enheter (nivå 0–2), beräknade från satellitobserverat nattljus.
 
@@ -7,7 +7,9 @@ Befolkningscentroider för världens administrativa enheter (nivå 0–2), berä
 
 ## Status (17 november 2026)
 
-Huvudserien är klar som utvecklingsversion: GADM 4.1 nivå 0–2, 1992–2025. Den är
+Version 2.0.0 är klar: GADM 4.1 nivå 0–2, 1992–2025, som `.csv.gz` och
+GeoPackage (`python tools/build_release.py` → `data/release/v2.0.0/`;
+kolumner och begränsningar i datamängdens README.md). Den är
 validerad mot US Census (2000, 2010, 2020), Eurostat GEOSTAT (2011, 2021) och
 INEGI:s ortsregister för Mexiko (2010, 2020). Nivå 0 beräknas utan ljus norr om
 65° N, som i v1; nivå 1–2 med allt ljus.
@@ -23,6 +25,7 @@ Resonemang och resultat steg för steg: [`docs/HARMONIZATION.md`](docs/HARMONIZA
 | Jämförelser: CCNL, Li m.fl. 2020, Chiovelli m.fl. 2026, VIIRS harmoniserad till DMSP | Klara |
 | Oberoende validering i ett tredje område (Mexiko) | Klar |
 | Maskning norr om 65° N på nivå 0, som i v1 | Klar |
+| Datamängd v2.0.0 (CSV.gz, GeoPackage, metadata, citeringsfil) | Klar |
 | Publicering (Zenodo-DOI, licens, dataartikel) | Planerad |
 
 ## Snabbstart
@@ -61,7 +64,7 @@ python tools/validation_centroids.py --dataset census --years 2000 2010 2020
 python tools/validation_centroids.py --dataset geostat --years 2011 2021
 python tools/validation_centroids.py --dataset inegi --years 2010 2020
 python tools/validate_series.py --dataset census --years 2000 2010 2020 --change 2000 2010 --change 2010 2020 \
-    --release data/release/v2.0.0.dev0 --out docs/validation   # likadant för geostat och inegi
+    --release data/release/v2.0.0 --out docs/validation   # likadant för geostat och inegi
 python tools/build_release.py             # igen, så att metadata får valideringen
 
 # 5. Tester
@@ -98,4 +101,6 @@ Se [`docs/METHODS.md`](docs/METHODS.md) för detaljer och för skillnaderna mot 
 
 ## Citera
 
-Hall, O., Bustos, M. F. A., Olén, N. B. & Niedomysl, T. (2019). Population centroids of the world administrative units from nighttime lights 1992–2013. *Scientific Data* 6, 235.
+Citeringsuppgifter för v2 finns i [`CITATION.cff`](CITATION.cff) (DOI läggs till vid publiceringen). Metoden bygger på v1:
+
+Hall, O., Archila Bustos, M. F., Boke Olén, N. & Niedomysl, T. (2019). Population centroids of the world administrative units from nighttime lights 1992–2013. *Scientific Data* 6, 235.
