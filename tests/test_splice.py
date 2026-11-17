@@ -66,3 +66,16 @@ def test_trend_method_is_robust_to_one_noisy_year():
     err_t = abs(dt.loc["A", "d_east_km_bm"] - true_de)
     assert err_t < err_p / 2           # trenden tar bara med en del av slumpfelet
     assert dt.loc["A", "splice_ok"] == 1
+
+
+def test_backward_keeps_viirs_and_moves_dmsp():
+    dmsp = {2012: frame(2012, {"A": (10.0, 50.0)}), 2013: frame(2013, {"A": (10.1, 50.0)})}
+    viirs = {2013: frame(2013, {"A": (10.5, 50.2)}), 2014: frame(2014, {"A": (10.55, 50.2)})}
+    out, delta = S.splice_backward(dmsp, viirs, 2013)
+    assert set(out) == {2012, 2013, 2014}
+    o13 = out[2013].set_index("unit_id").loc["A"]
+    assert o13.bm_lon == 10.5 and o13.bm_lat == 50.2           # VIIRS 2013 behålls
+    o12 = out[2012].set_index("unit_id").loc["A"]
+    de, dn = S.east_north_km(10.5, 50.2, o12.bm_lon, o12.bm_lat)
+    de_d, dn_d = S.east_north_km(10.1, 50.0, 10.0, 50.0)        # DMSP-hoppet 2013 -> 2012 bevaras
+    assert abs(de - de_d) < 0.05 and abs(dn - dn_d) < 0.05   # lokalt plan, 0,4 % vid 0,2° breddskillnad

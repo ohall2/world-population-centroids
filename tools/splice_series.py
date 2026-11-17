@@ -49,6 +49,14 @@ Exempel
   python tools/splice_series.py --dmsp dmsp-irqr-reg --viirs viirs-dmsp-reg \\
       --name spliced-reg --results data/results_mask2km
   python tools/splice_series.py --method trend --name spliced-reg-trend
+  python tools/splice_series.py --direction backward --viirs viirs \\
+      --viirs-results data/results --name spliced-back
+
+Riktning (--direction): forward (standard förut) behåller DMSP och flyttar
+VIIRS; backward behåller VIIRS från och med skarvåret och flyttar DMSP-åren
+med Δ = VIIRS(skarvår) − DMSP(skarvår). Valideringen mot folkräkningar
+(avsnitt 10 i docs/HARMONIZATION.md) visade att backward med rå VIIRS ger
+klart mindre lägesfel alla år.
 """
 
 from __future__ import annotations
@@ -218,6 +226,47 @@ def splice_level(dmsp: dict[int, pd.DataFrame], viirs: dict[int, pd.DataFrame], 
     return out, delta
 
 
+def splice_backward(dmsp: dict[int, pd.DataFrame], viirs: dict[int, pd.DataFrame], year0: int):
+    """Omvänd skarvning: VIIRS behålls från och med year0, och varje enhets
+    DMSP-centroider före year0 flyttas med Δ = VIIRS(year0) − DMSP(year0),
+    mätt vid DMSP-punkten year0. Valideringen mot folkräkningar visade att
+    DMSP:s fel per enhet till stor del är systematiskt och bestående, så att
+    VIIRS noggrannhet på det sättet förs över till DMSP-åren
+    (docs/HARMONIZATION.md, avsnitt 10)."""
+    d0 = dmsp[year0].set_index("unit_id")
+    v0 = viirs[year0].set_index("unit_id")
+    delta = pd.DataFrame(index=d0.index)
+    for m in ("bm", "aa"):
+        vv = v0.reindex(d0.index)
+        ok = d0[f"{m}_lon"].notna() & vv[f"{m}_lon"].notna()
+        de, dn = east_north_km(d0[f"{m}_lon"], d0[f"{m}_lat"], vv[f"{m}_lon"], vv[f"{m}_lat"])
+        delta[f"d_east_km_{m}"] = np.where(ok, de, np.nan)
+        delta[f"d_north_km_{m}"] = np.where(ok, dn, np.nan)
+    delta["splice_ok"] = delta[["d_east_km_bm", "d_east_km_aa"]].notna().all(axis=1).astype(int)
+    out = {}
+    for y, df in viirs.items():
+        if y < year0:
+            continue
+        df = df.copy()
+        for c in ("d_east_km_bm", "d_north_km_bm", "d_east_km_aa", "d_north_km_aa"):
+            df[c] = 0.0
+        df["splice_ok"] = 1
+        out[y] = df
+    for y, df in dmsp.items():
+        if y >= year0:
+            continue
+        df = df.set_index("unit_id").join(delta, how="left")
+        df["splice_ok"] = df["splice_ok"].fillna(0).astype(int)
+        for m in ("bm", "aa"):
+            lon, lat = move(df[f"{m}_lon"].values, df[f"{m}_lat"].values,
+                            df[f"d_east_km_{m}"].fillna(0.0).values, df[f"d_north_km_{m}"].fillna(0.0).values)
+            keep = df[f"{m}_lon"].isna().values
+            df[f"{m}_lon"] = np.where(keep, np.nan, lon)
+            df[f"{m}_lat"] = np.where(keep, np.nan, lat)
+        out[y] = df.reset_index()
+    return out, delta
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description="Skarva DMSP- och VIIRS-centroider per enhet.")
     p.add_argument("--dmsp", default="dmsp-irqr-reg")
@@ -231,7 +280,12 @@ def main(argv=None):
                    help="DMSP-år till och med skarvåret för --method trend (standard 10: 2004–2013).")
     p.add_argument("--viirs-window", type=int, default=13,
                    help="VIIRS-år från och med skarvåret för --method trend (standard 13: 2013–2025).")
+    p.add_argument("--direction", choices=["forward", "backward"], default="forward",
+                   help="forward: VIIRS flyttas till DMSP (DMSP behålls); backward: DMSP flyttas "
+                        "till VIIRS (VIIRS behålls från skarvåret).")
     p.add_argument("--results", type=Path, default=Path("data/results_mask2km"))
+    p.add_argument("--viirs-results", type=Path, default=None,
+                   help="Resultatmapp för VIIRS-källan, om den inte är --results.")
     p.add_argument("--out", type=Path, default=None, help="Standard: samma som --results.")
     p.add_argument("--boundary-set", default="gadm41")
     p.add_argument("--boundaries", type=Path, default=Path("data/raw/gadm41/gadm_410-levels.gpkg"))
@@ -244,21 +298,28 @@ def main(argv=None):
     for level in args.levels:
         t0 = time.time()
         src = {}
-        for name in (args.dmsp, args.viirs):
-            d = args.results / args.boundary_set / name / f"adm{level}"
+        for name, base in ((args.dmsp, args.results), (args.viirs, args.viirs_results or args.results)):
+            d = base / args.boundary_set / name / f"adm{level}"
             src[name] = {int(f.stem): read_results(f) for f in sorted(d.glob("*.csv"))}
             if args.year not in src[name]:
                 sys.exit(f"{name} adm{level} saknar {args.year} i {d}")
         ratio = noise_ratio(src[args.dmsp], src[args.viirs]) if args.method == "trend" else None
-        out, delta = splice_level(src[args.dmsp], src[args.viirs], args.year, method=args.method,
-                                  dmsp_window=args.dmsp_window, viirs_window=args.viirs_window,
-                                  ratio=ratio)
+        if args.direction == "backward":
+            if args.method != "point":
+                sys.exit("--direction backward finns bara med --method point")
+            out, delta = splice_backward(src[args.dmsp], src[args.viirs], args.year)
+            moved = {y for y in out if y < args.year}
+        else:
+            out, delta = splice_level(src[args.dmsp], src[args.viirs], args.year, method=args.method,
+                                      dmsp_window=args.dmsp_window, viirs_window=args.viirs_window,
+                                      ratio=ratio)
+            moved = {y for y in out if y > args.year}
         if not args.no_flags:
             from wpc.run import flags, load_units
             units = load_units(args.boundaries, args.boundary_set, level, args.cache_dir)
             pos = {u: i for i, u in enumerate(units["unit_id"])}
             for y, df in out.items():
-                if y <= args.year:
+                if y not in moved:
                     continue
                 idx = df["unit_id"].map(pos).values
                 for m in ("aa", "bm"):
@@ -275,7 +336,7 @@ def main(argv=None):
         dsum = delta.dropna(subset=["d_east_km_bm"])
         dist = np.hypot(dsum.d_east_km_bm, dsum.d_north_km_bm)
         meta = {"name": args.name, "dmsp": args.dmsp, "viirs": args.viirs, "splice_year": args.year,
-                "method": args.method,
+                "direction": args.direction, "method": args.method,
                 "dmsp_window": args.dmsp_window if args.method == "trend" else None,
                 "viirs_window": args.viirs_window if args.method == "trend" else None,
                 "noise_ratio_dmsp_viirs": ratio,
