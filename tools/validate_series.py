@@ -54,6 +54,20 @@ def gc_km(lon1, lat1, lon2, lat2):
     return 2 * R_KM * np.arcsin(np.sqrt(np.clip(h, 0, 1)))
 
 
+_RELEASE: dict = {}
+
+
+def release_year(release: Path, level: int, year: int) -> pd.DataFrame | None:
+    """Den publicerade datamängdens centroider (tools/build_release.py) för ett år."""
+    if level not in _RELEASE:
+        f = release / f"wpc_v2_gadm41_adm{level}.csv"
+        _RELEASE[level] = read_results(f) if f.exists() else None
+    d = _RELEASE[level]
+    if d is None or year not in set(d.year):
+        return None
+    return d[d.year == year][["unit_id", "aa_lon", "aa_lat", "bm_lon", "bm_lat"]].set_index("unit_id")
+
+
 def series_year(results, boundary, parts, level, year) -> pd.DataFrame | None:
     for src, years in parts:
         if year in years:
@@ -76,7 +90,9 @@ def main(argv=None):
     p.add_argument("--dataset", choices=["census", "geostat", "inegi"], required=True)
     p.add_argument("--years", type=int, nargs="+", required=True)
     p.add_argument("--change", type=int, nargs=2, action="append", default=[])
-    p.add_argument("--series", nargs="+", required=True)
+    p.add_argument("--series", nargs="+", default=[])
+    p.add_argument("--release", type=Path, default=None,
+                   help="Validera även den publicerade datamängden i denna mapp (serien 'release').")
     p.add_argument("--levels", type=int, nargs="+", default=[0, 1, 2])
     p.add_argument("--truth", type=Path, default=Path("data/validation"))
     p.add_argument("--results", type=Path, nargs="+", default=[Path("data/results_mask2km"), Path("data/results")])
@@ -88,13 +104,18 @@ def main(argv=None):
     p.add_argument("--out", type=Path, default=None)
     args = p.parse_args(argv)
     specs = [parse_series(s) for s in args.series]
+    if args.release:
+        specs.insert(0, ("release", None))
+    if not specs:
+        p.error("ange --series och/eller --release")
 
     pos, chg = [], []
     for level in args.levels:
         T = {y: truth(args.truth, args.dataset, y, level) for y in args.years}
         T = {y: t[(t["pop"] >= args.min_pop) & (t["n_points"] >= args.min_points)] for y, t in T.items()}
         for name, parts in specs:
-            S = {y: series_year(args.results, args.boundary_set, parts, level, y) for y in args.years}
+            S = {y: (release_year(args.release, level, y) if parts is None
+                     else series_year(args.results, args.boundary_set, parts, level, y)) for y in args.years}
             for y in args.years:
                 if S[y] is None:
                     continue
