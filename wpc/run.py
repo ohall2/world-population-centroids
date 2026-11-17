@@ -118,9 +118,9 @@ def _get_source(key: tuple):
     if _SOURCE_KEY != key:
         if _SOURCE is not None:
             _SOURCE.close()
-        name, year, raw_dir, calibration, flares = key
+        name, year, raw_dir, calibration, flares, max_lat = key
         _SOURCE = make_source(name, year, Path(raw_dir), Path(calibration),
-                              Path(flares) if flares else None)
+                              Path(flares) if flares else None, max_lat)
         _SOURCE_KEY = key
     return _SOURCE
 
@@ -163,7 +163,7 @@ def flags(units: gpd.GeoDataFrame, lon: np.ndarray, lat: np.ndarray) -> np.ndarr
 
 def run_one(units: gpd.GeoDataFrame, level: int, year: int, args, out_csv: Path) -> None:
     key = (args.source, year, str(args.raw_dir), str(args.calibration),
-           str(args.flares) if args.flares else None)
+           str(args.flares) if args.flares else None, args.max_lat)
     # Stora enheter först, så att inga långa jobb blir kvar i slutet.
     b = units.geometry.bounds
     order = np.argsort(-((b.maxx - b.minx) * (b.maxy - b.miny)).fillna(0).to_numpy())
@@ -226,6 +226,8 @@ def parse_years(vals: list[str], available: list[int]) -> list[int]:
 
 def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(description="Befolkningscentroider från nattljus (v2).")
+    p.add_argument("--max-lat", type=float, default=None,
+                   help="Sätt ljuset till 0 norr om denna breddgrad (v1: 65).")
     p.add_argument("--source", choices=SOURCES, default="dmsp-irqr",
                    help="Ljuskälla (standard dmsp-irqr).")
     p.add_argument("--years", nargs="+", default=["all"],

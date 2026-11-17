@@ -298,15 +298,50 @@ def read_offsets(path: Path = OFFSETS_FILE) -> dict:
     return out
 
 
+class LatitudeMask:
+    """Sätter ljuset till 0 i celler vars mittpunkt ligger norr om `max_lat`.
+
+    Som i v1 (Hall m.fl. 2019): norr om omkring 65° N är nattljuset
+    opålitligt (sena solnedgångar, norrsken, snö) och ljus per invånare
+    mycket högre än söderut, vilket drar t.ex. Sveriges och Norges nationella
+    centroider 100–150 km norrut (docs/HARMONIZATION.md). Enheter helt norr om
+    gränsen får ingen centroid.
+    """
+
+    def __init__(self, source, max_lat: float):
+        self._s, self.max_lat = source, max_lat
+        self.transform, self.width, self.height = source.transform, source.width, source.height
+        self.name = source.name
+
+    def describe(self) -> dict:
+        return {**self._s.describe(), "max_lat": self.max_lat}
+
+    def read(self, bounds):
+        win = grid_window(bounds, self.transform, self.width, self.height)
+        return None if win is None else self.read_window(win)
+
+    def read_window(self, win: Window) -> Window2D:
+        w = self._s.read_window(win)
+        t = w.transform
+        lat = t.f + t.e * (np.arange(w.data.shape[0]) + 0.5)
+        w.data[lat > self.max_lat, :] = 0.0
+        return w
+
+    def close(self) -> None:
+        self._s.close()
+
+
 def make_source(name: str, year: int, raw_dir: Path, calibration: Path | None,
-                flares: Path | None):
+                flares: Path | None, max_lat: float | None = None):
     if name == "dmsp-irqr":
-        return DmspIrqr(year, raw_dir, calibration, flares)
-    if name == "dmsp-irqr-reg":
-        return DmspIrqr(year, raw_dir, calibration, flares, offsets=read_offsets())
-    if name in ANNUAL:
-        return Annual(name, year, raw_dir, flares)
-    raise ValueError(f"Okänd ljuskälla: {name}")
+        src = DmspIrqr(year, raw_dir, calibration, flares)
+    elif name == "dmsp-irqr-reg":
+        src = DmspIrqr(year, raw_dir, calibration, flares, offsets=read_offsets())
+    elif name in ANNUAL:
+        src = Annual(name, year, raw_dir, flares)
+    else:
+        raise ValueError(f"Okänd ljuskälla: {name}")
+    return LatitudeMask(src, max_lat) if max_lat is not None else src
 
 
 def available_years(name: str, raw_dir: Path, calibration: Path | None) -> list[int]:
