@@ -185,5 +185,5 @@ nivåer, men hoppet 2013 → 2014 är fortfarande ungefär dubbelt så stort som
 ett vanligt DMSP-årshopp. Stora länder: Brasilien 159 → 48 km, Ryssland
 148 → 62 km, Argentina 85 → 19 km, Indien 146 → 127 km, Kina 106 → 77 km;
 Kanada blir sämre (253 → 325 km) och Sverige något sämre (33 → 48 km). En
-enda global överföringsfunktion räcker alltså inte; nästa steg är att pröva
-regionala funktioner.
+enda global överföringsfunktion räcker alltså inte. Resonemang, litteratur
+och nästa steg: se docs/HARMONIZATION.md.

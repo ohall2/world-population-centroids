@@ -43,6 +43,12 @@ PRODUCTS = {
              "citation": "Zhao, C., Cao, X., Chen, X., Cui, X. (2022). A consistent and "
                          "corrected nighttime light dataset (CCNL 1992–2013) from DMSP-OLS "
                          "data. Scientific Data 9, 424. doi:10.1038/s41597-022-01540-x"},
+    # Harmoniserad DMSP–VIIRS-serie 1992–2025 (CC BY 4.0), för jämförelse.
+    "chiovelli": {"record": "20558766", "pattern": "*", "out": "data/raw/chiovelli",
+                  "citation": "Chiovelli, G., Michalopoulos, S., Papaioannou, E., Regan, T. (2026). "
+                              "Harmonized Nighttime Lights, 1992–2025. Zenodo. "
+                              "doi:10.5281/zenodo.20558766. Artikel: Illuminating the Global South, "
+                              "The Economic Journal (2025), doi:10.1093/ej/ueaf134"},
     # Fackelplatser för VIIRS-perioden (CC BY-NC 4.0).
     "flares-viirs": {"record": "23091822", "pattern": "*", "out": "data/raw/flares_viirs",
                      "citation": "Zhizhin, M., Ghosh, T., Gleason, G., Elvidge, C. D., Bazilian, M. "
