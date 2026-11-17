@@ -32,8 +32,11 @@ from rasterio.windows import Window
 
 # DMSP-OLS v4: 43 201 x 16 801 pixlar à 30 bågsekunder. Pixelmittpunkterna
 # ligger på hela 30"-steg från -180 till 180 och från 75 till -65, så hörnet
-# ligger en halv pixel utanför. Earth Engine anger hörnet till (-180, 75) och
-# skalan avrundad till 0.0083333333; vi använder EOG:s rutnät.
+# ligger en halv pixel utanför. Earth Engine anger samma hörn för 32 av 35
+# kompositer (skalan avrundad till 0.0083333333); för F162009, F182010 och
+# F182011 anger Earth Engine hörnet (-180, 75), ett känt problem med dessa tre
+# raster (docs/HARMONIZATION.md 7.1). Vi använder EOG:s rutnät för alla; den
+# verkliga förskjutningen mäts och korrigeras av samregistreringen.
 DMSP_WIDTH, DMSP_HEIGHT = 43201, 16801
 DMSP_TRANSFORM = Affine(1 / 120, 0.0, -180.0 - 1 / 240, 0.0, -1 / 120, 75.0 + 1 / 240)
 
