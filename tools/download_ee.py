@@ -47,6 +47,7 @@ import datetime as dt
 import hashlib
 import json
 import math
+import re
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -215,15 +216,29 @@ def init_ee(project: str, highvolume: bool) -> None:
         ee.data.setDeadline(REQUEST_TIMEOUT_MS)
 
 
+def year_from_id(img_id: str) -> int:
+    m = re.findall(r"(?<!\d)(19[89]\d|20[0-4]\d)(?!\d)", img_id)
+    if len(set(m)) != 1:
+        raise ValueError(f"Kan inte avgöra året ur bildnamnet {img_id!r}")
+    return int(m[0])
+
+
 def list_images(collection: str, years: list[int] | None) -> list[dict]:
     """Lista bilderna i katalogen, eventuellt filtrerade på år."""
     import ee
     coll = ee.ImageCollection(collection)
     ids = coll.aggregate_array("system:index").getInfo()
     starts = coll.aggregate_array("system:time_start").getInfo()
+    if not ids:
+        sys.exit(f"Samlingen {collection} är tom eller saknas.")
+    if len(starts) == len(ids):
+        yrs = [dt.datetime.fromtimestamp(t / 1000, tz=dt.timezone.utc).year for t in starts]
+    else:
+        # Somliga samlingar saknar system:time_start; då tas året ur bildens namn.
+        yrs = [year_from_id(i) for i in ids]
+        log(f"{collection}: {len(ids) - len(starts)} bilder saknar datum – året tas ur namnet")
     images = []
-    for img_id, t in zip(ids, starts):
-        year = dt.datetime.fromtimestamp(t / 1000, tz=dt.timezone.utc).year
+    for img_id, year in zip(ids, yrs):
         if years is None or year in years:
             images.append({"id": img_id, "year": year})
     images.sort(key=lambda d: (d["year"], d["id"]))

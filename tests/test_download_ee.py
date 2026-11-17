@@ -103,3 +103,12 @@ def test_parse_years():
     import download_ee as d
     assert d.parse_years(["all"]) is None
     assert d.parse_years(["1992-1994", "2010"]) == [1992, 1993, 1994, 2010]
+
+
+def test_year_from_id():
+    import download_ee as d
+    assert d.year_from_id("Harmonized_DN_NTL_2013_simVIIRS") == 2013
+    assert d.year_from_id("SVNL_1992") == 1992
+    import pytest
+    with pytest.raises(ValueError):
+        d.year_from_id("noyear")
