@@ -192,3 +192,54 @@ serien blir sammanhängande; osäkerheten blir då DMSP-brusets storlek 2013;
 (b) redovisa serierna var för sig och skarven som en känd osäkerhet;
 (c) minska DMSP-bruset (samregistrering mellan år, avsnitt 5), vilket både
 minskar årshoppen och gör skarvningen i (a) säkrare.
+
+## 7. Samregistrering av DMSP mot VIIRS (beslut 2026-11-17)
+
+Val efter avsnitt 6: först minska DMSP:s eget brus genom att passa ihop
+kompositerna geografiskt, sedan skarva per enhet vid överlappsåret.
+
+**Metod** (wpc/coregister.py, tools/coregister_dmsp.py). Referensen är den
+harmoniserade VIIRS-bilden 2013: läget kommer enbart från VIIRS, som har god
+geolokalisering, och bilden ligger på DMSP:s rutnät och är utsmetad som
+DMSP. För varje komposit och ruta om 5° × 5° med minst 1 500 tända pixlar i
+båda bilderna beräknas korskorrelationen av log(1 + värde) med Hann-fönster
+via FFT; toppen inom ±3 pixlar förfinas med en parabel. Kompositens
+förskjutning är den viktade medianen över rutorna. Kompositen flyttas efter
+kalibreringen med bilinjär interpolation, som bevarar ljussumman och flyttar
+tyngdpunkten exakt lika mycket som förskjutningen (kontrollerat: Australien,
+väntat +0,28/+0,78 px, uppmätt +0,29/+0,72 px; skillnaden kommer från ljus
+vid fönstrets kant). Källan heter `dmsp-irqr-reg`.
+
+**Provresultat (9 kompositer).**
+
+| Komposit | dx | dy | Spridning (MAD) | Rutor |
+| --- | --- | --- | --- | --- |
+| F10 1992 | −0,96 | −0,85 | 0,15 / 0,14 | 461 |
+| F14 2000 | −1,02 | −0,88 | 0,08 / 0,17 | 516 |
+| F15 2000 | −0,19 | −0,21 | 0,11 / 0,17 | 538 |
+| F16 2008 | −0,30 | −0,85 | 0,20 / 0,27 | 547 |
+| F16 2009 | −0,82 | −0,30 | 0,27 / 0,23 | 519 |
+| F18 2010 | −1,44 | −0,53 | 0,18 / 0,13 | 536 |
+| F18 2011 | +0,11 | −0,37 | 0,09 / 0,08 | 559 |
+| F18 2012 | −0,46 | −1,12 | 0,08 / 0,09 | 563 |
+| F18 2013 | −0,28 | −0,78 | 0,09 / 0,08 | 565 |
+
+(pixlar à 30″; negativt dx = kompositen ligger för långt västerut, negativt
+dy = för långt norrut.)
+
+Tolkning:
+1. Förskjutningarna är upp till 1,4 pixlar (ca 1,3 km) och väl bestämda.
+2. Nästan alla kompositer ligger nordväst om VIIRS, i genomsnitt omkring en
+   halv pixel i båda led. Det stämmer med att DMSP-filerna egentligen hör
+   till rutnätet med hörnet (−180; 75), som Earth Engine anger, och inte till
+   EOG:s rutnät (−180,0042; 75,0042), som vi har använt. Ovanpå det varierar
+   varje komposit.
+3. Förskjutningen är i stort sett densamma i Amerika och resten av världen
+   (skillnad ≤ 0,1 px), utom F16 2008 (dy −1,23 mot −0,76). En förskjutning
+   per komposit räcker som första steg; rutvärdena sparas för att kunna pröva
+   regionala förskjutningar.
+4. F18 2013, som harmoniseringen anpassades mot, ligger 0,78 px för långt
+   norrut. Det förklarar troligen en del av skarven på adm2-nivå (0,8 km).
+   Harmoniseringen görs därför om med samregistrerad DMSP
+   (`tools/harmonize_viirs.py --dmsp-offsets config/dmsp_offsets.csv`,
+   källan `viirs-dmsp-reg`).

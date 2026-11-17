@@ -249,7 +249,9 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.raw_dir is None:
         args.raw_dir = {"dmsp-irqr": Path("data/raw/dmsp"),
+                        "dmsp-irqr-reg": Path("data/raw/dmsp"),
                         "viirs-dmsp": Path("data/derived/viirs_dmsp"),
+                        "viirs-dmsp-reg": Path("data/derived/viirs_dmsp_reg"),
                         "li2020-dmsp": Path("data/raw/li2020"),
                         "li2020-viirs": Path("data/raw/li2020"),
                         "chiovelli-cln": Path("data/raw/chiovelli/clean_dmsp"),
