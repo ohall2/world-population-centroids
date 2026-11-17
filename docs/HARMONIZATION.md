@@ -499,3 +499,48 @@ folkräkningar och olika enhetsindelning) ger samma rangordning, vilket
 talar för att resultatet håller, men en oberoende kontroll i ett tredje
 område (t.ex. ett land i Afrika eller Asien med folkräkning på fin nivå) vore
 värdefull.
+
+### Tredje facit: Mexiko (INEGI, 2026-11-17)
+
+Facit: INEGI:s ortsregister (ITER) från folkräkningarna 2010 (192 247 orter,
+112,3 miljoner invånare) och 2020 (189 432 orter, 126,0 miljoner). Varje ort
+är en punkt med befolkning; summaraderna tas bort (orter med en eller två
+bostäder finns också var för sig). Stora städer är ofta en ort per kommun,
+så facit är grovt inom städer. 32 delstater och 1 950 kommuner är
+fullständigt täckta.
+
+Lägesfel (Barmore, median km):
+
+| Serie | Mexiko adm0 2010 / 2020 | adm1 2010 / 2020 | adm2 2010 / 2020 |
+| --- | --- | --- | --- |
+| Skarvad framåt (spliced-reg) | 35 / 42 | 9,0 / 11,6 | 1,42 / 1,62 |
+| Skarvad bakåt (spliced-back) | 134 / 133 | 8,9 / 7,4 | **1,12 / 1,03** |
+| Chiovelli bloomtopcode_fix | 95 / 119 | 11,3 / 10,6 | 1,81 / 1,71 |
+| Li m.fl. 2020 | 41 / 60 | 9,1 / 17,0 | 1,44 / 2,06 |
+
+Landsnivå i alla tre facit (median km):
+
+| Serie | USA 2000 / 2010 / 2020 | Europa 2011 / 2021 | Mexiko 2010 / 2020 |
+| --- | --- | --- | --- |
+| Skarvad framåt | 59 / 73 / 54 | 14,5 / 16,9 | **35 / 42** |
+| Skarvad bakåt | **34 / 40 / 43** | **13,0 / 11,4** | 134 / 133 |
+
+Den bakåt skarvade serien är bäst på adm2 i alla tre facit och på adm1 i USA,
+Europa och Mexiko 2020 (lika 2010). På landsnivå är den bäst i USA och Europa
+men klart sämst i Mexiko: VIIRS-centroiden ligger omkring 80 km för långt
+västerut och 110 km för långt norrut.
+
+**Tolkning.** VIIRS mäter strålning som ökar med inkomst och ekonomisk
+aktivitet. I ett land med stora regionala inkomstskillnader – det rikare,
+industrialiserade norra Mexiko mot det folkrika, fattigare södra – drar det
+centroiden mot de rikare områdena. DMSP:s mättnad sätter ett tak för de
+ljusaste områdena och dämpar effekten. I USA och Europa är skillnaderna i
+ljus per invånare mellan regionerna mindre, och där vinner VIIRS genom sin
+skärpa. Det är en hypotes som behöver prövas, eftersom Mexiko bara är ett land.
+
+**Följd.** För världens medel- och låginkomstländer, där inkomstskillnaderna
+mellan regioner ofta är stora, kan rå VIIRS ge skevare nationella centroider än
+DMSP. Nästa steg är (a) ett facit till med stora regionala inkomstskillnader –
+Brasilien (IBGE:s rutnät 2010 och 2022) – och (b) att pröva om en konkav
+omvandling av VIIRS-strålningen (t.ex. log eller ett tak som efterliknar
+DMSP:s mättnad) före viktningen ger bra lägen på alla nivåer.
