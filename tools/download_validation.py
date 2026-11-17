@@ -10,6 +10,11 @@ mittpunkt per kvartersgrupp (block group), 2000, 2010 och 2020.
   2000: cenpop2000/blkgrp/bg_<fips>_<st>.txt (en fil per delstat, utan rubrikrad)
   Kolumner: STATEFP, COUNTYFP, TRACTCE, BLKGRPCE, POPULATION, LATITUDE, LONGITUDE.
 
+Mexiko (INEGI, Principales resultados por localidad – ITER): befolkning och
+läge för varje ort i folkräkningarna 2010 och 2020.
+  https://www.inegi.org.mx/programas/ccpv/2020/#datos_abiertos
+  2010: iter_nal_2010_csv.zip   2020: iter_00_cpv2020_csv.zip
+
 Europa (Eurostat GISCO, folkräkningar på rutnät 1 km², ETRS89-LAEA):
   2011: GEOSTAT-grid-POP-1K-2011-V2-0-1.zip
   2021: Eurostat_Census-GRID_2021_V3.zip
@@ -44,6 +49,10 @@ FILES = {
     "census": [
         ("2020", f"{CENSUS}/cenpop2020/blkgrp/CenPop2020_Mean_BG.txt"),
         ("2010", f"{CENSUS}/cenpop2010/blkgrp/CenPop2010_Mean_BG.txt"),
+    ],
+    "inegi": [
+        ("2010", "https://www.inegi.org.mx/contenidos/programas/ccpv/2010/datosabiertos/iter_nal_2010_csv.zip"),
+        ("2020", "https://www.inegi.org.mx/contenidos/programas/ccpv/2020/datosabiertos/iter/iter_00_cpv2020_csv.zip"),
     ],
     "geostat": [
         ("2011", "https://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/GEOSTAT-grid-POP-1K-2011-V2-0-1.zip"),
