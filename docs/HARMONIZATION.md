@@ -49,7 +49,8 @@ sigmoidfunktion. De noterar själva att de simulerade DMSP-data får större
 utbredning än DMSP, särskilt där ljuset är svagt, och rekommenderar att bara
 använda pixlar med DN > 7. Regionala varianter finns (Zhao m.fl. 2020,
 Sydostasien, sigmoid; Zheng m.fl. 2019, Kina, geografiskt viktad regression).
-Chiovelli, Michalopoulos, Papaioannou och Regan (Economic Journal 2025) har
+Chiovelli, Michalopoulos, Papaioannou och Regan (2026, Economic Journal,
+doi:10.1093/ej/ueaf134) har
 en global serie 1992–2025 i 30″ med korskalibrering enligt Li och Zhou
 (2017), korrigering av mättnad med trunkerad Pareto (Bluhm och Krause 2022)
 och modellering av blooming; den är validerad mot ekonomisk utveckling.
@@ -61,7 +62,7 @@ Chen m.fl. (2024, Scientific Data 11:1380; NTLSRU-Net med NDVI, global
 
 **Globala eller regionala modeller?** En systematisk jämförelse av
 kalibreringsmetoder för DMSP (Pandey, Zhang och Seto 2017, Remote Sensing of
-Environment; referensen ska kontrolleras) fann att globala
+Environment 195:67–78) fann att globala
 metoder fungerar bättre än regionala. Den gällde kalibrering mellan
 DMSP-år, inte mellan sensorer, men är ett skäl att vara försiktig med
 regionala överföringsfunktioner, som kan ge nya skarvar vid regiongränserna.
@@ -339,7 +340,7 @@ bestående orsaken till skillnaden antas vara. Vår skarvning per enhet är en
 retropolering. Interpolering kräver två referensår; vi har ett överlapp,
 men externa referenser (befolkningens mittpunkter från US Census 2000,
 2010, 2020; SCB:s rutnät) kan spela den rollen och visa vilken sensor som
-ligger närmast den verkliga befolkningen – den valideringen återstår.
+ligger närmast den verkliga befolkningen (gjort i avsnitt 10).
 
 *Homogenisering av klimatserier.* Brott när mätinstrument byts är den
 vanligaste formen av inhomogenitet, och de korrigeras med relativa metoder
@@ -545,15 +546,23 @@ Brasilien (IBGE:s rutnät 2010 och 2022) – och (b) att pröva om en konkav
 omvandling av VIIRS-strålningen (t.ex. log eller ett tak som efterliknar
 DMSP:s mättnad) före viktningen ger bra lägen på alla nivåer.
 
+Utfall: (b) prövades inte. En konkav omvandling dämpar de ljusaste
+områdena, vilket skulle hjälpa i Mexiko, men ökar samtidigt vikten av svagt
+ljus i glesbygd. Det förvärrar det nordiska felet, där ljus per invånare är
+högt just i glest befolkade områden (avsnitt 11). Felen i Mexiko och Norden
+går alltså åt motsatta håll under samma omvandling. Det nordiska felet
+hanteras med maskningen i avsnitt 11, och Mexikos redovisas som en
+begränsning. (a) Brasilien är inte gjort, se 11.4.
+
 ## 11. Maskning norr om 65° N (som i v1)
 
 v1 maskade ljuset norr om 65° N, eftersom nattljuset där är mindre
 tillförlitligt (sena solnedgångar, norrsken); det berörde 7 länder och
 0,036 % av världens befolkning (Hall m.fl. 2019). Det fördes inte över till
 v2 från början. Valideringen visar att det spelar stor roll: ljus per
-invånare är i Norrbotten omkring fyra gånger så högt som i Stockholm (andel
-av ljuset 7,5 % mot 2,4 % av befolkningen 2021), och de nordiska ländernas
-nationella centroider hamnar 60–160 km för långt norrut.
+invånare är i Norrbotten omkring tre gånger riksgenomsnittet (7,5 % av
+ljuset mot 2,4 % av befolkningen 2021), och de nordiska ländernas
+nationella centroider hamnar 50–150 km för långt norrut.
 
 Uppskattning från kommunernas centroider (Aboufadel–Austin, ljusviktat,
 rå VIIRS 2021 / bakåt skarvad 2011), fel mot befolkningens centroid i km:
@@ -593,8 +602,8 @@ Här gör maskningen mer skada än nytta:
   på nivå 1), och på nivå 2 16 svenska och 89 norska kommuner (220 fler
   enheter i världen).
 - Enheter som skärs av 65° N får sin centroid flyttad till den södra delen.
-  Nordland hamnar 274 km fel (5 km utan maskning), och den sämsta svenska
-  kommunen 64 km fel (15–19 km utan).
+  Nordland hamnar 274 km fel (12–15 km utan maskning), och Storuman, den
+  sämsta svenska kommunen, 64 km fel (12–14 km utan).
 - Medianfelet för de nordiska länderna sjunker bara skenbart, eftersom de
   nordligaste enheterna faller bort.
 
@@ -625,6 +634,25 @@ Valideringen görs nu direkt på de publicerade filerna (`validate_series.py
 Felet i förändringen över tio år är fortfarande större än befolkningens
 faktiska förflyttning på nivå 1 och 2 i alla tre områdena. I Mexiko är det
 till exempel 0,85 mot 0,25 km på nivå 2.
+
+### 11.4 Kvarstående begränsningar (inför v2.0.0)
+
+1. **Nationella centroider i länder med stora regionala skillnader i ljus per
+   invånare** kan ligga långt fel: Mexiko omkring 130 km, Norge omkring 60 km
+   trots maskningen. Inget facit finns utanför Nordamerika och Europa (ett
+   fjärde facit, t.ex. IBGE:s rutnät för Brasilien, har inte prövats).
+2. **Förändring över tio år** kan inte mätas på nivå 1 och 2 i något av de
+   tre facit: felet är omkring 2–5 gånger befolkningens faktiska förflyttning.
+3. **Regionala lägesfel för F15 2002–2008 och F16 2005–2009** (upp till 0,7
+   px, avsnitt 7) är inte korrigerade. Hela samregistreringen minskade
+   årsbruset på adm2 med omkring 8 % (0,48 → 0,44 km); den regionala resten är mindre. Den
+   påverkar DMSP-årens brus men inte skarvningen, som utgår från F18 2013.
+4. **Skarvningen bygger på ett år** (2013). Ett slumpfel i DMSP- eller
+   VIIRS-centroiden det året följer med till alla DMSP-år; storleken ges per
+   enhet av `noise_dmsp_km` och `noise_viirs_km`.
+5. **Enheter utan skarvning** (`splice_ok = 0`; 13 / 166 / 3 198 på nivå
+   0 / 1 / 2) saknar centroid i en av källorna 2013, och deras DMSP-år är
+   inte jämförbara med VIIRS-åren.
 
 Mexikos nationella fel (avsnitt 10) har en annan orsak – regionala
 skillnader i ljus per invånare som följer inkomst – och redovisas som en

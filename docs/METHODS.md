@@ -20,7 +20,8 @@ Det här dokumentet beskriver hur v2 beräknas och varför varje val gjordes. De
 - Polygonerna från Elvidge m.fl. (2009), version 2009-06-18, en fil per land. De hämtas och slås ihop med [`tools/prepare_flares.py`](../tools/prepare_flares.py). Det är samma källa som v1 använde.
 - Tre av 65 filer (Elfenbenskusten, Ghana, Mauretanien) har koordinater som inte är grader och utesluts. Alla tre gäller facklor till havs, utanför landpolygonerna, och påverkar därför inga centroider.
 - Pixlar som berörs av en fackelpolygon sätts till 0.
-- Polygonerna täcker facklor som syntes fram till 2008. Nya facklor efter det fångas inte. För VIIRS-åren behövs en annan källa.
+- Polygonerna täcker facklor som syntes fram till 2008. Nya facklor efter det fångas inte.
+- **Huvudserien** använder i stället masken `flares_viirs_r2km.gpkg` för alla år och båda sensorerna: 2009-polygonerna plus en cirkel med radien 2 km kring varje fackelplats i VIIRS Nightfire (avsnittet *Fackelmask för VIIRS* nedan). Masken är statisk, så samma pixlar tas bort alla år. 2009-polygonerna ensamma används bara i jämförelsen med v1 och för CCNL.
 
 ## 4. Gränser
 
@@ -53,11 +54,27 @@ Samma kodning som `OUT_FLAG` i v1: 0 = centroiden ligger i den egna enheten, 1 =
 
 v1 går inte att återskapa exakt med Earth Engine-rastren. Ett test för 2010, där kalibreringen är identitet, gav avvikelser på 50–1 000 m även i länder utan facklor, och avvikelserna gick åt olika håll i olika länder. Det tyder på att pixelvärdena skiljer sig från dem v1 använde, till exempel genom en annan bearbetningsversion av DMSP v4. Koden följer v1:s steg rad för rad ([`wpc/v1method.py`](../wpc/v1method.py)). Skillnaden mellan v1 och v2 redovisas därför som en jämförelse, inte som en reproduktion.
 
+## 9. Huvudserien
+
+Den publicerade serien (`tools/build_release.py`) byggs i fyra steg. Resonemang, prövade alternativ och validering står i [`docs/HARMONIZATION.md`](HARMONIZATION.md).
+
+1. **Samregistrering av DMSP** (avsnitt 7 där): varje komposit flyttas med subpixel-noggrannhet till VIIRS-läget 2013 ([`config/dmsp_offsets.csv`](../config/dmsp_offsets.csv)). Källan heter `dmsp-irqr-reg`.
+2. **Rå VIIRS VNL v2 2013–2025**, utan omvandling till DMSP-skala (källan `viirs`).
+3. **Skarvning bakåt per enhet** (avsnitt 8–10 där): DMSP-åren 1992–2012 flyttas med enhetens skillnad mellan rå VIIRS och DMSP 2013, i km österut och norrut. VIIRS-åren lämnas orörda.
+4. **Maskning norr om 65° N på nivå 0**, som i v1 (avsnitt 11 där): nationella centroider beräknas utan ljus norr om 65° N (`wpc.run --max-lat 65`). Nivå 1 och 2 använder allt ljus.
+
+Valideringen mot US Census, Eurostat GEOSTAT och INEGI ger medianfel på 0,7–2,9 km på nivå 1 utom i Mexiko (7–9 km), 0,7–1,5 km på nivå 2 och 11–44 km på nivå 0 utom i Mexiko (omkring 130 km). Tabellerna finns i docs/validation/ och i datamängdens metadata.json.
+
 ## Referenser
 
-- Hall, O., Archila Bustos, M. F., Olén, N. B. & Niedomysl, T. (2019). Population centroids of the world administrative units from nighttime lights 1992–2013. *Scientific Data* 6, 235.
+- Hall, O., Archila Bustos, M. F., Olén, N. B. & Niedomysl, T. (2019). Population centroids of the world administrative units from nighttime lights 1992–2013. *Scientific Data* 6, 235. doi:10.1038/s41597-019-0250-z.
 - Elvidge, C. D. m.fl. (2009). A fifteen year record of global natural gas flaring derived from satellite data. *Energies* 2, 595–622.
 - Elvidge, C. D. m.fl. (2014). National trends in satellite-observed lighting 1992–2012. I *Global Urban Monitoring and Assessment through Earth Observation*. CRC Press.
+- Chiovelli, G., Michalopoulos, S., Papaioannou, E. & Regan, T. (2026). Illuminating the Global South. *The Economic Journal*. doi:10.1093/ej/ueaf134.
+- Li, X., Zhou, Y., Zhao, M. & Zhao, X. (2020). A harmonized global nighttime light dataset 1992–2018. *Scientific Data* 7, 168. doi:10.1038/s41597-020-0510-y.
+- Niedomysl, T., Hall, O., Archila Bustos, M. F. & Ernstson, U. (2017). Using satellite data on nighttime lights intensity to estimate contemporary human migration distances. *Annals of the American Association of Geographers* 107(3), 591–605. doi:10.1080/24694452.2016.1270191.
+- Pandey, B., Zhang, Q. & Seto, K. C. (2017). Comparative evaluation of relative calibration methods for DMSP/OLS nighttime lights. *Remote Sensing of Environment* 195, 67–78.
+- Zhao, C., Cao, X., Chen, X. & Cui, X. (2022). A consistent and corrected nighttime light dataset (CCNL 1992–2013) from DMSP-OLS data. *Scientific Data* 9, 424. doi:10.1038/s41597-022-01540-x.
 
 
 ## CCNL (Zhao m.fl. 2022) som alternativ ljuskälla

@@ -6,7 +6,7 @@ Alla filer läggs under `data/`, som inte ingår i git. Sökvägarna nedan är d
 | --- | --- | --- |
 | DMSP-OLS v4 Stable Lights, 35 kompositer | `data/raw/dmsp/DMSP_<satellit><år>_stable_lights.tif` + `.json` | `python tools/download_ee.py --product dmsp --project <earth-engine-projekt>` (kräver Earth Engine-konto och `earthengine authenticate`) |
 | CCNL v1 (Zhao m.fl. 2022), 30″, en fil per år 1992–2013 | `data/raw/ccnl/CCNL_DMSP_<år>_V1.tif` + `.json` | `python tools/download_zenodo.py --product ccnl` (Zenodo doi:10.5281/zenodo.6644980, 22 filer, 7,3 GB; md5 kontrolleras mot Zenodo). Versionen i Earth Engine (`BNU/FGS/CCNL/v1`) är omsamplad till 0,008983° (1 km vid ekvatorn, 40 076 × 15 585 pixlar) och används inte. |
-| VIIRS VNL v2, årskompositer | `data/raw/viirs/VIIRS_<id>_{average_masked,cf_cvg}.tif` + `.json` | `python tools/download_ee.py --product viirs --project <earth-engine-projekt>` (Earth Engine `NOAA/VIIRS/DNB/ANNUAL_V22`) |
+| VIIRS VNL v2, årskompositer 2013–2025 | `data/raw/viirs/VIIRS_<id>_average_masked.tif` + `.json` | `python tools/download_ee.py --product viirs --collection NOAA/VIIRS/DNB/ANNUAL_V21 --bands average_masked --project <projekt>` (2013–2021) och samma utan `--collection` (`ANNUAL_V22`, 2022–2025). Bara bandet `average_masked` används. |
 | Fackelpolygoner (Elvidge m.fl. 2009) | `data/raw/flares/` → `data/processed/flares_dmsp.gpkg` | `python tools/prepare_flares.py` |
 | Fackelkatalog MYC25Q4 (VIIRS Nightfire 2012–2025) | `data/raw/flares_viirs/annual_flare_site_records.csv` m.fl. | `python tools/download_zenodo.py --product flares-viirs` (Zenodo doi:10.5281/zenodo.23091822) |
 | EOG:s årliga fackelkataloger 2012–2024 (Excel) | `data/raw/flares_viirs/legacy/*.xlsx` + `SHA256SUMS` | https://eogdata.mines.edu/global_flare_data/ (nio filer, länkade från https://eogdata.mines.edu/products/vnf/global_gas_flare.html) |
@@ -14,6 +14,11 @@ Alla filer läggs under `data/`, som inte ingår i git. Sökvägarna nedan är d
 | GADM 4.1, nivåer | `data/raw/gadm41/gadm_410-levels.gpkg` | Manuell nedladdning från https://geodata.ucdavis.edu/gadm/gadm4.1/gadm_410-levels.zip (2,5 GB), uppackad med `unzip` (5,0 GB). Zip-filen fungerar också, men är mycket långsam att läsa. |
 | GADM 2.8, geometrier (för jämförelse med v1) | `data/raw/gadm28/gadm28_adm{0,1,2}.{shp,shx,prj,cpg}` | https://gml.noaa.gov/aftp/pub/basu/Borders/GADM/ |
 | GADM 2.8, adm0-tabell | `data/raw/gadm28_levels.shp.zip` | Zenodo, doi:10.5281/zenodo.5103739 (md5 090efe30d3cb99f04a4814966832da6e) |
+| Li m.fl. 2020 (jämförelse) | `data/raw/li2020/` | `python tools/download_ee.py --product li2020-dmsp --project <projekt>` och `--product li2020-viirs` |
+| Chiovelli m.fl. 2026 (jämförelse) | `data/raw/chiovelli/<variant>/` | `python tools/download_zenodo.py --product chiovelli` (Zenodo doi:10.5281/zenodo.20558766) och `python tools/prepare_chiovelli.py` |
+| Facit: US Census, befolkning och befolkningsmittpunkt per block group 2000, 2010, 2020 | `data/raw/validation/census/` | `python tools/download_validation.py --only census` |
+| Facit: Eurostat GEOSTAT 1 km-rutnät 2011 (V2.0.1) och 2021 (V3) | `data/raw/validation/geostat/` | `python tools/download_validation.py --only geostat` |
+| Facit: INEGI ortsregister (ITER) 2010 och 2020 | `data/raw/validation/inegi/` | `python tools/download_validation.py --only inegi` |
 | GADM 2.8, färdig | `data/processed/gadm28.gpkg` | `python tools/prepare_gadm28.py` (använder `legacy/v1/` för attributen) |
 
 ## Licenser
