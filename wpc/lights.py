@@ -88,11 +88,15 @@ class DmspIrqr:
       c0 och få vikt i centroiden.
     - År med två satelliter: medelvärdet av de kalibrerade värdena.
     - Pixlar som berörs av en fackelpolygon sätts till 0.
+    - Med `offsets` (satellit, år) -> (dx, dy) flyttas varje komposit efter
+      kalibreringen så att den ligger rätt mot VIIRS (wpc/coregister.py,
+      tools/coregister_dmsp.py). Källan heter då "dmsp-irqr-reg".
     """
 
     name = "dmsp-irqr"
 
-    def __init__(self, year: int, raw_dir: Path, calibration: Path, flares: Path | None):
+    def __init__(self, year: int, raw_dir: Path, calibration: Path, flares: Path | None,
+                 offsets: dict | None = None):
         coeffs = read_calibration(calibration)
         self.year = year
         self.satellites = sorted(sat for (sat, y) in coeffs if y == year)
@@ -109,12 +113,22 @@ class DmspIrqr:
                 raise ValueError(f"{s.name}: {s.width}x{s.height}, väntade {DMSP_WIDTH}x{DMSP_HEIGHT}")
         self.flares = gpd.read_file(flares, engine="pyogrio") if flares else None
         self._flare_index = self.flares.sindex if self.flares is not None else None
+        self.offsets = None
+        if offsets is not None:
+            missing = [s for s in self.satellites if (s, year) not in offsets]
+            if missing:
+                raise ValueError(f"Förskjutning saknas för {missing} {year}")
+            self.offsets = [offsets[(s, year)] for s in self.satellites]
+            self.name = "dmsp-irqr-reg"
 
     def describe(self) -> dict:
-        return {"source": self.name, "year": self.year, "satellites": self.satellites,
-                "coefficients": dict(zip(self.satellites, self.coeffs)),
-                "files": [str(p) for p in self.paths],
-                "grid": "EOG DMSP v4, 30 arcsec, hörn (-180.0041667, 75.0041667)"}
+        d = {"source": self.name, "year": self.year, "satellites": self.satellites,
+             "coefficients": dict(zip(self.satellites, self.coeffs)),
+             "files": [str(p) for p in self.paths],
+             "grid": "EOG DMSP v4, 30 arcsec, hörn (-180.0041667, 75.0041667)"}
+        if self.offsets:
+            d["offsets_px"] = dict(zip(self.satellites, [list(o) for o in self.offsets]))
+        return d
 
     # Rutnätet som källan levererar fönster ur.
     transform, width, height = DMSP_TRANSFORM, DMSP_WIDTH, DMSP_HEIGHT
@@ -127,8 +141,17 @@ class DmspIrqr:
 
     def read_window(self, win: Window) -> Window2D:
         acc = None
-        for src, (c0, c1, c2) in zip(self._srcs, self.coeffs):
-            cal = calibrate(src.read(1, window=win), c0, c1, c2)
+        offs = self.offsets or [None] * len(self._srcs)
+        for src, (c0, c1, c2), off in zip(self._srcs, self.coeffs, offs):
+            if off is None:
+                cal = calibrate(src.read(1, window=win), c0, c1, c2)
+            else:
+                from .coregister import shift_bilinear
+                h = int(np.ceil(max(abs(off[0]), abs(off[1])))) + 1
+                big = Window(win.col_off - h, win.row_off - h, win.width + 2 * h, win.height + 2 * h)
+                raw = src.read(1, window=big, boundless=True, fill_value=0)
+                cal = shift_bilinear(calibrate(raw, c0, c1, c2), off[0], off[1])
+                cal = cal[h:h + int(win.height), h:h + int(win.width)]
             acc = cal if acc is None else acc + cal
         data = acc / len(self._srcs)
         transform = DMSP_TRANSFORM @ Affine.translation(win.col_off, win.row_off)
@@ -166,6 +189,8 @@ ANNUAL = {
               "note": "VIIRS VNL v2 årskompositer, average_masked (nW/cm2/sr)"},
     "viirs-dmsp": {"glob": "VDMSP_*",
                    "note": "VIIRS VNL v2 harmoniserad till DMSP-IRQR (tools/harmonize_viirs.py)"},
+    "viirs-dmsp-reg": {"glob": "VDMSP_*",
+                       "note": "VIIRS VNL v2 harmoniserad till samregistrerad DMSP-IRQR"},
     # Publicerade harmoniserade serier, för jämförelse (docs/HARMONIZATION.md).
     "li2020-dmsp": {"glob": "LI2020_*_calDMSP_b1",
                     "note": "Li m.fl. 2020 v7, kalibrerad DMSP 1992–2013 (sat-io Harmonized_NTL/dmsp)"},
@@ -260,20 +285,32 @@ class Annual:
         self._src.close()
 
 
-SOURCES = ["dmsp-irqr", *ANNUAL]
+SOURCES = ["dmsp-irqr", "dmsp-irqr-reg", *ANNUAL]
+OFFSETS_FILE = Path("config/dmsp_offsets.csv")
+
+
+def read_offsets(path: Path = OFFSETS_FILE) -> dict:
+    """(satellit, år) -> (dx, dy) i pixlar, från tools/coregister_dmsp.py."""
+    out = {}
+    with open(path, newline="") as fh:
+        for row in csv.DictReader(r for r in fh if not r.startswith("#")):
+            out[(row["satellite"], int(row["year"]))] = (float(row["dx"]), float(row["dy"]))
+    return out
 
 
 def make_source(name: str, year: int, raw_dir: Path, calibration: Path | None,
                 flares: Path | None):
     if name == "dmsp-irqr":
         return DmspIrqr(year, raw_dir, calibration, flares)
+    if name == "dmsp-irqr-reg":
+        return DmspIrqr(year, raw_dir, calibration, flares, offsets=read_offsets())
     if name in ANNUAL:
         return Annual(name, year, raw_dir, flares)
     raise ValueError(f"Okänd ljuskälla: {name}")
 
 
 def available_years(name: str, raw_dir: Path, calibration: Path | None) -> list[int]:
-    if name == "dmsp-irqr":
+    if name in ("dmsp-irqr", "dmsp-irqr-reg"):
         return sorted({y for (_, y) in read_calibration(calibration)})
     return sorted(annual_files(name, raw_dir))
 

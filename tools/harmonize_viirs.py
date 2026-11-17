@@ -45,7 +45,7 @@ from rasterio.windows import Window
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from wpc import harmonize as H  # noqa: E402
 from wpc.lights import (DMSP_HEIGHT, DMSP_TRANSFORM, DMSP_WIDTH, DmspIrqr,  # noqa: E402
-                        Window2D, annual_files, mask_flares, snap_transform)
+                        Window2D, annual_files, mask_flares, read_offsets, snap_transform)
 from wpc.progress import Progress, fmt_seconds, log  # noqa: E402
 
 SIGMAS = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
@@ -176,6 +176,9 @@ def main(argv=None):
     p.add_argument("--calibration", type=Path, default=Path("config/calibration_v1.csv"))
     p.add_argument("--flares", type=Path, default=Path("data/processed/flares_viirs_r2km.gpkg"))
     p.add_argument("--out-dir", type=Path, default=Path("data/derived/viirs_dmsp"))
+    p.add_argument("--dmsp-offsets", type=Path, default=None,
+                   help="Samregistrera DMSP 2013 med förskjutningarna i filen (config/dmsp_offsets.csv) "
+                        "före anpassningen.")
     p.add_argument("--fit-only", action="store_true")
     p.add_argument("--refit", action="store_true", help="Anpassa om även om model.json finns.")
     p.add_argument("--rows", type=int, nargs=2, default=None, help=argparse.SUPPRESS)
@@ -197,7 +200,8 @@ def main(argv=None):
         model = json.loads(model_path.read_text())
         log(f"Använder befintlig modell {model_path} (sigma {model['sigma']})")
     else:
-        dmsp = DmspIrqr(2013, args.dmsp_dir, args.calibration, args.flares)
+        offsets = read_offsets(args.dmsp_offsets) if args.dmsp_offsets else None
+        dmsp = DmspIrqr(2013, args.dmsp_dir, args.calibration, args.flares, offsets=offsets)
         model = fit(files[2013], dmsp, flares, index)
         model.update({"overlap_year": 2013, "dmsp": dmsp.describe(), "viirs_2013": files[2013].name,
                       "flares": str(args.flares),
