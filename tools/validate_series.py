@@ -82,6 +82,9 @@ def main(argv=None):
     p.add_argument("--results", type=Path, nargs="+", default=[Path("data/results_mask2km"), Path("data/results")])
     p.add_argument("--boundary-set", default="gadm41")
     p.add_argument("--min-pop", type=float, default=0, help="Bara enheter med minst så många invånare.")
+    p.add_argument("--min-points", type=int, default=10,
+                   help="Bara enheter med minst så många facitpunkter (standard 10; utesluter "
+                        "småenheter som Vatikanen och Monaco, där 1 km-rutor ger fel befolkning).")
     p.add_argument("--out", type=Path, default=None)
     args = p.parse_args(argv)
     specs = [parse_series(s) for s in args.series]
@@ -89,7 +92,7 @@ def main(argv=None):
     pos, chg = [], []
     for level in args.levels:
         T = {y: truth(args.truth, args.dataset, y, level) for y in args.years}
-        T = {y: t[t["pop"] >= args.min_pop] for y, t in T.items()}
+        T = {y: t[(t["pop"] >= args.min_pop) & (t["n_points"] >= args.min_points)] for y, t in T.items()}
         for name, parts in specs:
             S = {y: series_year(args.results, args.boundary_set, parts, level, y) for y in args.years}
             for y in args.years:

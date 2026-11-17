@@ -19,10 +19,16 @@ samma metoder som för nattljuset (wpc.centroids): Aboufadel–Austin
 är befolkningen i punkten; ingen ytviktning behövs, eftersom vikten redan är
 ett antal personer.
 
-En enhet räknas som fullständigt täckt om ingen av dess adm2-enheter med
-nattljus (DMSP 2010, sum_light > 0) saknar befolkning i facit. Det fångar
-delar av länder som rutnätet inte täcker (t.ex. Kanarieöarna) och länder
-där bara modellerade rutor finns. Kolumnen `complete` anger detta.
+Fullständig täckning (kolumnen `complete`, och `missing_light_share`):
+andelen av enhetens nattljus (DMSP 2010, samregistrerad) som ligger i
+underenheter på den finaste GADM-nivå som finns för landet och som saknar
+befolkning i facit. En adm2-enhet är täckt om den har befolkning; för en
+adm1-enhet utan adm2-underenheter (t.ex. Moldavien, Andorra) används
+enheten själv, och likadant för länder utan adm1. En enhet räknas som
+fullständig om andelen är under 1 %. Det fångar delar av länder som
+rutnätet inte täcker (t.ex. Kanarieöarna), länder där bara modellerade
+rutor finns och grannländer som bara fått några randrutor, men utesluter
+inte ett land för att några få småenheter saknar invånare.
 
 Utdata: data/validation/<data>/<år>/adm<nivå>.csv med kolumnerna
 unit_id, level, year, dataset, pop, n_points, aa_lon, aa_lat, bm_lon,
@@ -145,6 +151,26 @@ def centroids(points: pd.DataFrame, idx: np.ndarray, units: gpd.GeoDataFrame, la
     return pd.DataFrame(rows, columns=["unit_id", "pop", "n_points", "aa_lon", "aa_lat", "bm_lon", "bm_lat"])
 
 
+def missing_light_share(have: dict, light: dict, u1: pd.DataFrame, u2: pd.DataFrame) -> dict:
+    """Andel av enhetens ljus i underenheter utan befolkning i facit (se ovan)."""
+    l2 = u2.assign(light=u2.unit_id.map(light[2]).fillna(0.0).values,
+                   miss=~u2.unit_id.isin(have[2]))
+    m2 = pd.Series(np.where(l2.miss, 1.0, 0.0), index=l2.unit_id)
+    g = l2.groupby("adm1")
+    tot1 = g.light.sum()
+    mis1 = l2[l2.miss].groupby("adm1").light.sum().reindex(tot1.index).fillna(0.0)
+    share1 = (mis1 / tot1.where(tot1 > 0)).fillna(0.0)
+    m1 = pd.Series(np.where(~u1.unit_id.isin(have[1]), 1.0, 0.0), index=u1.unit_id)
+    m1.update(share1)                    # adm1 med adm2-underenheter: andel av ljuset
+    l1 = u1.assign(light=u1.unit_id.map(light[1]).fillna(0.0).values, share=m1.values)
+    tot0 = l1.groupby("adm0").light.sum()
+    mis0 = (l1.light * l1.share).groupby(l1.adm0).sum()
+    share0 = (mis0 / tot0.where(tot0 > 0)).fillna(0.0)
+    m0 = pd.Series({u: (0.0 if u in have[0] else 1.0) for u in light[0].index})
+    m0.update(share0)
+    return {2: m2, 1: m1, 0: m0}
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description="Befolkningscentroider från folkräkningar.")
     p.add_argument("--dataset", choices=["census", "geostat"], required=True)
@@ -154,15 +180,20 @@ def main(argv=None):
     p.add_argument("--boundaries", type=Path, default=Path("data/raw/gadm41/gadm_410-levels.gpkg"))
     p.add_argument("--cache-dir", type=Path, default=Path("data/processed/boundaries"))
     p.add_argument("--light-ref", type=Path,
-                   default=Path("data/results_mask2km/gadm41/dmsp-irqr-reg/adm2/2010.csv"),
-                   help="Nattljus per adm2 för kontrollen av täckning.")
+                   default=Path("data/results_mask2km/gadm41/dmsp-irqr-reg"),
+                   help="Nattljus per enhet (adm0–2, år 2010) för kontrollen av täckning.")
+    p.add_argument("--max-missing", type=float, default=0.01)
     args = p.parse_args(argv)
 
-    lit = pd.read_csv(args.light_ref, keep_default_na=False, usecols=["unit_id", "sum_light"])
-    lit = set(lit.unit_id[pd.to_numeric(lit.sum_light, errors="coerce") > 0])
     units = {lv: load_units(args.boundaries, "gadm41", lv, args.cache_dir) for lv in (0, 1, 2)}
-    parent = pd.DataFrame({"unit_id": units[2].unit_id.values, "adm1": units[2].GID_1.values,
-                           "adm0": units[2].GID_0.values})
+    light = {}
+    for lv in (0, 1, 2):
+        d = pd.read_csv(args.light_ref / f"adm{lv}" / "2010.csv", keep_default_na=False,
+                        usecols=["unit_id", "sum_light"])
+        light[lv] = pd.to_numeric(d.set_index("unit_id").sum_light, errors="coerce").fillna(0.0)
+    u1 = pd.DataFrame({"unit_id": units[1].unit_id.values, "adm0": units[1].GID_0.values})
+    u2 = pd.DataFrame({"unit_id": units[2].unit_id.values, "adm1": units[2].GID_1.values,
+                       "adm0": units[2].GID_0.values})
 
     for year in args.years:
         t0 = time.time()
@@ -175,30 +206,29 @@ def main(argv=None):
         od.mkdir(parents=True, exist_ok=True)
         summary = {"dataset": args.dataset, "year": year, "points": int(len(pts)),
                    "population": float(pts["pop"].sum()), **info, "levels": {}}
+        have, results = {}, {}
         for lv in (2, 1, 0):
             with Progress(f"adm{lv}: punkter till enheter"):
                 idx = assign(pts, units[lv])
             outside = pts["pop"].values[idx < 0].sum()
             res = centroids(pts, idx, units[lv], f"adm{lv} {year}")
-            if lv == 2:
-                have = set(res.unit_id)
-                bad = parent[parent.unit_id.isin(lit) & ~parent.unit_id.isin(have)]
-                bad1, bad0 = set(bad.adm1), set(bad.adm0)
-                res["complete"] = True
-                summary["incomplete_adm2_by_country"] = {
-                    k: int(v) for k, v in bad[bad.adm0.isin(res.unit_id.str[:3])].adm0.value_counts().items()}
-            elif lv == 1:
-                res["complete"] = ~res.unit_id.isin(bad1)
-            else:
-                res["complete"] = ~res.unit_id.isin(bad0)
+            have[lv] = set(res.unit_id)
+            results[lv] = res
+            summary["levels"][f"adm{lv}"] = {"units": int(len(res)), "pop_outside_units": float(outside)}
+        miss = missing_light_share(have, light, u1, u2)
+        for lv in (2, 1, 0):
+            res = results[lv]
+            res["missing_light_share"] = res.unit_id.map(miss[lv]).fillna(0.0).values
+            res["complete"] = res.missing_light_share < args.max_missing
             res.insert(1, "level", lv)
             res.insert(2, "year", year)
             res.insert(3, "dataset", args.dataset)
             res.to_csv(od / f"adm{lv}.csv", index=False, float_format="%.8f")
-            summary["levels"][f"adm{lv}"] = {"units": int(len(res)), "complete": int(res.complete.sum()),
-                                            "pop_outside_units": float(outside)}
+            summary["levels"][f"adm{lv}"]["complete"] = int(res.complete.sum())
             log(f"  adm{lv}: {len(res)} enheter ({int(res.complete.sum())} fullständiga), "
-                f"{outside:,.0f} personer utanför GADM-enheterna")
+                f"{summary['levels'][f'adm{lv}']['pop_outside_units']:,.0f} personer utanför GADM-enheterna")
+        summary["incomplete_adm0"] = {u: round(float(v), 4) for u, v in miss[0].items()
+                                      if u in have[0] and v >= args.max_missing}
         (od / "summary.json").write_text(json.dumps(summary, indent=1, ensure_ascii=False, default=str) + "\n")
         log(f"{args.dataset} {year} klart på {time.time() - t0:.0f} s -> {od}")
 
