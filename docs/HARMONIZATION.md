@@ -787,6 +787,33 @@ log 2013 → 2014 är +0,13 (Li, DN > 7) och −0,06 (Chiovelli), mot −0,16 �
    i vår serie (0,80 km på nivå 1) är, som avsett, ungefär ett vanligt
    VIIRS-hopp.
 
+**Tillägg: PCNL (Li, S. m.fl. 2023), 2026-11-17.** PCNL bygger på CCNL för
+DMSP och VNL för VIIRS, och anpassningen görs pixel för pixel. Data:
+Zenodo 7612389, åren 2010–2017 (`tools/download_zenodo.py --record 7612389
+--out data/raw/pcnl --pattern 'PCNL201[0-7].tif'`). Samma kontroll, 3 259
+enheter:
+
+| Mått | Vanligt hopp | Skarv | Kvot |
+| --- | --- | --- | --- |
+| Centroid (km) | 0,72 | 0,94 | 1,3 |
+| Standardavstånd | 0,013 | 0,016 | 1,25 |
+| Koncentration (Neff) | 0,047 | 0,074 | 1,6 |
+| Tänd yta | 0,020 | 0,084 | 4,1 |
+| Total ljusmängd | 0,086 | 0,073 | 0,85 |
+
+Årshoppen för centroiden är 1,05 / 1,24 / 0,84 km under DMSP-åren
+2010–2013, 0,94 km vid skarven och 0,45 / 0,42 / 0,61 km under VIIRS-åren.
+
+**Följd.** PCNL tar nästan bort skarven per enhet. Skarven är inte större än
+ett vanligt DMSP-hopp, för alla mått utom tänd yta (kvot 4,1, troligen
+tröskeln för vad som räknas som tänt). Påstående P1 måste därför
+formuleras om. De två serierna som är anpassade för summor (Li m.fl.;
+Chiovelli m.fl.) hänger inte ihop enhet för enhet. En serie som anpassats
+pixel för pixel gör det i stort sett, utom i tänd yta. Utvärderingen per
+enhet skiljer alltså mellan serierna, och det är ett argument för att
+använda den som standard. Hoppet 2016 → 2017 finns också i PCNL (global
+summa +0,10, median |Δlog| 0,12 mot omkring 0,04).
+
 Data: docs/check_seam/*.csv.gz (ett värde per enhet och år).
 
 ## 13. Förändring över 20 år (USA, kontroll inför artikeln, 2026-11-17)
