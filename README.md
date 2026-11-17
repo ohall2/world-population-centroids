@@ -78,6 +78,8 @@ Se [`docs/METHODS.md`](docs/METHODS.md) för detaljer och för skillnaderna mot 
 2. För varje enhet viktas varje pixel med **ljus × andel av pixeln i enheten × pixelns yta**.
 3. Två centroider beräknas: Aboufadel–Austin (viktat medel av 3D-vektorer på sfären) och Barmore (iterativt viktat medel i azimutal ekvidistant projektion).
 4. Varje centroid flaggas: 0 = i egen enhet, 1 = utanför alla enheter, 2 = i en annan enhet, -1 = inget ljus.
+5. DMSP-kompositerna samregistreras mot VIIRS 2013, och DMSP-åren 1992–2012 flyttas per enhet till rå VIIRS 2013 (bakåtskarvning). VIIRS används oförändrat 2013–2025.
+6. Nationella centroider (nivå 0) beräknas utan ljus norr om 65° N, som i v1.
 
 ## Utdata (kolumner)
 
