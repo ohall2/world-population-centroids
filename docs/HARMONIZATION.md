@@ -323,3 +323,57 @@ ska vara. Siffrorna: docs/comparison_spliced/.
    utsmetning drar centroiden mot en granne; flaggan anger det.
 3. *Regionala lägesfel för F15 2002–2008 och F16 2005–2009* (avsnitt 7) är
    inte korrigerade.
+
+## 9. Skarvning: hur andra har gjort, och vårt val (2026-11-17)
+
+**Litteratur.**
+
+*Skarvning av ekonomiska serier.* Att skala om den äldre serien med
+kvoten mellan serierna i överlappsåret kallas retropolering och är det
+vanliga sättet att länka nationalräkenskaper. Alternativet, interpolering,
+behandlar båda serierna som riktiga vid sina referensår och fördelar
+skillnaden jämnt över åren däremellan; retropolering kan ge snedvridna
+tillväxttal (Prados de la Escosura 2016). De la Fuente (2014) föreslår en
+blandning där korrektionen delas mellan nivå och tillväxt efter hur
+bestående orsaken till skillnaden antas vara. Vår skarvning per enhet är en
+retropolering. Interpolering kräver två referensår; vi har ett överlapp,
+men externa referenser (befolkningens mittpunkter från US Census 2000,
+2010, 2020; SCB:s rutnät) kan spela den rollen och visa vilken sensor som
+ligger närmast den verkliga befolkningen – den valideringen återstår.
+
+*Homogenisering av klimatserier.* Brott när mätinstrument byts är den
+vanligaste formen av inhomogenitet, och de korrigeras med relativa metoder
+som delar skillnaden mot en referens i segment med olika medelvärden. Brottet
+skattas alltså från flera år på var sida, inte från ett år.
+
+*Lägesfel i DMSP.* Ash och Mazur (2020, Remote Sensing 12:2219) visar
+systematiska lägesförskjutningar under enskilda satelliters livstid (F16
+2004–2009) och efterlyser automatisering; Tuttle m.fl. (2013) fann ett
+lägesfel på 2,9 km, och för utsläppskartor har ett fel på omkring 1,7 km
+korrigerats med vektorer per stad. Vår samregistrering (avsnitt 7) är en
+automatiserad, global variant med subpixel-noggrannhet.
+
+**Val av skattning för Δ.** Med ett enda år följer DMSP-brusets och
+VIIRS-brusets slumpfel i skarvåret med till alla VIIRS-år. Tre alternativ
+prövades analytiskt (standardavvikelsen för Δ i enheter av VIIRS-bruset,
+med DMSP-bruset dubbelt så stort, vilket stämmer med årshoppen):
+
+| Skattning | Osäkerhet i Δ |
+| --- | --- |
+| Ett år (skarvåret) | 2,24 |
+| Två separata linjer, 5 + 5 år, utvärderade skarvåret | (skarvårets fel väger 0,6) |
+| Gemensam trend + nivåskillnad, 5 + 5 år | 1,51 |
+| **Gemensam trend + nivåskillnad, DMSP 2004–2013 + VIIRS 2013–2025, viktad** | **1,01** |
+| Bara nivåskillnad (inga trender), samma år | 0,69 (men snedvriden om enheten flyttar sig) |
+
+Separata linjer hjälper lite, eftersom skarvåret ligger i kanten av båda
+fönstren. En gemensam modell – en rät linje för båda källorna och en
+konstant skillnad mellan dem – utnyttjar alla år, och längre fönster gör
+trenden säkrare. Vi väljer den gemensamma modellen med 2004–2013 och
+2013–2025 och vikter 1/σ² (σ-kvoten skattas ur medianerna av årshoppen).
+Den halverar osäkerheten och förutsätter bara att enhetens centroid rör
+sig ungefär jämnt över 22 år. Ett test med en syntetisk enhet med känd
+nivåskillnad och ett slumpfel i DMSP 2013 bekräftar att felet i Δ blir
+mindre än hälften av felet med ett år (tests/test_splice.py).
+
+Kommando: `python tools/splice_series.py --method trend --name spliced-reg-trend`.

@@ -26,9 +26,29 @@ Resultatet skrivs i samma format som pipelinen, i
 splice_year, splice_ok, d_east_km_bm, d_north_km_bm, d_east_km_aa och
 d_north_km_aa tillagda (0 för DMSP-åren).
 
+Två sätt att uppskatta Δ (--method):
+  point  skillnaden skarvåret, som ovan. Ett slumpmässigt hopp i DMSP eller
+         VIIRS skarvåret följer med till alla senare år.
+  trend  en gemensam modell per enhet och koordinat (km öster/norr): en
+         rät linje för båda källorna och en konstant skillnad Δ mellan dem,
+         anpassad med viktad minsta kvadrat till DMSP de --dmsp-window åren
+         till och med skarvåret (standard 2004–2013) och VIIRS de
+         --viirs-window åren från och med skarvåret (standard 2013–2025).
+         Vikterna är 1/σ², med brusnivåernas kvot skattad ur medianerna av
+         årshoppen i respektive källa. Det motsvarar hur
+         brott korrigeras vid homogenisering av klimatserier: nivåskillnad
+         med gemensam trend, skattad från flera år på var sida av brottet.
+         Kräver minst tre år i varje källa. Med DMSP-brus dubbelt så stort
+         som VIIRS-brus blir osäkerheten i Δ ungefär 45 % av den med ett enda
+         år (1,01 mot 2,24 i enheter av VIIRS-bruset). Kortare fönster ger
+         mindre vinst (5 + 5 år: 1,51), eftersom trenden och nivåskillnaden
+         då är svåra att skilja åt; separata linjer per källa utvärderade
+         skarvåret behåller 60 % av skarvårets slumpfel.
+
 Exempel
   python tools/splice_series.py --dmsp dmsp-irqr-reg --viirs viirs-dmsp-reg \\
       --name spliced-reg --results data/results_mask2km
+  python tools/splice_series.py --method trend --name spliced-reg-trend
 """
 
 from __future__ import annotations
@@ -81,15 +101,94 @@ def move(lon, lat, de, dn):
     return lon2, lat2
 
 
-def splice_level(dmsp: dict[int, pd.DataFrame], viirs: dict[int, pd.DataFrame], year0: int):
-    """dmsp/viirs: år -> resultat-DataFrame. Returnerar år -> skarvad DataFrame."""
+def _coords(years: dict[int, pd.DataFrame], use: list[int], ref: pd.DataFrame, m: str):
+    """Lägen i km (öster, norr) från referenspunkten, matris enheter × år."""
+    E = np.full((len(ref), len(use)), np.nan)
+    N = np.full((len(ref), len(use)), np.nan)
+    for j, y in enumerate(use):
+        d = years[y].set_index("unit_id").reindex(ref.index)
+        E[:, j], N[:, j] = east_north_km(ref[f"{m}_lon"], ref[f"{m}_lat"], d[f"{m}_lon"], d[f"{m}_lat"])
+    return E, N
+
+
+def noise_ratio(dmsp: dict, viirs: dict, m: str = "bm") -> float:
+    """Förhållandet mellan brusnivåerna (DMSP / VIIRS), skattat som kvoten
+    mellan medianerna av alla årshopp i respektive källa. Används som vikt i
+    joint_shift (vikter 1/σ²)."""
+    def med(years):
+        ys = sorted(years)
+        out = []
+        for a, b in zip(ys, ys[1:]):
+            if b != a + 1:
+                continue
+            A = years[a].set_index("unit_id")
+            B = years[b].set_index("unit_id").reindex(A.index)
+            d = np.hypot(*east_north_km(A[f"{m}_lon"], A[f"{m}_lat"], B[f"{m}_lon"], B[f"{m}_lat"]))
+            out.append(np.asarray(d)[np.isfinite(d)])
+        return float(np.median(np.concatenate(out)))
+    return med(dmsp) / med(viirs)
+
+
+def joint_shift(dmsp, viirs, dy, vy, ref, m, year0, min_years, ratio: float = 1.0):
+    """Δ per enhet ur en gemensam modell för båda källorna.
+
+    För varje enhet och koordinat (km öster respektive norr):
+        DMSP(t) = a + b (t − year0) + e,      t i dy
+        VIIRS(t) = a − Δ + b (t − year0) + e, t i vy
+    dvs. en gemensam linjär trend och en konstant skillnad Δ mellan
+    sensorerna, skattad med viktad minsta kvadrat över alla år (vikt 1 för
+    VIIRS och 1/ratio² för DMSP, där ratio är DMSP-brusets storlek i
+    förhållande till VIIRS-brusets). Det är samma modell som vid
+    homogenisering av klimatserier med ett känt brott: nivåskillnad med
+    gemensam trend, skattad från flera år på var sida.
+    """
+    Ed, Nd = _coords(dmsp, dy, ref, m)
+    Ev, Nv = _coords(viirs, vy, ref, m)
+    td = np.array(dy, float) - year0
+    tv = np.array(vy, float) - year0
+    out = np.full((len(ref), 2), np.nan)
+    for i in range(len(ref)):
+        kd = np.isfinite(Ed[i]) & np.isfinite(Nd[i])
+        kv = np.isfinite(Ev[i]) & np.isfinite(Nv[i])
+        if kd.sum() < min_years or kv.sum() < min_years:
+            continue
+        A = np.vstack([np.column_stack([np.ones(kd.sum()), td[kd], np.zeros(kd.sum())]),
+                       np.column_stack([np.ones(kv.sum()), tv[kv], -np.ones(kv.sum())])])
+        sw = np.concatenate([np.full(kd.sum(), 1.0 / ratio), np.ones(kv.sum())])   # sqrt(vikt)
+        for c, (Y1, Y2) in enumerate(((Ed[i], Ev[i]), (Nd[i], Nv[i]))):
+            y = np.concatenate([Y1[kd], Y2[kv]])
+            out[i, c] = np.linalg.lstsq(A * sw[:, None], y * sw, rcond=None)[0][2]
+    return out[:, 0], out[:, 1]
+
+
+def splice_level(dmsp: dict[int, pd.DataFrame], viirs: dict[int, pd.DataFrame], year0: int,
+                 method: str = "point", dmsp_window: int = 10, viirs_window: int = 13,
+                 min_years: int = 3, ratio: float | None = None):
+    """dmsp/viirs: år -> resultat-DataFrame. Returnerar år -> skarvad DataFrame.
+
+    method="point": Δ = DMSP(year0) − VIIRS(year0).
+    method="trend": Δ ur en gemensam modell (joint_shift) med DMSP
+    year0−dmsp_window+1 … year0 och VIIRS year0 … year0+viirs_window−1 (minst
+    `min_years` år med centroid i varje källa). ratio = DMSP-brus / VIIRS-
+    brus; None = skattas ur data (noise_ratio).
+    """
+    if method == "trend" and ratio is None:
+        ratio = noise_ratio(dmsp, viirs)
     d0 = dmsp[year0].set_index("unit_id")
     v0 = viirs[year0].set_index("unit_id")
     delta = pd.DataFrame(index=v0.index)
     for m in ("bm", "aa"):
-        ok = d0[f"{m}_lon"].reindex(v0.index).notna() & v0[f"{m}_lon"].notna()
-        de, dn = east_north_km(v0[f"{m}_lon"], v0[f"{m}_lat"],
-                               d0[f"{m}_lon"].reindex(v0.index), d0[f"{m}_lat"].reindex(v0.index))
+        if method == "point":
+            ok = d0[f"{m}_lon"].reindex(v0.index).notna() & v0[f"{m}_lon"].notna()
+            de, dn = east_north_km(v0[f"{m}_lon"], v0[f"{m}_lat"],
+                                   d0[f"{m}_lon"].reindex(v0.index), d0[f"{m}_lat"].reindex(v0.index))
+        elif method == "trend":
+            dy = [y for y in range(year0 - dmsp_window + 1, year0 + 1) if y in dmsp]
+            vy = [y for y in range(year0, year0 + viirs_window) if y in viirs]
+            de, dn = joint_shift(dmsp, viirs, dy, vy, v0, m, year0, min_years, ratio)
+            ok = np.isfinite(de) & np.isfinite(dn) & v0[f"{m}_lon"].notna().values
+        else:
+            raise ValueError(method)
         delta[f"d_east_km_{m}"] = np.where(ok, de, np.nan)
         delta[f"d_north_km_{m}"] = np.where(ok, dn, np.nan)
     delta["splice_ok"] = delta[["d_east_km_bm", "d_east_km_aa"]].notna().all(axis=1).astype(int)
@@ -125,6 +224,13 @@ def main(argv=None):
     p.add_argument("--viirs", default="viirs-dmsp-reg")
     p.add_argument("--name", default="spliced-reg")
     p.add_argument("--year", type=int, default=2013, help="Skarvår (överlappsår).")
+    p.add_argument("--method", choices=["point", "trend"], default="point",
+                   help="point: skillnaden skarvåret; trend: skillnaden mellan linjära trender "
+                        "(DMSP före, VIIRS efter skarvåret), utvärderade skarvåret.")
+    p.add_argument("--dmsp-window", type=int, default=10,
+                   help="DMSP-år till och med skarvåret för --method trend (standard 10: 2004–2013).")
+    p.add_argument("--viirs-window", type=int, default=13,
+                   help="VIIRS-år från och med skarvåret för --method trend (standard 13: 2013–2025).")
     p.add_argument("--results", type=Path, default=Path("data/results_mask2km"))
     p.add_argument("--out", type=Path, default=None, help="Standard: samma som --results.")
     p.add_argument("--boundary-set", default="gadm41")
@@ -143,7 +249,10 @@ def main(argv=None):
             src[name] = {int(f.stem): read_results(f) for f in sorted(d.glob("*.csv"))}
             if args.year not in src[name]:
                 sys.exit(f"{name} adm{level} saknar {args.year} i {d}")
-        out, delta = splice_level(src[args.dmsp], src[args.viirs], args.year)
+        ratio = noise_ratio(src[args.dmsp], src[args.viirs]) if args.method == "trend" else None
+        out, delta = splice_level(src[args.dmsp], src[args.viirs], args.year, method=args.method,
+                                  dmsp_window=args.dmsp_window, viirs_window=args.viirs_window,
+                                  ratio=ratio)
         if not args.no_flags:
             from wpc.run import flags, load_units
             units = load_units(args.boundaries, args.boundary_set, level, args.cache_dir)
@@ -166,6 +275,10 @@ def main(argv=None):
         dsum = delta.dropna(subset=["d_east_km_bm"])
         dist = np.hypot(dsum.d_east_km_bm, dsum.d_north_km_bm)
         meta = {"name": args.name, "dmsp": args.dmsp, "viirs": args.viirs, "splice_year": args.year,
+                "method": args.method,
+                "dmsp_window": args.dmsp_window if args.method == "trend" else None,
+                "viirs_window": args.viirs_window if args.method == "trend" else None,
+                "noise_ratio_dmsp_viirs": ratio,
                 "level": level, "units": int(len(delta)), "spliced": int(delta.splice_ok.sum()),
                 "shift_km_bm": {"median": float(dist.median()), "p90": float(dist.quantile(0.9)),
                                 "max": float(dist.max())},
