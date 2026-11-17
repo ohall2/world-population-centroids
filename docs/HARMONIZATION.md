@@ -137,3 +137,58 @@ minskar ökningen av svagt ljus vid sensorbytet.
 som har tillkommit efter 2009, t.ex. i Bakken). En del av skarven i avsnitt 2
 kan alltså bero på olika masker. Alla serier jämförs därför nu med samma
 mask, `flares_viirs_r2km.gpkg`, i `data/results_mask2km/`.
+
+## 6. Jämförelse med samma fackelmask (2026-11-17)
+
+Alla serier beräknade med `flares_viirs_r2km.gpkg` (GADM 4.1, Barmore).
+Siffrorna räknas fram med
+
+    python tools/compare_series.py --levels 0 1 --results data/results_mask2km data/results \
+      --series ours=dmsp-irqr:1992-2013+viirs-dmsp:2014-2025 \
+               li=li2020-dmsp:1992-2013+li2020-viirs:2014-2021 \
+               chiov_cln=chiovelli-cln:1992-2025 chiov_bltc=chiovelli-bltc:1992-2025 \
+      --same-year dmsp-irqr,viirs-dmsp,2013 li2020-dmsp,li2020-viirs,2013 --out docs/comparison
+
+och ligger i docs/comparison/. Tabellen visar medianen av årshoppen (km):
+"DMSP-år" är medianen av årsmedianerna 1993–2013, "skarv" är hoppet
+2013 → 2014 och "VIIRS-år" medianen av årsmedianerna från 2015.
+
+| Serie | Nivå | DMSP-år | Skarv | VIIRS-år | Skarv / DMSP-år | Skarv, 90 % |
+| --- | --- | --- | --- | --- | --- | --- |
+| Vår (dmsp-irqr + viirs-dmsp) | adm0 | 4,16 | 7,94 | 2,24 | 1,9 | 42 |
+| | adm1 | 1,24 | 2,19 | 0,67 | 1,8 | 12,6 |
+| Li m.fl. 2020 | adm0 | 4,61 | 18,90 | 4,67 | 4,1 | 187 |
+| | adm1 | 1,40 | 4,75 | 1,17 | 3,4 | 37,0 |
+| Chiovelli clean_dmsp | adm0 | 4,68 | 7,45 | 1,92 | 1,6 | 49 |
+| | adm1 | 1,43 | 2,40 | 0,62 | 1,7 | 13,8 |
+| Chiovelli bloomtopcode_fix | adm0 | 4,75 | 6,71 | 2,59 | 1,4 | 42 |
+| | adm1 | 1,43 | 2,20 | 0,70 | 1,5 | 11,5 |
+
+Slutsatser:
+
+1. **Maskfelet i avsnitt 2 betydde lite.** Med samma mask är avståndet
+   DMSP–harmoniserad VIIRS 2013 fortfarande 7,9 km (adm0) och 2,1 km (adm1).
+2. **Ingen serie tar bort skarven.** Hoppet vid sensorbytet är 1,4–4 gånger
+   ett vanligt DMSP-årshopp i alla serier.
+3. **Li m.fl. 2020 har den största skarven** (19 km för länder, 90 % upp till
+   187 km) och dessutom stort brus under VIIRS-åren. Serien passar inte för
+   lägesmått.
+4. **Vår serie och Chiovelli bloomtopcode_fix är jämbördiga.** Skarven är
+   nästan lika stor i km (adm1 2,19 mot 2,20; adm0 7,9 mot 6,7). Kvoten blir
+   lägre för Chiovelli delvis för att deras DMSP-år är brusigare (4,75 mot
+   4,16 km). Korrigeringen för blooming och mättnad minskar skarven något
+   jämfört med clean_dmsp.
+5. **VIIRS-åren är lugnare än DMSP-åren i alla serier utom Li**, ungefär
+   hälften så stora hopp.
+
+Avståndet mellan Li-seriens DMSP och dess DMSP-lika VIIRS samma år (2013):
+17,5 km (adm0) och 4,7 km (adm1), mot 7,9 och 2,1 km för vår serie.
+
+Följder för det fortsatta arbetet: skarven finns kvar med dagens metoder och
+måste hanteras uttryckligen. Möjligheter:
+(a) skarva per enhet med överlappsåret – lägg till skillnaden
+DMSP 2013 − harmoniserad VIIRS 2013 för varje enhet på alla VIIRS-år, så att
+serien blir sammanhängande; osäkerheten blir då DMSP-brusets storlek 2013;
+(b) redovisa serierna var för sig och skarven som en känd osäkerhet;
+(c) minska DMSP-bruset (samregistrering mellan år, avsnitt 5), vilket både
+minskar årshoppen och gör skarvningen i (a) säkrare.
