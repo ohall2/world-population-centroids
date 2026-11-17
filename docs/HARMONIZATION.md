@@ -564,9 +564,67 @@ rå VIIRS 2021 / bakåt skarvad 2011), fel mot befolkningens centroid i km:
 | Norge | 161 / 149 | 64 / 61 |
 | Finland | 58 / 71 | 26 / 48 |
 
-Beslut: huvudserien beräknas med `--max-lat 65`, som i v1
-(`wpc.lights.LatitudeMask`). Enheter som helt ligger norr om 65° N får ingen
-centroid. Resultat i data/results_m65/.
+Hela kedjan kördes om med `--max-lat 65` (`wpc.lights.LatitudeMask`;
+samregistrerad DMSP, rå VIIRS, bakåtskarvning; data/results_m65/).
+
+### 11.1 Resultat på nationell nivå
+
+Bakåt skarvad serie mot GEOSTAT, fel i km (Barmore):
+
+| Land | Utan maskning 2011 / 2021 | Med maskning 2011 / 2021 |
+| --- | --- | --- |
+| Sverige | 79,4 / 98,1 | 14,4 / 32,7 |
+| Norge | 95,6 / 149,3 | 67,2 / 61,1 |
+| Finland | 47,7 / 71,2 | 27,7 / 42,0 |
+| Danmark | 10,1 / 12,0 | 10,1 / 12,0 |
+| Estland | 15,7 / 15,2 | 15,7 / 15,2 |
+
+Uppskattningen ovan höll. Länder söder om 65° N påverkas inte, och
+medianerna för USA, Europa och Mexiko ändras inte på nivå 0. Norge har kvar
+ett fel på omkring 60 km, eftersom ljus per invånare stiger norrut även söder
+om 65° N (Trøndelag, Nordland söder om polcirkeln).
+
+### 11.2 Resultat på nivå 1 och 2
+
+Här gör maskningen mer skada än nytta:
+
+- Enheter som ligger helt norr om 65° N förlorar sin centroid. Det gäller till
+  exempel Norrbotten, Lappland, Finnmark, Troms och Svalbard (11 fler enheter
+  på nivå 1), och på nivå 2 16 svenska och 89 norska kommuner (220 fler
+  enheter i världen).
+- Enheter som skärs av 65° N får sin centroid flyttad till den södra delen.
+  Nordland hamnar 274 km fel (5 km utan maskning), och den sämsta svenska
+  kommunen 64 km fel (15–19 km utan).
+- Medianfelet för de nordiska länderna sjunker bara skenbart, eftersom de
+  nordligaste enheterna faller bort.
+
+Utan maskning var de subnationella felen redan små: median 0,8–1,1 km för
+svenska kommuner och 3,8–4,1 km för län. Felet uppstår bara när en enhet
+spänner över den nord–sydliga gradienten i ljus per invånare.
+
+### 11.3 Beslut
+
+Den publicerade datamängden tar nivå 0 från körningen med maskning norr om
+65° N, som i v1, och nivå 1–2 från körningen utan maskning
+(`tools/build_release.py --results-adm0 data/results_m65 --results
+data/results_mask2km`). Kolumnen `max_lat` anger vilken som gäller. En
+följd är att ett lands centroid inte beräknas på samma ljus som dess
+regioner. Centroider summeras ändå inte mellan nivåer, och varje nivå
+valideras för sig.
+
+Valideringen görs nu direkt på de publicerade filerna (`validate_series.py
+--release`), serien `release` i docs/validation/. Lägesfel, median i km
+(Barmore):
+
+| Facit | Nivå 0 | Nivå 1 | Nivå 2 |
+| --- | --- | --- | --- |
+| USA 2000 / 2010 / 2020 | 33,3 / 40,7 / 44,4 | 0,73 / 0,76 / 0,82 | 1,51 / 1,52 / 1,46 |
+| Europa 2011 / 2021 | 13,0 / 11,4 | 2,89 / 2,51 | 0,95 / 0,73 |
+| Mexiko 2010 / 2020 | 134,4 / 133,0 | 8,88 / 7,38 | 1,12 / 1,03 |
+
+Felet i förändringen över tio år är fortfarande större än befolkningens
+faktiska förflyttning på nivå 1 och 2 i alla tre områdena. I Mexiko är det
+till exempel 0,85 mot 0,25 km på nivå 2.
 
 Mexikos nationella fel (avsnitt 10) har en annan orsak – regionala
 skillnader i ljus per invånare som följer inkomst – och redovisas som en

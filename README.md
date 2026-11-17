@@ -8,7 +8,9 @@ Befolkningscentroider för världens administrativa enheter (nivå 0–2), berä
 ## Status (17 november 2026)
 
 Huvudserien är klar som utvecklingsversion: GADM 4.1 nivå 0–2, 1992–2025. Den är
-validerad mot US Census (2000, 2010, 2020) och Eurostat GEOSTAT (2011, 2021).
+validerad mot US Census (2000, 2010, 2020), Eurostat GEOSTAT (2011, 2021) och
+INEGI:s ortsregister för Mexiko (2010, 2020). Nivå 0 beräknas utan ljus norr om
+65° N, som i v1; nivå 1–2 med allt ljus.
 Resonemang och resultat steg för steg: [`docs/HARMONIZATION.md`](docs/HARMONIZATION.md).
 
 | Del | Status |
@@ -19,7 +21,8 @@ Resonemang och resultat steg för steg: [`docs/HARMONIZATION.md`](docs/HARMONIZA
 | Skarvning per enhet (DMSP flyttad till VIIRS 2013) = huvudserien | Klar |
 | Validering mot folkräkningar (USA, Europa) | Klar |
 | Jämförelser: CCNL, Li m.fl. 2020, Chiovelli m.fl. 2026, VIIRS harmoniserad till DMSP | Klara |
-| Oberoende validering i ett tredje område | Planerad |
+| Oberoende validering i ett tredje område (Mexiko) | Klar |
+| Maskning norr om 65° N på nivå 0, som i v1 | Klar |
 | Publicering (Zenodo-DOI, licens, dataartikel) | Planerad |
 
 ## Snabbstart
@@ -47,13 +50,19 @@ python tools/coregister_dmsp.py
 python -m wpc.run --source dmsp-irqr-reg --flares data/processed/flares_viirs_r2km.gpkg --out data/results_mask2km
 python -m wpc.run --source viirs
 python tools/splice_series.py --direction backward --viirs viirs --viirs-results data/results --name spliced-back
-python tools/build_release.py             # -> data/release/v<version>/
+python -m wpc.run --source dmsp-irqr-reg --max-lat 65 --flares data/processed/flares_viirs_r2km.gpkg --out data/results_m65
+python -m wpc.run --source viirs --max-lat 65 --out data/results_m65
+python tools/splice_series.py --direction backward --viirs viirs --results data/results_m65 --name spliced-back
+python tools/build_release.py             # -> data/release/v<version>/ (nivå 0 ur results_m65, 1–2 ur results_mask2km)
 
 # 4. Validering
 python tools/download_validation.py
 python tools/validation_centroids.py --dataset census --years 2000 2010 2020
 python tools/validation_centroids.py --dataset geostat --years 2011 2021
-python tools/validate_series.py --dataset census --years 2000 2010 2020 --series back=spliced-back:1992-2025
+python tools/validation_centroids.py --dataset inegi --years 2010 2020
+python tools/validate_series.py --dataset census --years 2000 2010 2020 --change 2000 2010 --change 2010 2020 \
+    --release data/release/v2.0.0.dev0 --out docs/validation   # likadant för geostat och inegi
+python tools/build_release.py             # igen, så att metadata får valideringen
 
 # 5. Tester
 python -m pytest -q tests
