@@ -41,3 +41,11 @@ def test_splice_is_continuous_and_keeps_dmsp(tmp_path):
     b = out[2014].set_index("unit_id").loc["B"]
     assert b.splice_ok == 0 and b.bm_lon == 21.0            # kan inte skarvas: oförändrad
     assert a.splice_ok == 1
+
+
+def test_read_results_keeps_NA_id(tmp_path):
+    f = tmp_path / "x.csv"
+    f.write_text("source,unit_id,COUNTRY,bm_lon,bm_lat\nv,NA,NA,1.5,\nv,SWE,Sweden,,2\n")
+    d = S.read_results(f)
+    assert list(d.unit_id) == ["NA", "SWE"] and d.COUNTRY[0] == "NA"
+    assert d.bm_lon.dtype.kind == "f" and np.isnan(d.bm_lat[0]) and np.isnan(d.bm_lon[1])

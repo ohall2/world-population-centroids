@@ -48,6 +48,21 @@ from wpc.progress import log  # noqa: E402
 R_KM = 6371.0
 
 
+def read_results(path) -> pd.DataFrame:
+    """Läs en resultatfil. ID-kolumner läses som text utan NA-tolkning: GADM
+    4.1 har en enhet med ID:t "NA", som pandas annars gör till ett saknat värde."""
+    df = pd.read_csv(path, keep_default_na=False, na_values={})
+    for c in df.columns:
+        if c in ("unit_id", "source", "COUNTRY") or c.startswith(("GID_", "NAME_", "TYPE_", "ENGTYPE_")):
+            continue
+        if not pd.api.types.is_numeric_dtype(df[c]):
+            try:
+                df[c] = pd.to_numeric(df[c].replace("", np.nan))
+            except (ValueError, TypeError):
+                pass
+    return df
+
+
 def east_north_km(lon0, lat0, lon1, lat1):
     """Förflyttning från punkt 0 till punkt 1 i km (öster, norr), lokalt plan vid punkt 0."""
     dlon = (np.asarray(lon1) - np.asarray(lon0) + 180.0) % 360.0 - 180.0
@@ -125,7 +140,7 @@ def main(argv=None):
         src = {}
         for name in (args.dmsp, args.viirs):
             d = args.results / args.boundary_set / name / f"adm{level}"
-            src[name] = {int(f.stem): pd.read_csv(f) for f in sorted(d.glob("*.csv"))}
+            src[name] = {int(f.stem): read_results(f) for f in sorted(d.glob("*.csv"))}
             if args.year not in src[name]:
                 sys.exit(f"{name} adm{level} saknar {args.year} i {d}")
         out, delta = splice_level(src[args.dmsp], src[args.viirs], args.year)
