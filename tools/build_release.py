@@ -145,7 +145,24 @@ def main(argv=None):
                        for r in v.itertuples()}
     meta["validation_position_error"] = val
     (out / "metadata.json").write_text(json.dumps(meta, indent=1, ensure_ascii=False) + "\n")
-    print(f"metadata -> {out / 'metadata.json'}")
+    doc = __doc__.split("En CSV-fil per nivå", 1)[1].split("Dessutom skrivs", 1)[0]
+    vtab = "\n".join(f"| {ds} | {k} | {v['n']} | {v['bm_median_km']} | {v['bm_p90_km']} |"
+                     for ds, d in val.items() for k, v in d.items())
+    (out / "README.md").write_text(
+        f"# World Population Centroids v2 ({__version__})\n\n"
+        "Befolkningscentroider ur nattljus för GADM 4.1 nivå 0–2, 1992–2025. DMSP-OLS 1992–2012 "
+        "(samregistrerad, IRQR-kalibrerad) är flyttad per enhet till VIIRS VNL v2, som används 2013–2025. "
+        "Metod: docs/METHODS.md och docs/HARMONIZATION.md i "
+        "https://github.com/ohall2/world-population-centroids (gren v2).\n\n"
+        "## Filer\n\nEn CSV-fil per nivå" + doc +
+        "\n## Lägesfel mot folkräkningar (Barmore, km)\n\n"
+        "| Facit | Nivå och år | Enheter | Median | 90 % |\n| --- | --- | --- | --- | --- |\n" + vtab + "\n\n"
+        "## Begränsningar\n\n"
+        "- Förändring över tio år kan inte mätas på subnationell nivå i USA och Europa: felet i "
+        "förändringen är större än befolkningens faktiska förflyttning.\n"
+        "- Enheter med splice_ok = 0 har DMSP-år som inte är jämförbara med VIIRS-åren.\n"
+        "- Enhets-ID och namn följer GADM 4.1, inklusive dess egna koder som \"?\" för okända enheter.\n")
+    print(f"metadata och README -> {out}")
 
 
 if __name__ == "__main__":
