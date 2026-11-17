@@ -60,7 +60,9 @@ _RELEASE: dict = {}
 def release_year(release: Path, level: int, year: int) -> pd.DataFrame | None:
     """Den publicerade datamängdens centroider (tools/build_release.py) för ett år."""
     if level not in _RELEASE:
-        f = release / f"wpc_v2_gadm41_adm{level}.csv"
+        f = release / f"wpc_v2_gadm41_adm{level}.csv.gz"
+        if not f.exists():
+            f = f.with_suffix("")  # okomprimerad .csv
         _RELEASE[level] = read_results(f) if f.exists() else None
     d = _RELEASE[level]
     if d is None or year not in set(d.year):

@@ -37,10 +37,19 @@ En CSV-fil per nivå, i långt format (en rad per enhet och år):
   max_lat         nordligaste latitud med ljus som används (65 på nivå 0,
                   tom på nivå 1–2 där inget är maskat)
 
+Filerna skrivs gzip-komprimerade (`.csv.gz`; pandas, R och de flesta
+verktyg läser dem direkt). En GeoPackage per nivå
+(`wpc_v2_gadm41_adm<N>.gpkg`) har samma rader och kolumner i lagret
+`centroids`, med Barmore-centroiden som punkt (WGS84, EPSG:4326);
+Aboufadel–Austin finns som kolumnerna aa_lon och aa_lat. Enheter och år utan
+centroid har tom geometri. GeoPackage ersätter v1:s shapefiler (en fil per
+år, nivå och metod).
+
 Dessutom skrivs metadata.json (källor, versioner, valideringens lägesfel
 per nivå) och en kort README.md i utdatamappen.
 
-Kräver bara pandas och numpy.
+CSV-filerna kräver bara pandas och numpy; GeoPackage kräver geopandas
+(`--formats csv` hoppar över den).
 
 Exempel
   python tools/build_release.py
@@ -64,6 +73,7 @@ from compare_series import read_results  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from wpc import __version__  # noqa: E402
+from wpc.progress import Progress, log  # noqa: E402
 
 R_KM = 6371.0
 ID_COLS = {0: ["GID_0", "COUNTRY"], 1: ["GID_0", "COUNTRY", "GID_1", "NAME_1"],
@@ -115,6 +125,26 @@ def build_level(src_dir: Path, level: int, year0: int, max_lat: float | None = N
     return d[[c for c in cols if c in d.columns]]
 
 
+GPKG_LAYER = "centroids"
+
+
+def write_csv(d: pd.DataFrame, path: Path) -> None:
+    # mtime=0 gör filen bitidentisk mellan körningar med samma innehåll.
+    d.to_csv(path, index=False, float_format="%.6f", compression={"method": "gzip", "mtime": 0})
+
+
+def write_gpkg(d: pd.DataFrame, path: Path) -> None:
+    import geopandas as gpd  # lazy: krävs bara för GeoPackage
+
+    if path.exists():
+        path.unlink()
+    ok = d.bm_lon.notna() & d.bm_lat.notna()
+    geom = gpd.GeoSeries.from_xy(d.bm_lon, d.bm_lat, crs="EPSG:4326")
+    geom[~ok] = None
+    gpd.GeoDataFrame(d, geometry=geom, crs="EPSG:4326").to_file(
+        path, layer=GPKG_LAYER, driver="GPKG", engine="pyogrio")
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description="Bygg den publicerbara datamängden.")
     p.add_argument("--source", default="spliced-back")
@@ -126,6 +156,7 @@ def main(argv=None):
     p.add_argument("--boundary-set", default="gadm41")
     p.add_argument("--validation", type=Path, default=Path("docs/validation"))
     p.add_argument("--out", type=Path, default=None, help="Standard: data/release/v<version>.")
+    p.add_argument("--formats", nargs="+", choices=["csv", "gpkg"], default=["csv", "gpkg"])
     args = p.parse_args(argv)
     out = args.out or Path("data/release") / f"v{__version__}"
     out.mkdir(parents=True, exist_ok=True)
@@ -139,17 +170,25 @@ def main(argv=None):
         src = root / args.boundary_set / args.source / f"adm{level}"
         splice = json.loads((src / "splice.json").read_text())
         year0 = splice["splice_year"]
-        d = build_level(src, level, year0, max_lat)
-        f = out / f"wpc_v2_gadm41_adm{level}.csv"
-        d.to_csv(f, index=False, float_format="%.6f")
-        meta["files"][f.name] = {
+        with Progress(f"adm{level}: läser {src}") as prog:
+            d = build_level(src, level, year0, max_lat)
+            f = out / f"wpc_v2_gadm41_adm{level}.csv.gz"
+            prog.set_text(f"adm{level}: skriver {f.name}")
+            write_csv(d, f)
+            prog.set_text(f"adm{level}: {len(d)} rader, {d.unit_id.nunique()} enheter -> {f.name}")
+        files = {f.name: sha256(f)}
+        if "gpkg" in args.formats:
+            g = out / f"wpc_v2_gadm41_adm{level}.gpkg"
+            with Progress(f"adm{level}: skriver {g.name}") as prog:
+                write_gpkg(d, g)
+            files[g.name] = sha256(g)
+        meta["files"][f"adm{level}"] = {
             "level": level, "results": str(root), "max_lat": max_lat, "rows": int(len(d)), "units": int(d.unit_id.nunique()),
             "years": [int(d.year.min()), int(d.year.max())], "splice": splice,
             "units_not_spliced": int(d[d.year == year0 - 1].splice_ok.eq(0).sum()),
             "noise_km_median": {"DMSP": float(d.drop_duplicates("unit_id").noise_dmsp_km.median()),
                                 "VIIRS": float(d.drop_duplicates("unit_id").noise_viirs_km.median())},
-            "sha256": sha256(f)}
-        print(f"adm{level}: {len(d)} rader, {d.unit_id.nunique()} enheter -> {f}")
+            "sha256": files}
     val = {}
     for ds in ("census", "geostat", "inegi"):
         vp = args.validation / f"{ds}_position.csv"
@@ -185,7 +224,7 @@ def main(argv=None):
         "Enheter helt norr om 65° N, som Svalbard, saknar därför nationell centroid.\n"
         "- Enheter med splice_ok = 0 har DMSP-år som inte är jämförbara med VIIRS-åren.\n"
         "- Enhets-ID och namn följer GADM 4.1, inklusive dess egna koder som \"?\" för okända enheter.\n")
-    print(f"metadata och README -> {out}")
+    log(f"metadata och README -> {out}")
 
 
 if __name__ == "__main__":
