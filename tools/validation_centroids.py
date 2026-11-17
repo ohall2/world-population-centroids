@@ -69,8 +69,15 @@ def read_census(root: Path, year: int) -> pd.DataFrame:
                         dtype={"STATEFP": str, "COUNTYFP": str, "TRACTCE": str})
         parts.append(d)
     d = pd.concat(parts, ignore_index=True)
-    return pd.DataFrame({"lon": d.LONGITUDE.astype(float), "lat": d.LATITUDE.astype(float),
-                         "pop": d.POPULATION.astype(float)}), {"files": len(files)}
+    # 2000 års filer anger "+.,-." som läge för kvartersgrupper utan invånare.
+    lon = pd.to_numeric(d.LONGITUDE, errors="coerce")
+    lat = pd.to_numeric(d.LATITUDE, errors="coerce")
+    pop = pd.to_numeric(d.POPULATION, errors="coerce")
+    nopos = lon.isna() | lat.isna()
+    if (pop[nopos] > 0).any():
+        raise ValueError(f"{int((pop[nopos] > 0).sum())} kvartersgrupper med invånare saknar läge")
+    return (pd.DataFrame({"lon": lon, "lat": lat, "pop": pop}),
+            {"files": len(files), "block_groups": int(len(d)), "without_position_pop0": int(nopos.sum())})
 
 
 def _laea_centres(ids: pd.Series, pattern: str, scale: float) -> tuple[np.ndarray, np.ndarray]:
