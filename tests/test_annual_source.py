@@ -84,3 +84,17 @@ def test_flare_circles_have_correct_radius():
     xy = np.asarray(poly.exterior.coords)[:-1]
     d = [great_circle_m(75.0, 61.0, x, y) for x, y in xy]
     assert np.allclose(d, 2000.0, rtol=1e-9)
+
+
+def test_latitude_mask(tmp_path):
+    from wpc.lights import make_source
+    t = Affine(1.0, 0, -180.0, 0, -1.0, 90.0)
+    data = np.ones((180, 360), "float32")
+    raw = tmp_path / "raw"
+    write_ccnl(raw, 2005, data, t)
+    src = make_source("ccnl", 2005, raw, None, None, max_lat=65.0)
+    w = src.read((0.0, 60.0, 10.0, 70.0))
+    lat = 90 - (np.arange(180) + 0.5)
+    rows_lat = w.transform.f + w.transform.e * (np.arange(w.data.shape[0]) + 0.5)
+    assert (w.data[rows_lat > 65] == 0).all() and (w.data[rows_lat < 65] == 1).all()
+    assert src.describe()["max_lat"] == 65.0

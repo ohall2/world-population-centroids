@@ -544,3 +544,32 @@ DMSP. Nästa steg är (a) ett facit till med stora regionala inkomstskillnader �
 Brasilien (IBGE:s rutnät 2010 och 2022) – och (b) att pröva om en konkav
 omvandling av VIIRS-strålningen (t.ex. log eller ett tak som efterliknar
 DMSP:s mättnad) före viktningen ger bra lägen på alla nivåer.
+
+## 11. Maskning norr om 65° N (som i v1)
+
+v1 maskade ljuset norr om 65° N, eftersom nattljuset där är mindre
+tillförlitligt (sena solnedgångar, norrsken); det berörde 7 länder och
+0,036 % av världens befolkning (Hall m.fl. 2019). Det fördes inte över till
+v2 från början. Valideringen visar att det spelar stor roll: ljus per
+invånare är i Norrbotten omkring fyra gånger så högt som i Stockholm (andel
+av ljuset 7,5 % mot 2,4 % av befolkningen 2021), och de nordiska ländernas
+nationella centroider hamnar 60–160 km för långt norrut.
+
+Uppskattning från kommunernas centroider (Aboufadel–Austin, ljusviktat,
+rå VIIRS 2021 / bakåt skarvad 2011), fel mot befolkningens centroid i km:
+
+| Land | Alla ljus 2011 / 2021 | Utan ljus norr om 65° N 2011 / 2021 |
+| --- | --- | --- |
+| Sverige | 105 / 98 | 24 / 33 |
+| Norge | 161 / 149 | 64 / 61 |
+| Finland | 58 / 71 | 26 / 48 |
+
+Beslut: huvudserien beräknas med `--max-lat 65`, som i v1
+(`wpc.lights.LatitudeMask`). Enheter som helt ligger norr om 65° N får ingen
+centroid. Resultat i data/results_m65/.
+
+Mexikos nationella fel (avsnitt 10) har en annan orsak – regionala
+skillnader i ljus per invånare som följer inkomst – och redovisas som en
+begränsning. Det tidigare arbetet (Niedomysl m.fl. 2017) prövade felets
+samband med enheternas yta, form och befolkningstäthet i Sverige; bara ytan
+hade ett signifikant samband (R² = 0,12).
