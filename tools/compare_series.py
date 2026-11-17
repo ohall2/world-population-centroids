@@ -38,13 +38,13 @@ R_KM = 6371.0
 def read_results(path) -> pd.DataFrame:
     """Läs en resultatfil. ID-kolumner läses som text utan NA-tolkning: GADM
     4.1 har en enhet med ID:t "NA", som pandas annars gör till ett saknat värde."""
-    df = pd.read_csv(path, keep_default_na=False, na_values={})
+    df = pd.read_csv(path, keep_default_na=False, na_values={}, low_memory=False)
     for c in df.columns:
         if c in ("unit_id", "source", "COUNTRY") or c.startswith(("GID_", "NAME_", "TYPE_", "ENGTYPE_")):
             continue
         if not pd.api.types.is_numeric_dtype(df[c]):
             try:
-                df[c] = pd.to_numeric(df[c].replace("", np.nan))
+                df[c] = pd.to_numeric(df[c].astype(str).where(df[c].astype(str) != "", None))
             except (ValueError, TypeError):
                 pass
     return df
