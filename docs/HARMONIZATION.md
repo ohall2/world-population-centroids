@@ -287,3 +287,39 @@ behåller DMSP 1992–2013 och flyttar varje enhets VIIRS-centroider
 2014–2025 med enhetens skillnad mellan DMSP och VIIRS 2013 (i km österut
 och norrut). Serien blir då sammanhängande vid skarven; osäkerheten i
 skarvningen är lika stor som bruset i DMSP 2013 (ett vanligt årshopp).
+
+### Resultat (2026-11-17)
+
+Skarvat: dmsp-irqr-reg 1992–2013 + viirs-dmsp-reg 2014–2025
+(`python tools/splice_series.py`, källan `spliced-reg` i
+data/results_mask2km/). Skarvade enheter: 245 av 263 (adm0), 3 472 av 3 662
+(adm1), 43 441 av 47 217 (adm2); övriga saknar centroid i någon källa 2013.
+
+Flyttens storlek (Barmore, km): median 7,6 / 2,0 / 0,66, 90 % 42 / 12 / 3,5
+(adm0 / adm1 / adm2). Störst för önationer med få, spridda ljus (Kiribati
+455 km, Mikronesien 223 km, Sankt Helena 167 km) och för stora länder
+(Kanada 224, Sydsudan 137, Indien 130, Australien 96, Kina 80 km).
+
+Årshopp i den skarvade serien (median, km):
+
+| | 2011 | 2012 | 2013 | **2014** | 2015 | 2016 |
+| --- | --- | --- | --- | --- | --- | --- |
+| adm0 | 3,94 | 3,54 | 3,61 | **2,32** | 2,37 | 1,97 |
+| adm1 | 1,17 | 1,12 | 1,04 | **0,77** | 0,68 | 0,66 |
+
+Hoppet 2013 → 2014 är nu lika stort som ett vanligt VIIRS-årshopp, som det
+ska vara. Siffrorna: docs/comparison_spliced/.
+
+**Kvarstående problem.**
+
+1. *Skarvningen bygger på ett enda DMSP-år.* Ett slumpmässigt hopp i DMSP
+   2013 för en enhet följer med till alla VIIRS-år. Osäkerheten är lika stor
+   som ett vanligt DMSP-årshopp (median 4 / 1,2 / 0,44 km). Den kan minskas
+   genom att uppskatta Δ från utjämnade banor, t.ex. en linjär trend i DMSP
+   2009–2013 och i VIIRS 2013–2017, utvärderad 2013.
+2. *Fler punkter hamnar utanför sin enhet.* På adm2 ligger 1 070 skarvade
+   centroider 2020 i en annan enhet, mot 792 utan skarvning (adm1: 74 mot
+   57). Flytten gäller små eller oregelbundna enheter, där DMSP:s
+   utsmetning drar centroiden mot en granne; flaggan anger det.
+3. *Regionala lägesfel för F15 2002–2008 och F16 2005–2009* (avsnitt 7) är
+   inte korrigerade.
