@@ -243,3 +243,47 @@ Tolkning:
    Harmoniseringen görs därför om med samregistrerad DMSP
    (`tools/harmonize_viirs.py --dmsp-offsets config/dmsp_offsets.csv`,
    källan `viirs-dmsp-reg`).
+
+### Resultat för alla 35 kompositer (2026-11-17)
+
+Förskjutningarna står i config/dmsp_offsets.csv (dx −1,44 … +0,11 px, dy
+−1,38 … −0,14 px; spridning mellan rutorna 0,07–0,39 px). Alla kompositer
+utom F18 2011 (dx +0,11) ligger västerut och alla norrut om VIIRS.
+
+Harmoniseringen mot samregistrerad DMSP 2013 gav högre korsvaliderat R²
+för alla σ (σ = 2: 0,900 → 0,923); vald σ är fortfarande 2,0.
+
+Årshopp (median, km; samma mask, Barmore):
+
+| | adm0 | adm1 | adm2 |
+| --- | --- | --- | --- |
+| DMSP-år, utan samregistrering | 4,16 | 1,24 | 0,48 |
+| DMSP-år, samregistrerad | 4,07 | 1,17 | 0,44 |
+| Skarv 2013 → 2014, utan | 7,94 | 2,19 | 0,83 |
+| Skarv 2013 → 2014, samregistrerad | 7,56 | 2,05 | 0,70 |
+| Avstånd DMSP–VIIRS 2013, utan | 7,89 | 2,10 | 0,78 |
+| Avstånd DMSP–VIIRS 2013, samregistrerad | 7,57 | 2,00 | 0,66 |
+
+Störst effekt på adm2 och för vissa år: hoppet till 2011 minskar från 0,75
+till 0,45 km och till 2012 från 0,63 till 0,41 km. Hoppen 2009 → 2010 (från
+F16 till F18) är kvar (0,59 km). Siffrorna: docs/comparison_reg/ och
+docs/comparison_reg_adm2/.
+
+**Regionala skillnader.** Rutvärdena jämfördes med kompositens globala
+förskjutning i sex regioner (Amerika, Europa/Afrika, Asien/Oceanien; norr
+eller söder om 35° N). För de flesta kompositer är avvikelsen liten (median
+0,08 px, 90 % under 0,27 px). F15 2002–2008 och F16 2005–2009 avviker däremot
+upp till 0,7 px, ofta med motsatt tecken norr och söder om 35° N – de
+satelliter vars banor drev mot slutet av sin livstid. För dem skulle ett
+förskjutningsfält som varierar över jorden ge bättre resultat. F18 2013, som
+skarvningen utgår från, har ingen sådan struktur (spridning 0,08 px).
+
+## 8. Skarvning per enhet (beslut 2026-11-17)
+
+Samregistreringen minskar skarven men tar inte bort den. Kvar är den
+systematiska skillnaden mellan sensorerna, som är olika för varje enhet
+(t.ex. hur mycket svagt landsbygdsljus VIIRS ser). Den skarvade serien
+behåller DMSP 1992–2013 och flyttar varje enhets VIIRS-centroider
+2014–2025 med enhetens skillnad mellan DMSP och VIIRS 2013 (i km österut
+och norrut). Serien blir då sammanhängande vid skarven; osäkerheten i
+skarvningen är lika stor som bruset i DMSP 2013 (ett vanligt årshopp).

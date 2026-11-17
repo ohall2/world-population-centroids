@@ -1,0 +1,5 @@
+level,a,b,year,n,median,p90,p99
+0,dmsp-irqr,viirs-dmsp,2013,243,7.8929,41.9574,190.5965
+0,dmsp-irqr-reg,viirs-dmsp-reg,2013,245,7.5699,41.9657,198.2468
+1,dmsp-irqr,viirs-dmsp,2013,3449,2.1005,12.1063,53.7494
+1,dmsp-irqr-reg,viirs-dmsp-reg,2013,3472,2.0034,11.9117,55.4398
