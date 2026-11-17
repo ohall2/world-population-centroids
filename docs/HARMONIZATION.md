@@ -438,3 +438,64 @@ Mått (tools/validate_series.py): (1) lägesfel samma år; (2) förändringsfel
 – skillnaden mellan facits och seriens förflyttning mellan två folkräkningar,
 jämfört med facits egen förflyttning. Förändringen 2010 → 2020 (USA) och
 2011 → 2021 (Europa) går över sensorbytet och prövar skarvningen direkt.
+
+### Resultat (2026-11-17)
+
+Facit: USA 128 av 131 delstater/motsvarande och 3 146 county fullständigt
+täckta; Europa 2011: 27 länder (Italien, Grekland, Kroatien, Bulgarien och
+Storbritannien saknar rutor som bygger direkt på folkräkningen), 2021: 33
+länder. Enheter med färre än 10 facitpunkter utesluts.
+
+Lägesfel (Barmore, median km; full tabell i docs/validation/):
+
+| Serie | USA adm1 2000 / 2010 / 2020 | USA adm2 2000 / 2010 / 2020 | Europa adm1 2011 / 2021 | Europa adm2 2011 / 2021 |
+| --- | --- | --- | --- | --- |
+| Skarvad framåt (spliced-reg) | 1,76 / 1,59 / 1,57 | 2,23 / 2,09 / 2,18 | 3,58 / 4,10 | 0,99 / 1,17 |
+| **Skarvad bakåt (spliced-back)** | **0,73 / 0,76 / 0,82** | **1,51 / 1,52 / 1,46** | **2,89 / 2,51** | **0,95 / 0,73** |
+| Chiovelli bloomtopcode_fix | 1,18 / 1,08 / 0,95 | 2,01 / 1,89 / 1,84 | 3,15 / 3,13 | 1,10 / 0,94 |
+
+Systematiskt fel (medelvärde öster/norr, USA adm1): framåt −3,9 / +4,1 km
+(2000), bakåt −0,4 / +0,1 km. DMSP-centroiderna ligger systematiskt för långt
+nordväst om befolkningen i USA; den omvända skarvningen tar bort det.
+
+Förändringsfel (median km) jämfört med facits egen förflyttning:
+
+| | Sann flytt | Framåt | Bakåt | Chiovelli |
+| --- | --- | --- | --- | --- |
+| USA adm1 2000 → 2010 | 0,20 | 0,35 | 0,35 | 0,70 |
+| USA adm1 2010 → 2020 | 0,15 | 0,24 | 0,31 | 0,82 |
+| USA adm2 2010 → 2020 | 0,26 | 0,81 | 0,80 | 1,34 |
+| Europa adm1 2011 → 2021 | 0,41 | 1,66 | 1,92 | 2,87 |
+| Europa adm2 2011 → 2021 | 0,13 | 0,57 | 0,64 | 0,84 |
+
+Slutsatser:
+
+1. **Rå VIIRS ger bäst lägen.** Att göra VIIRS DMSP-likt (harmoniseringen i
+   avsnitt 2) försämrar lägena: utsmetning och mättnad flyttar centroiden.
+2. **DMSP:s fel per enhet är till stor del systematiskt och bestående.**
+   Skillnaden mot VIIRS 2013 gäller även 2000. Den omvända skarvningen
+   (`tools/splice_series.py --direction backward --viirs viirs`) för därför
+   över VIIRS noggrannhet till DMSP-åren och halverar ungefär lägesfelet på
+   adm1 i USA. Den är bäst i alla jämförelser av läge, också mot Chiovelli.
+3. **För förändring är framåt och bakåt ungefär lika**, och båda är klart
+   bättre än Chiovelli och än att foga ihop rå VIIRS och DMSP utan skarvning
+   (adm2 USA 2010 → 2020: 1,99 km).
+4. **Begränsning.** I USA och Europa är alla seriers fel i förändringen
+   över ett decennium större än befolkningens faktiska förflyttning. Att anta
+   att ingen rörelse alls skett hade gett ett mindre fel. Subnationella
+   centroider ur nattljus kan alltså visa var befolkningen bor, men inte små
+   förändringar över tio år i länder där befolkningen förändras långsamt.
+   Om de fångar större förändringar, till exempel i snabbt växande regioner i
+   Afrika och Asien, kan inte prövas med dessa facit.
+
+**Beslut.** Huvudserien blir den bakåt skarvade: samregistrerad DMSP-IRQR
+1992–2012, flyttad per enhet med skillnaden mot rå VIIRS 2013, och rå VIIRS
+VNL v2 2013–2025 (`spliced-back`). Harmoniseringen VIIRS → DMSP behövs inte
+för huvudserien men redovisas som jämförelse.
+
+**Förbehåll.** Valet av skarvriktning bygger på samma facit som används
+för att utvärdera det. Två oberoende facit (USA och Europa, olika
+folkräkningar och olika enhetsindelning) ger samma rangordning, vilket
+talar för att resultatet håller, men en oberoende kontroll i ett tredje
+område (t.ex. ett land i Afrika eller Asien med folkräkning på fin nivå) vore
+värdefull.
