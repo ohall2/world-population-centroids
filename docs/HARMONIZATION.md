@@ -1144,3 +1144,27 @@ Fig. 6 mäter skarven i varje series eget skarvår (2012→13 för v2.0.0, kvot 
 3 661 och 44 019 av 47 217 (splice_ok = 1 år 2012); 34 DMSP-kompositer används
 (F15 2008 saknar kalibrering). Manusets påståenden om förändring, landsfel och
 korrektion formulerades om enligt granskningen.
+
+## 19. Fyra kontroller efter granskningen av manuset (2026-11-18)
+
+`tools/robustness_checks.py`, resultat i docs/robustness/. Bara befintliga data.
+
+1. **USA:s 50 delstater (utan Puerto Rico).** Verklig förflyttning 2,6–3,9 km
+   (median), men rätt riktning bara 0,50–0,58 med intervall som omfattar 0,5;
+   felet i förändringen är 5,5–6,6 km. Mexikos delstater (2,1 km, fel 4,7 km)
+   får 0,72. Det avgörande är förflyttningen i förhållande till lägesfelet, inte
+   dess storlek i km.
+2. **Treårsmedel** kring varje folkräkningsår minskar medianfelet i uppmätt
+   förflyttning på nivå 2 med 6–15 %, men ändrar andelen rätt riktning med högst
+   två procentenheter. USA:s delstater 2000–2020: 0,58 → 0,64 (0,52–0,76).
+3. **Permutationstest** (1 000 omblandningar inom block): nollfördelningen för
+   rätt riktning på nivå 2 är 0,50 (0,48–0,52) och för rangkorrelationen ±0,04.
+   USA:s counties och Mexikos kommuner p ≤ 0,001; Mexikos delstater p = 0,01;
+   Europas kommuner p = 0,03; USA:s delstater p = 0,19–0,48; Europas regioner,
+   negativ rangkorrelation p = 0,04.
+4. **Befolkningsviktat medel av regionernas ljuscentroider** som landscentroid:
+   USA 65–88 → 6–11 km, Mexiko 133–134 → 1,6–2,7 km, Brasilien 94 → 12 km,
+   Europa median 11–13 → 1,1–1,3 km (mindre fel i 55 av 56 land-år; Finland kvar
+   på 14–27 km eftersom felet där ligger inom regionerna). Bekräftar att
+   landsfelet till största delen ligger mellan regionerna, även för USA som inte
+   delades upp.
