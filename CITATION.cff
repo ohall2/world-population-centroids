@@ -8,6 +8,7 @@ authors:
   - family-names: Hall
     given-names: Ola
     affiliation: Lund University
+    orcid: "https://orcid.org/0000-0002-9231-4028"
 repository-code: "https://github.com/ohall2/world-population-centroids"
 keywords:
   - population centroids
