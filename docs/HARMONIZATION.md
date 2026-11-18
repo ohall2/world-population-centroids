@@ -1031,3 +1031,78 @@ Rio de Janeiro 0,83, São Paulo 0,95.
    P2 bör därför beskrivas som rumslig variation i ljus per invånare, med
    inkomst och bebyggelsetäthet som två kända orsaker, inte som enbart
    inkomst.
+
+## 16. Kan nattljusets centroider mäta förflyttning? Statistisk prövning (2026-11-18)
+
+**Fråga.** §10 och §13 visade att felet i förändring är större än den verkliga
+förflyttningen (medianer). Här prövas det ordentligt, per enhet och med
+osäkerhetsintervall, i den publicerade serien och i Chiovelli m.fl.
+(bloomtopcode_fix) som jämförelse. Inga nya data: facit och serierna är de
+som redan finns. GEOSTAT 2011 är omräknad med Bulgarien och Tjeckien
+uteslutna (blandat underlag).
+
+**Metod** (`tools/change_detection.py`). För varje enhet: verklig
+förflyttning t (facit) och uppmätt e (ljus), i km öster och norr. Mått:
+andel enheter där e pekar åt rätt håll (cos > 0; slump = 0,5), Spearmans
+rangkorrelation och OLS-lutning mellan e och t (komponenterna sammanslagna),
+och andel enheter där den verkliga förflyttningen är större än felet.
+95 %-intervall med blockbootstrap (1 000 dragningar; block = nivå 1-enhet för
+nivå 2, land för Europa nivå 1, annars enheten). Kommando:
+
+    python tools/change_detection.py --dataset census --pairs 2000-2010 2010-2020 2000-2020 \
+        --series chiov_bltc=data/results_mask2km/gadm41/chiovelli-bltc --out docs/change_detection
+    # likadant för geostat (2011-2021) och inegi (2010-2020)
+
+**Resultat, publicerad serie** (docs/change_detection/):
+
+| Facit | Nivå | Period | Enheter | Verklig flytt (median km) | Rätt riktning | Rangkorrelation | Lutning | Flytt > fel |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| USA | 1 | 2000–2010 | 121 | 0,20 | 0,54 (0,45–0,63) | 0,05 (−0,12–0,22) | 0,73 (−0,42–2,04) | 26 % |
+| USA | 1 | 2010–2020 | 120 | 0,15 | 0,51 (0,43–0,59) | 0,06 (−0,13–0,25) | 0,02 (−1,0–0,90) | 18 % |
+| USA | 1 | 2000–2020 | 121 | 0,31 | 0,64 (0,55–0,72) | 0,24 (0,08–0,39) | 0,32 (−0,25–0,96) | 33 % |
+| USA | 2 | 2000–2010 | 2 381 | 0,37 | 0,61 (0,59–0,64) | 0,24 (0,18–0,29) | 0,45 (0,30–0,60) | 26 % |
+| USA | 2 | 2010–2020 | 2 383 | 0,26 | 0,58 (0,56–0,60) | 0,18 (0,14–0,21) | 0,49 (0,19–0,77) | 16 % |
+| USA | 2 | 2000–2020 | 2 373 | 0,54 | 0,66 (0,64–0,69) | 0,34 (0,29–0,38) | 0,49 (0,36–0,59) | 29 % |
+| Europa | 1 | 2011–2021 | 329 | 0,42 | 0,49 (0,43–0,53) | −0,09 (−0,16–−0,01) | −0,14 (−0,70–0,53) | 6 % |
+| Europa | 2 | 2011–2021 | 6 161 | 0,13 | 0,51 (0,49–0,53) | 0,02 (−0,01–0,05) | 0,22 (−0,03–0,48) | 8 % |
+| Mexiko | 1 | 2010–2020 | 32 | 2,07 | 0,72 (0,56–0,88) | 0,42 (0,09–0,73) | 0,38 (−0,26–2,44) | 19 % |
+| Mexiko | 2 | 2010–2020 | 1 915 | 0,25 | 0,56 (0,53–0,58) | 0,13 (0,08–0,18) | 0,26 (0,02–0,86) | 14 % |
+
+Chiovelli m.fl. ger samma bild eller sämre (rätt riktning 0,40–0,63,
+rangkorrelation −0,21–0,27). Resultatet beror alltså inte på vår skarvning.
+
+**Hur stor måste förflyttningen vara?** Andel enheter med rätt riktning, efter
+den verkliga förflyttningens storlek (nivå 2, docs/change_detection/*_bins.csv):
+
+| Facit, period | < 0,1 km | 0,1–0,25 | 0,25–0,5 | 0,5–1 | 1–2 | 2–5 | 5–10 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| USA 2000–2010 | 0,53 | 0,56 | 0,60 | 0,64 | 0,75 | 0,77 | 0,77 (13) |
+| USA 2000–2020 | 0,54 | 0,58 | 0,60 | 0,69 | 0,73 | 0,84 | 0,91 (22) |
+| Europa 2011–2021 | 0,51 | 0,52 | 0,50 | 0,50 | 0,51 | 0,69 (13) | – |
+| Mexiko 2010–2020 | 0,50 | 0,56 | 0,57 | 0,54 | 0,67 | 0,58 | 0,43 (7) |
+
+(antal enheter inom parentes där de är färre än 25)
+
+**Slutsatser.**
+1. **Förflyttningar av den storlek som förekommer går inte att mäta.** På
+   nivå 2 pekar den uppmätta förflyttningen åt rätt håll i 51–66 % av
+   enheterna (slumpen ger 50 %). Rangkorrelationen är 0,02–0,34, och i 71–92 %
+   av enheterna är felet större än den verkliga förflyttningen. På nivå 1 är
+   intervallen så breda att rätt riktning inte skiljer sig från slumpen i
+   fem av sex fall.
+2. **Det som syns är svagt och dämpat.** Där ett samband finns (USA nivå 2,
+   Mexiko nivå 1) är lutningen 0,3–0,5: ljuset fångar mindre än hälften av
+   förflyttningen.
+3. **En förflyttning måste vara flera km för att riktningen ska bli
+   tillförlitlig.** I USA krävs över 2–5 km för att 80–90 % av enheterna ska
+   få rätt riktning; sådana förflyttningar finns i under 10 % av enheterna.
+   I Europa och Mexiko nås inte 80 % i någon klass.
+4. **Det gäller båda sensorerna.** USA 2000–2010 ligger helt inom DMSP-tiden
+   och ger samma resultat (rätt riktning 0,61 på nivå 2) som perioderna över
+   skarven. Förändring helt inom VIIRS-tiden har inte prövats, eftersom facit
+   saknas; slutsatsen gäller därför DMSP-perioden och ihopfogade serier.
+5. **Förbehåll för facit.** Europas verkliga förflyttningar är små (median
+   0,13 km på nivå 2), och GEOSTAT 2011 och 2021 bygger på olika underlag, så
+   en del av "den verkliga förflyttningen" kan vara skillnader i facit.
+   Europas resultat är därför den svagaste delen av belägget; USA och Mexiko
+   bygger på samma typ av underlag båda åren.
