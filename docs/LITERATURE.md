@@ -200,3 +200,63 @@ Källor som granskningen inte kunde verifiera: Li, X. m.fl. 2026
 bör kontrolleras igen; Wang m.fl. 2025 (doi ser ut som en platshållare).
 Geng m.fl. 2020 är utgiven av ett förlag som brukar räknas som rovförlag och
 ska inte bära något argument.
+
+
+## 12. Systematisk sökning: nattljus och förändring av befolkningens läge (2026-11-18)
+
+Sökningar (engelska): "nighttime light centroid population center shift
+validation census", "center of gravity nighttime light population migration",
+"can nighttime lights measure population redistribution change over time",
+"nighttime lights mean center of population validation census change",
+"time-series gridded population datasets decadal change", och sökningar på
+enskilda träffar. Sammanställning:
+
+**A. Ljusets tyngdpunkt används för att beskriva förflyttning (praxis).**
+- Hall m.fl. (2019), *Scientific Data* 6:235: anger att datamängden kan
+  användas för att analysera förändringar i befolkningens fördelning,
+  globalt eller lokalt. Validerad för läge, inte för förändring.
+- Niedomysl m.fl. (2017), *Annals AAG* 107(3):591–605: ljusets centroider
+  ger flyttavstånd (läge i tvärsnitt).
+- Många studier följer ljusets tyngdpunkt och standardavvikelseellips över
+  tid för kinesiska regioner, ofta 1992–2020 med DMSP och VIIRS ihopfogade:
+  t.ex. Wang, Hou, Liu m.fl. (2025), *National Remote Sensing Bulletin*,
+  doi:10.11834/jrs.20254567 (Kinas urbanisering 30 år; doi:n är verifierad,
+  sidan finns); Xu & Xu (YRD 1992–2018, *J. Geo-information Science*);
+  Remote Sensing 10:1888 (2018; tre megaregioner, DMSP 1992–2013); studier
+  för Sichuan 1992–2021 och Jiangxi. Ingen av dessa validerar förflyttningen
+  mot folkräkningar.
+
+**B. Nattljus och befolkningsmodeller fångar nivåer men inte förändring.**
+- Archila Bustos, Hall & Andersson (2015), "Nighttime lights and population
+  changes in Europe 1992–2012", *Ambio* 44(7):653–665,
+  doi:10.1007/s13280-015-0646-8. **Samma forskargrupp.** Befolkningsminskning
+  i Europa åtföljs inte av minskat ljus; ljusets utbredning följer snarare
+  åldersstruktur och BNP. Kontrollerad (LUP).
+- Zhang & Gibson (2025), "How well do gridded population estimates proxy for
+  actual population changes? Evidence from China", *Population and
+  Development Review* 51(4):1402–1434, doi:10.1111/padr.70025. Fyra
+  befolkningsrutnät (GPW, GHS-POP, LandScan, WorldPop) förklarar över 95 % av
+  variationen i läge men under 20 % av förändringen mellan folkräkningarna
+  på countynivå. Kontrollerad (EconPapers, Population Council).
+- Okänd titel (2025–2026; sammanfattning på synapsesocial.com): sex
+  befolkningsrutnät mot kinesiska folkräkningar per township 2010 och 2020;
+  hög träffsäkerhet i tvärsnitt (r > 0,8) men svag förmåga att fånga
+  förändring och minskning. *Tidskrift och författare att fastställa.*
+- Goldblatt m.fl. (2020) och Asher m.fl. (2021) (avsnitt 7): samma mönster för
+  ekonomisk aktivitet.
+- Dong m.fl. (2021), *Remote Sensing* 13(16):3142: krympande städer syns
+  sällan som minskat ljus (enligt granskningen; att kontrollera).
+
+**C. Inte funnet.** Ingen studie som prövar om förflyttningen av ljusets
+tyngdpunkt motsvarar förflyttningen av befolkningens tyngdpunkt enligt
+folkräkningar, och ingen som anger hur stor en förflyttning måste vara för
+att synas. Negativt sökresultat; bör kompletteras i Web of Science/Scopus
+innan artikeln skickas in.
+
+**Bedömning.** Att nattljus fångar förändring sämre än nivå är känt, också
+för befolkning (B). Det nya i vårt resultat (HARMONIZATION.md §16) är att det
+gäller befolkningens *läge*, prövat mot folkräkningar i tre system och med en
+gräns för vad som går att upptäcka (flera km på kommunnivå). Det berör en
+praxis som finns (A). Det ligger i linje med gruppens tidigare resultat för
+Europa (Archila Bustos m.fl. 2015) och begränsar påståendet om förändring i
+Hall m.fl. 2019.
