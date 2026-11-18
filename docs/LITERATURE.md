@@ -238,10 +238,16 @@ enskilda träffar. Sammanställning:
   befolkningsrutnät (GPW, GHS-POP, LandScan, WorldPop) förklarar över 95 % av
   variationen i läge men under 20 % av förändringen mellan folkräkningarna
   på countynivå. Kontrollerad (EconPapers, Population Council).
-- Okänd titel (2025–2026; sammanfattning på synapsesocial.com): sex
-  befolkningsrutnät mot kinesiska folkräkningar per township 2010 och 2020;
-  hög träffsäkerhet i tvärsnitt (r > 0,8) men svag förmåga att fånga
-  förändring och minskning. *Tidskrift och författare att fastställa.*
+- Li, L., Deng, F. m.fl. (13 författare) (2026), "Cross-sectional accuracy
+  does not imply the reliability of population change in gridded population
+  datasets of China", *Humanities and Social Sciences Communications*,
+  doi:10.1057/s41599-026-07688-w (publicerad 30 maj 2026). Sex rutnät
+  (CnPop, GHS-POP, GlobPop, GPWv4, LandScan, WorldPop) mot folkräkningar per
+  township 2010 och 2020: r > 0,8 i tvärsnitt, men r ≤ 0,27 för förändringens
+  storlek och i genomsnitt 53,25 % rätt riktning (bäst CnPop 60,42 %).
+  Kontrollerad (sammanfattning via synapsesocial.com; förlagets sida gick inte
+  att hämta). **Närmast vårt resultat:** samma andel rätt riktning som våra
+  51–66 % på nivå 2, men för befolkningens antal, inte dess läge.
 - Goldblatt m.fl. (2020) och Asher m.fl. (2021) (avsnitt 7): samma mönster för
   ekonomisk aktivitet.
 - Dong m.fl. (2021), *Remote Sensing* 13(16):3142: krympande städer syns
@@ -250,8 +256,7 @@ enskilda träffar. Sammanställning:
 **C. Inte funnet.** Ingen studie som prövar om förflyttningen av ljusets
 tyngdpunkt motsvarar förflyttningen av befolkningens tyngdpunkt enligt
 folkräkningar, och ingen som anger hur stor en förflyttning måste vara för
-att synas. Negativt sökresultat; bör kompletteras i Web of Science/Scopus
-innan artikeln skickas in.
+att synas. Negativt sökresultat.
 
 **Bedömning.** Att nattljus fångar förändring sämre än nivå är känt, också
 för befolkning (B). Det nya i vårt resultat (HARMONIZATION.md §16) är att det
@@ -260,3 +265,38 @@ gräns för vad som går att upptäcka (flera km på kommunnivå). Det berör en
 praxis som finns (A). Det ligger i linje med gruppens tidigare resultat för
 Europa (Archila Bustos m.fl. 2015) och begränsar påståendet om förändring i
 Hall m.fl. 2019.
+
+### 12.1 Kompletterande sökning (2026-11-18, webbsökning i stället för Web of Science/Scopus)
+
+Beslut: sökningen görs som bred webbsökning (motsvarar Google Scholar i
+täckning, inklusive working papers), med söksträngarna redovisade här.
+Söksträngar: "nighttime lights population centroid shift validation census";
+"nighttime light gravity center population migration trajectory DMSP VIIRS";
+"nighttime lights detect population change over time accuracy census
+comparison"; "six gridded population datasets township census China accuracy
+change"; "mean center OR centre of gravity population nighttime lights
+compared census population center shift accuracy".
+
+Nya träffar:
+- Li, Deng m.fl. (2026), se B ovan: identifierar "studien med sex rutnät".
+- Chen, X. (2020), "Nighttime lights and population migration: revisiting
+  classic demographic perspectives with an analysis of recent European
+  data", *Remote Sensing* 12(1):169. VIIRS-ljus förutsäger nettoflyttning
+  mellan NUTS 3-regioner i 18 EU-länder (50–90 % förklarad varians i de flesta
+  länder). Ljusets *nivå* som förklaring till flyttning, inte ljusets läge
+  eller förändring; berör inte vår fråga.
+- Fler kinesiska studier av ljusets tyngdpunkt över tid utan validering
+  (Xi'an 1992–2020, *Sustainability* 14:9747; Kina 1990–2020 med GWR,
+  *Int. J. Digital Earth*, doi:10.1080/17538947.2023.2233493; Linfen,
+  *Int. J. Remote Sensing* 45(21), doi:10.1080/01431161.2022.2152759).
+  Bekräftar praxis A.
+- Plane & Rogerson (2015), "On tracking and disaggregating center points of
+  population", *Annals of the AAG* 105(5):968–986,
+  doi:10.1080/00045608.2015.1066742 (kontrollerad, EconPapers): metoder för befolkningens medel- och
+  mediancentrum över tid (bakgrund till mått, inte nattljus).
+
+Två artiklar om befolkningens centrum i *Annals* (Plane & Rogerson 2015;
+Niedomysl m.fl. 2017) gör tidskriften till ett naturligt forum.
+
+Slutsats oförändrad: ingen studie jämför förflyttningen av ljusets och
+befolkningens tyngdpunkt. I manuset formuleras luckan som "to our knowledge".
