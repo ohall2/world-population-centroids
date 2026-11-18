@@ -14,7 +14,9 @@ Data (tools/download_validation.py):
            2000, 2010, 2020 (USA och Puerto Rico).
   geostat  Eurostat GEOSTAT, befolkning per ruta om 1 km² (ETRS89-LAEA),
            2011 och 2021. Rutans mittpunkt används. För 2011 används bara
-           rutor som bygger på aggregerade folkräkningsdata (METHD_CL = "A");
+           rutor som bygger på aggregerade folkräkningsdata (METHD_CL = "A"),
+           och bara i länder där alla rutor är "A" (Bulgarien och Tjeckien
+           utesluts; tillagt 2026-11-18);
            modellerade rutor ("D", "M") och JRC-filen tas inte med.
            Befolkning som inte har kunnat placeras i en ruta (2021,
            "CC_unallocated") kan inte användas; andelen redovisas.
@@ -172,7 +174,12 @@ def read_geostat(root: Path, year: int):
         info["method_by_country"] = {c: g.METHD_CL.value_counts().to_dict()
                                      for c, g in d.groupby("CNTR_CODE")}
         info["pop_total"] = float(d.TOT_P.sum())
-        d = d[d.METHD_CL == "A"]
+        # Bara länder där alla rutor bygger på aggregerade folkräkningsdata ("A").
+        # I länder med blandat underlag (2011: Bulgarien och Tjeckien) kan en
+        # kommun vara delvis täckt och ändå se fullständig ut.
+        mixed = {c for c, g in d.groupby("CNTR_CODE") if (g.METHD_CL != "A").any()}
+        info["countries_mixed_method_dropped"] = sorted(mixed)
+        d = d[(d.METHD_CL == "A") & ~d.CNTR_CODE.isin(mixed)]
         info["pop_used"] = float(d.TOT_P.sum())
         lon, lat = _laea_centres(d.GRD_ID, r"N(\d+)E(\d+)", 1000.0)
         pop = d.TOT_P.astype(float).values
