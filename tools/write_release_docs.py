@@ -134,10 +134,14 @@ code MIT. GADM boundaries and identifiers are free for academic and other non-co
   centroid (median 0.7–1.5 km in four census systems). Use it for distances, accessibility and
   gravity models.
 - **Not change over time at levels 1–2.** Over 10–20 years the measured shift of a municipal centroid
-  points the right way in 51–66 % of units (50 % by chance). Direction becomes reliable only for true
-  shifts of several kilometres.
-- **National centroids are biased** towards regions with high light per resident: 65–135 km in the
-  United States, Mexico and Brazil.
+  points the right way in 51–66 % of units (50 % by chance). Change is detected only where the shift
+  clearly exceeds the location error at that level: Mexican states (shift about 2 km) are detected,
+  U.S. states (3–4 km, but location errors of 11–13 km) are not.
+- **National centroids are biased** towards regions with high light per resident: 65–134 km in the
+  United States, Mexico and Brazil. Where regional population totals exist, compute the national
+  centroid as the population-weighted mean of the level-1 centroids instead; against censuses this
+  reduced the error to 2–12 km in the United States, Mexico and Brazil and to about 1 km in the
+  median European country.
 
 ## Files
 
