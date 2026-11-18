@@ -1106,3 +1106,26 @@ den verkliga förflyttningens storlek (nivå 2, docs/change_detection/*_bins.csv
    en del av "den verkliga förflyttningen" kan vara skillnader i facit.
    Europas resultat är därför den svagaste delen av belägget; USA och Mexiko
    bygger på samma typ av underlag båda åren.
+
+## 17. Rättelse: USA och Puerto Rico redovisas var för sig (2026-11-18)
+
+Valideringen mot US Census slog ihop USA och Puerto Rico. I GADM är Puerto
+Ricos 78 municipios nivå 1-enheter. De är fler än de 50 delstaterna och styr
+därför medianen på nivå 1. På nivå 0 blev medianen av två länder ett
+medelvärde av USA och Puerto Rico. Per enhet (tools/figures/unit_errors.py,
+docs/figures/data/unit_errors.csv.gz; samma urval som tidigare, medianerna
+återskapas exakt):
+
+| | 2000 | 2010 | 2020 |
+| --- | --- | --- | --- |
+| USA nivå 0 (km) | 65,3 | 80,4 | 87,9 |
+| Puerto Rico nivå 0 (km) | 1,32 | 0,96 | 1,00 |
+| USA:s delstater, median (km) | 13,2 | 10,5 | 12,1 |
+| Puerto Ricos municipios, median (km) | 0,36 | 0,33 | 0,33 |
+| USA:s counties, median (km) | 1,51 | 1,52 | 1,46 |
+
+Tidigare angivna 33–44 km (nivå 0) och 0,73–0,82 km (nivå 1) för "USA" ska
+inte användas. Nivå 2 påverkas inte. Testet av förändring på nivå 1 för
+census (§16) domineras av Puerto Rico och redovisas i artikeln inte som ett
+resultat för USA. Slutsatserna om nivå 2 står fast; landsfelet för USA
+(65–88 km) ligger i samma storleksordning som för Mexiko och Brasilien.
