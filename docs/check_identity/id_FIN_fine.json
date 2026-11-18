@@ -2,68 +2,68 @@
  "country": "FIN",
  "grid_deg": 0.0166667,
  "max_lat": null,
- "pop_points": 88014,
- "pop": 5359114.0,
- "light_share_in_populated_cells": 0.8350909005265986,
- "error_gc_km": 70.87385340257691,
+ "pop_points": 88034,
+ "pop": 5370426.0,
+ "light_share_in_populated_cells": 0.8357250135770956,
+ "error_gc_km": 71.30773773600905,
  "light_centroid": [
-  24.31002721011679,
-  62.2868749408519
+  24.310027210116793,
+  62.28687494085189
  ],
  "pop_centroid": [
-  24.881099902854917,
-  61.708622194618826
+  24.881037704341427,
+  61.704319158609955
  ],
  "D_total": {
-  "east_km": -29.53,
-  "north_km": 64.42,
-  "length_km": 70.87
+  "east_km": -29.52,
+  "north_km": 64.9,
+  "length_km": 71.3
  },
  "A_light_unpopulated": {
-  "east_km": -8.84,
-  "north_km": 20.5,
-  "length_km": 22.32
+  "east_km": -8.85,
+  "north_km": 20.72,
+  "length_km": 22.53
  },
  "Bb_between_regions": {
-  "east_km": -8.07,
-  "north_km": 23.68,
-  "length_km": 25.02
+  "east_km": -8.04,
+  "north_km": 23.98,
+  "length_km": 25.3
  },
  "Bw_within_regions": {
-  "east_km": -12.63,
-  "north_km": 20.25,
-  "length_km": 23.87
+  "east_km": -12.65,
+  "north_km": 20.21,
+  "length_km": 23.84
  },
  "C_within_cells": {
   "east_km": 0.01,
   "north_km": -0.01,
-  "length_km": 0.02
+  "length_km": 0.01
  },
  "light_per_capita_by_region_rel": [
   {
    "name": "Southern Finland",
-   "r_rel": 0.637,
-   "P": 1925304.0
+   "r_rel": 0.636,
+   "P": 1937443.0
   },
   {
    "name": "Oulu",
-   "r_rel": 1.013,
-   "P": 477531.0
+   "r_rel": 1.019,
+   "P": 476518.0
   },
   {
    "name": "Eastern Finland",
-   "r_rel": 1.04,
-   "P": 563058.0
+   "r_rel": 1.041,
+   "P": 563040.0
   },
   {
    "name": "Western Finland",
-   "r_rel": 1.26,
-   "P": 2227454.0
+   "r_rel": 1.261,
+   "P": 2227646.0
   },
   {
    "name": "Lapland",
-   "r_rel": 1.556,
-   "P": 165767.0
+   "r_rel": 1.559,
+   "P": 165779.0
   }
  ]
 }

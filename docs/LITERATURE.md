@@ -135,8 +135,11 @@ och att de beräknas ur rutnätsdata som själva kan vara modellerade.
   lägesfelet hos ljus som mått på befolkning, att felet därför är
   förutsägbart och att det går åt motsatta håll i Mexiko och Norden under
   samma omvandling. *Prövat 2026-11-17 (HARMONIZATION.md §14):* skillnader i
-  ljus per invånare mellan regioner står för 110–146 av 129–149 km i Mexiko,
+  ljus per invånare mellan regioner står för 95–146 av 98–149 km i Mexiko,
   Sverige och Norge (rutnät 10′).
+  Brasilien, prövat i efterhand (§15), ger samma resultat: 92 av 95 km.
+  Ljus per invånare följer både inkomst och bebyggelsetäthet (lågt i de
+  största storstadsområdena).
 - **P3.** *Känt:* nattljus fångar förändring sämre än nivåer (Asher m.fl.
   2021; Goldblatt m.fl. 2020; Martinez m.fl. 2023). *Nytt:* att det gäller
   befolkningens läge, mätt mot folkräkningar, och med ett brusgolv i km.

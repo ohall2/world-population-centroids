@@ -2,37 +2,37 @@
  "country": "SWE",
  "grid_deg": 0.0166667,
  "max_lat": null,
- "pop_points": 106087,
- "pop": 10330668.0,
- "light_share_in_populated_cells": 0.8960857311103446,
- "error_gc_km": 98.11869232672467,
+ "pop_points": 106145,
+ "pop": 10329996.0,
+ "light_share_in_populated_cells": 0.8951088112458486,
+ "error_gc_km": 97.8666408554948,
  "light_centroid": [
-  15.869195881727089,
+  15.869195881727093,
   59.699401271650295
  ],
  "pop_centroid": [
-  15.425858047751197,
-  58.8465642494525
+  15.427779322566103,
+  58.84864718749923
  ],
  "D_total": {
-  "east_km": 24.86,
-  "north_km": 94.86,
-  "length_km": 98.06
+  "east_km": 24.75,
+  "north_km": 94.63,
+  "length_km": 97.81
  },
  "A_light_unpopulated": {
-  "east_km": 8.58,
-  "north_km": 32.77,
-  "length_km": 33.87
+  "east_km": 8.68,
+  "north_km": 33.0,
+  "length_km": 34.12
  },
  "Bb_between_regions": {
-  "east_km": 16.4,
-  "north_km": 61.12,
-  "length_km": 63.28
+  "east_km": 16.22,
+  "north_km": 60.6,
+  "length_km": 62.73
  },
  "Bw_within_regions": {
-  "east_km": -0.11,
-  "north_km": 0.98,
-  "length_km": 0.98
+  "east_km": -0.14,
+  "north_km": 1.03,
+  "length_km": 1.04
  },
  "C_within_cells": {
   "east_km": -0.01,
@@ -42,108 +42,108 @@
  "light_per_capita_by_region_rel": [
   {
    "name": "Skåne",
-   "r_rel": 0.769,
-   "P": 1383153.0
+   "r_rel": 0.771,
+   "P": 1377786.0
   },
   {
    "name": "Stockholm",
    "r_rel": 0.773,
-   "P": 2378479.0
+   "P": 2379079.0
   },
   {
    "name": "Västra Götaland",
-   "r_rel": 0.846,
-   "P": 1749669.0
+   "r_rel": 0.847,
+   "P": 1751981.0
   },
   {
    "name": "Halland",
    "r_rel": 0.869,
-   "P": 334121.0
+   "P": 334966.0
   },
   {
    "name": "Uppsala",
-   "r_rel": 0.897,
-   "P": 379994.0
+   "r_rel": 0.898,
+   "P": 380063.0
   },
   {
    "name": "Blekinge",
-   "r_rel": 0.91,
-   "P": 150455.0
-  },
-  {
-   "name": "Gotland",
-   "r_rel": 0.92,
-   "P": 60144.0
+   "r_rel": 0.913,
+   "P": 152412.0
   },
   {
    "name": "Östergötland",
-   "r_rel": 0.924,
-   "P": 466370.0
+   "r_rel": 0.917,
+   "P": 466159.0
+  },
+  {
+   "name": "Gotland",
+   "r_rel": 0.935,
+   "P": 60148.0
   },
   {
    "name": "Kronoberg",
-   "r_rel": 0.971,
-   "P": 203289.0
+   "r_rel": 0.972,
+   "P": 203251.0
   },
   {
    "name": "Värmland",
-   "r_rel": 1.016,
-   "P": 282898.0
+   "r_rel": 1.017,
+   "P": 282886.0
   },
   {
    "name": "Södermanland",
-   "r_rel": 1.022,
-   "P": 299719.0
+   "r_rel": 1.023,
+   "P": 299768.0
   },
   {
    "name": "Jönköping",
-   "r_rel": 1.03,
-   "P": 346083.0
+   "r_rel": 1.033,
+   "P": 344960.0
   },
   {
    "name": "Orebro",
-   "r_rel": 1.101,
-   "P": 306482.0
+   "r_rel": 1.102,
+   "P": 306638.0
   },
   {
    "name": "Västmanland",
-   "r_rel": 1.121,
-   "P": 292843.0
+   "r_rel": 1.123,
+   "P": 292678.0
   },
   {
    "name": "Kalmar",
-   "r_rel": 1.23,
-   "P": 237810.0
+   "r_rel": 1.231,
+   "P": 237738.0
   },
   {
    "name": "Gävleborg",
-   "r_rel": 1.378,
-   "P": 285182.0
+   "r_rel": 1.374,
+   "P": 284217.0
   },
   {
    "name": "Dalarna",
-   "r_rel": 1.645,
-   "P": 288154.0
+   "r_rel": 1.647,
+   "P": 288152.0
   },
   {
    "name": "Västernorrland",
-   "r_rel": 1.675,
-   "P": 235074.0
+   "r_rel": 1.672,
+   "P": 233496.0
   },
   {
    "name": "Jämtland",
-   "r_rel": 1.721,
-   "P": 132032.0
+   "r_rel": 1.723,
+   "P": 132026.0
   },
   {
    "name": "Västerbotten",
-   "r_rel": 1.903,
-   "P": 270915.0
+   "r_rel": 1.897,
+   "P": 271141.0
   },
   {
    "name": "Norrbotten",
-   "r_rel": 2.357,
-   "P": 247802.0
+   "r_rel": 2.334,
+   "P": 250451.0
   }
  ]
 }
