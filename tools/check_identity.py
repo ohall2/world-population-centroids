@@ -122,7 +122,7 @@ def run(country, pts, viirs, units, flares, grid, max_lat=None):
     pg = gpd.GeoDataFrame(pts.reset_index(drop=True), geometry=gpd.points_from_xy(pts.lon, pts.lat), crs=4326)
     j = gpd.sjoin(pg, a1[["geometry"]].assign(reg=a1.index + 1), how="left", predicate="within")
     j = j[~j.index.duplicated(keep="first")]
-    inside = pg.within(cmask_geom) if len(pg) < 200000 else j.reg.notna()
+    inside = j.reg.notna()               # punkt i någon av landets regioner
     P = pts.reset_index(drop=True)[inside.values].copy()
     P["reg"] = j.reg[inside.values].fillna(0).astype(int).values
 

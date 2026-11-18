@@ -2,37 +2,37 @@
  "country": "NOR",
  "grid_deg": 0.0166667,
  "max_lat": null,
- "pop_points": 43084,
- "pop": 5104400.0,
- "light_share_in_populated_cells": 0.8049662822345551,
- "error_gc_km": 148.66266320579447,
+ "pop_points": 43105,
+ "pop": 5129326.0,
+ "light_share_in_populated_cells": 0.8060195003263781,
+ "error_gc_km": 148.77658280742955,
  "light_centroid": [
   10.509953939909453,
-  62.23414935189558
+  62.234149351895596
  ],
  "pop_centroid": [
-  9.677564040086068,
-  60.95714487747231
+  9.669727858169935,
+  60.957232380048026
  ],
  "D_total": {
-  "east_km": 43.06,
+  "east_km": 43.47,
   "north_km": 142.07,
-  "length_km": 148.45
+  "length_km": 148.57
  },
  "A_light_unpopulated": {
-  "east_km": 24.26,
-  "north_km": 74.57,
-  "length_km": 78.42
+  "east_km": 24.34,
+  "north_km": 74.49,
+  "length_km": 78.36
  },
  "Bb_between_regions": {
-  "east_km": 18.69,
-  "north_km": 67.86,
-  "length_km": 70.39
+  "east_km": 18.98,
+  "north_km": 67.89,
+  "length_km": 70.5
  },
  "Bw_within_regions": {
-  "east_km": 0.1,
-  "north_km": -0.35,
-  "length_km": 0.36
+  "east_km": 0.13,
+  "north_km": -0.3,
+  "length_km": 0.33
  },
  "C_within_cells": {
   "east_km": 0.01,
@@ -42,98 +42,98 @@
  "light_per_capita_by_region_rel": [
   {
    "name": "Oslo",
-   "r_rel": 0.338,
-   "P": 680823.0
+   "r_rel": 0.339,
+   "P": 689358.0
   },
   {
    "name": "Vest-Agder",
-   "r_rel": 0.711,
-   "P": 186291.0
+   "r_rel": 0.718,
+   "P": 185433.0
   },
   {
    "name": "Hordaland",
-   "r_rel": 0.79,
-   "P": 470400.0
+   "r_rel": 0.774,
+   "P": 479640.0
   },
   {
    "name": "Sogn og Fjordane",
-   "r_rel": 0.792,
-   "P": 98391.0
+   "r_rel": 0.786,
+   "P": 98574.0
   },
   {
    "name": "Ãstfold",
-   "r_rel": 0.803,
-   "P": 294065.0
+   "r_rel": 0.804,
+   "P": 296375.0
   },
   {
    "name": "Akershus",
-   "r_rel": 0.858,
-   "P": 640110.0
+   "r_rel": 0.866,
+   "P": 633450.0
   },
   {
    "name": "Vestfold",
-   "r_rel": 0.953,
-   "P": 239199.0
+   "r_rel": 0.956,
+   "P": 241851.0
   },
   {
    "name": "Sør-Trøndelag",
-   "r_rel": 0.955,
-   "P": 316713.0
+   "r_rel": 0.957,
+   "P": 316809.0
   },
   {
    "name": "Telemark",
-   "r_rel": 1.038,
-   "P": 169263.0
+   "r_rel": 1.032,
+   "P": 171153.0
   },
   {
    "name": "Aust-Agder",
-   "r_rel": 1.075,
-   "P": 112284.0
+   "r_rel": 1.08,
+   "P": 112875.0
   },
   {
    "name": "Oppland",
-   "r_rel": 1.215,
+   "r_rel": 1.219,
    "P": 188640.0
   },
   {
    "name": "Rogaland",
-   "r_rel": 1.251,
-   "P": 450453.0
+   "r_rel": 1.247,
+   "P": 454215.0
   },
   {
    "name": "Buskerud",
-   "r_rel": 1.253,
-   "P": 284277.0
+   "r_rel": 1.259,
+   "P": 283863.0
   },
   {
    "name": "Møre og Romsdal",
-   "r_rel": 1.262,
-   "P": 224406.0
+   "r_rel": 1.268,
+   "P": 226974.0
   },
   {
    "name": "Hedmark",
-   "r_rel": 1.285,
-   "P": 197661.0
+   "r_rel": 1.29,
+   "P": 197673.0
   },
   {
    "name": "Nordland",
-   "r_rel": 1.41,
-   "P": 218300.0
+   "r_rel": 1.423,
+   "P": 215720.0
   },
   {
    "name": "Nord-Trøndelag",
-   "r_rel": 1.667,
-   "P": 133479.0
+   "r_rel": 1.682,
+   "P": 132315.0
   },
   {
    "name": "Troms",
-   "r_rel": 1.976,
-   "P": 134235.0
+   "r_rel": 1.945,
+   "P": 137913.0
   },
   {
    "name": "Finnmark",
-   "r_rel": 3.032,
-   "P": 65410.0
+   "r_rel": 3.004,
+   "P": 66495.0
   }
  ]
 }

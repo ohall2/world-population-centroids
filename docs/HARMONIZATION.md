@@ -867,23 +867,26 @@ medelvektorer) delas då exakt i fyra delar:
 
 Skriptet kontrollerar att A + Bb + Bw + C = D (exakt, i vektorform).
 
-**Kontroll av skriptet.** Det totala felet blir 129,3 km (Mexiko),
-98,1 / 32,8 km (Sverige utan / med maskning), 148,7 / 61,1 km (Norge) och
-70,9 / 41,8 km (Finland). Valideringen i §10–11, med pipelinen och den
-publicerade serien, gav 133 / 98,1 / 32,7 / 149,3 / 61,1 / 71,2 / 42,0 km.
+**Kontroll av skriptet.** Det totala felet (Aboufadel–Austin) blir
+131,2 km (Mexiko), 97,9 / 32,6 km (Sverige utan / med maskning), 148,8 /
+60,8 km (Norge) och 71,3 / 42,0 km (Finland). Valideringen i §10–11, med
+pipelinen och den publicerade serien (Barmore), gav 133,0 / 98,1 / 32,7 /
+149,3 / 61,1 / 71,2 / 42,0 km. *(Siffrorna uppdaterade 2026-11-18, efter att
+facitpunkterna tilldelas land genom punkt-i-polygon i GADM nivå 1 i stället
+för via VIIRS-rutnätet; skillnaden var högst 2 km.)*
 
 **Resultat, rutnät 10′ (omkring 18 km i nord–syd).** Längder i km och, för
 D och Bb, riktning (öst, nord):
 
 | Land | Maskning | D (öst, nord) | A | **Bb** (öst, nord) | Bw | C |
 | --- | --- | --- | --- | --- | --- | --- |
-| Mexiko | – | 129 (−73, +107) | 0,5 | **125** (−74, +101) | 5,2 | 0,3 |
+| Mexiko | – | 131 (−75, +107) | 0,5 | **127** (−77, +102) | 5,3 | 0,3 |
 | Sverige | – | 98 (+25, +95) | 0,7 | **95** (+26, +91) | 3,0 | 0,1 |
-| Sverige | 65° N | 33 (+4, +33) | 0,2 | **32** (+4, +31) | 1,0 | 0,1 |
-| Norge | – | 149 (+43, +142) | 1,7 | **146** (+42, +139) | 1,3 | 0,2 |
-| Norge | 65° N | 61 (−37, −49) | 0,1 | **61** (−37, −49) | 0,5 | 0,2 |
-| Finland | – | 71 (−30, +64) | 0,5 | 37 (−12, +35) | 34 | 0,4 |
-| Finland | 65° N | 42 (−36, +22) | 0,0 | 18 (−17, −8) | 35 | 0,4 |
+| Sverige | 65° N | 33 (+4, +32) | 0,2 | **32** (+4, +31) | 1,0 | 0,1 |
+| Norge | – | 149 (+43, +142) | 1,6 | **146** (+42, +139) | 1,5 | 0,2 |
+| Norge | 65° N | 61 (−37, −49) | 0,1 | **61** (−36, −49) | 0,6 | 0,2 |
+| Finland | – | 71 (−30, +65) | 0,5 | 38 (−12, +36) | 34 | 0,4 |
+| Finland | 65° N | 42 (−36, +22) | 0,0 | 18 (−17, −7) | 35 | 0,4 |
 
 Ljus per invånare i förhållande till landets medel (rutnät 10′): i Mexiko
 från 0,54 (Guerrero), 0,62 (Distrito Federal) och 0,65 (Oaxaca) till
@@ -896,23 +899,23 @@ fördelningen mellan A och B beror på cellstorleken:
 
 | Land | Rutnät | Andel ljus i befolkade celler | A | Bb | Bw |
 | --- | --- | --- | --- | --- | --- |
-| Mexiko | 1′ | 0,48 | 114 | 20 | 2,5 |
-| Mexiko | 2′ | 0,75 | 87 | 46 | 2,8 |
-| Mexiko | 5′ | 0,97 | 19 | 110 | 3,0 |
-| Mexiko | 10′ | 1,00 | 0,5 | 125 | 5,2 |
-| Mexiko | 30′ | 1,00 | 0,0 | 127 | 3,6 |
+| Mexiko | 1′ | 0,48 | 115 | 21 | 2,5 |
+| Mexiko | 2′ | 0,75 | 87 | 48 | 2,9 |
+| Mexiko | 5′ | 0,97 | 20 | 112 | 3,1 |
+| Mexiko | 10′ | 1,00 | 0,5 | 127 | 5,3 |
+| Mexiko | 30′ | 1,00 | 0,0 | 129 | 3,9 |
 | Sverige | 1′ | 0,90 | 34 | 63 | 1,0 |
-| Norge | 1′ | 0,81 | 78 | 70 | 0,4 |
-| Finland | 1′ | 0,84 | 22 | 25 | 24 |
+| Norge | 1′ | 0,81 | 78 | 71 | 0,3 |
+| Finland | 1′ | 0,84 | 23 | 25 | 24 |
 
 I Mexiko är A stor i fina rutnät, eftersom INEGI anger stora städer som en
 enda punkt per kommun. Stadens ljus hamnar då i celler utan facitpunkt. Från
 5′ och uppåt ligger nästan allt ljus i befolkade celler. Då förklarar
-skillnaderna mellan delstaterna 110–127 av 129 km. I Norden, där facit är
+skillnaderna mellan delstaterna 112–129 av 131 km. I Norden, där facit är
 rutor om 1 km², ligger 10–20 % av ljuset i rutor utan invånare (vägar,
 industri, gruvor). Det ljuset ligger mest norrut, och i 1′-rutnätet står det
 för 22–78 km. Men även där står skillnaderna mellan regioner för den största
-delen (25–70 km).
+delen (25–71 km).
 
 **Slutsatser.**
 1. **Identiteten förklarar felen.** De nationella felen beror nästan helt på
@@ -937,3 +940,91 @@ delen (25–70 km).
    som känslighetsanalys.
 
 Resultat: docs/check_identity/*.json.
+
+## 15. Brasilien som fjärde facit, och rättad täckningskontroll (2026-11-18)
+
+### 15.1 Facit
+
+IBGE:s Grade Estatística för Censo Demográfico 2022, rutor om 1 km² för hela
+Brasilien (`BR1KM_20251002.zip`, se docs/DATA.md). 1 501 555 befolkade rutor
+med 203 002 064 personer; det officiella resultatet för Censo 2022 är 203,08
+miljoner. Rutans tyngdpunkt används. Kommando:
+
+    python tools/validation_centroids.py --dataset ibge --years 2022
+
+### 15.2 Rättad täckningskontroll
+
+Under arbetet framkom att enheter i grannländer kunde räknas som
+fullständiga, om de bara fått några facitrutor eller -punkter vid gränsen.
+Kontrollen av täckning (andel av ljuset i underenheter utan befolkning)
+räknade då enheten som täckt. Det gällde Paraguay och Guyana för IBGE,
+Ukraina, Ryssland, Vitryssland, Turkiet, Marocko, Serbien och Bosnien för
+GEOSTAT, och Bulgarien och Luxemburg 2011, där GEOSTAT bara har aggregerade
+folkräkningsdata för en del av landet. **Ny regel**
+(`MIN_COUNTRY_COVERAGE` i tools/validation_centroids.py): ett land räknas
+som täckt först om minst 90 % av dess finaste GADM-enheter har befolkning i
+facit. Antal felaktigt fullständiga nivå 2-enheter före rättelsen: 1–2
+(USA), 5–6 (Mexiko), 231 (Europa 2011), 80 (Europa 2021), 55 (Brasilien);
+på nivå 1 tre av 30 för Brasilien.
+
+Valideringen av den publicerade serien kördes om med den nya regeln
+(docs/validation/). USA och Mexiko ändras inte (de få enheterna föll redan
+bort genom kravet på minst tio facitpunkter). För Europa:
+
+| Nivå | År | Enheter före / efter | Median före / efter (km) |
+| --- | --- | --- | --- |
+| 1 | 2011 | 365 / 362 | 2,89 / 2,90 |
+| 1 | 2021 | 435 / 432 | 2,51 / 2,47 |
+| 2 | 2011 | 6 393 / 6 360 | 0,954 / 0,949 |
+| 2 | 2021 | 7 246 / 7 234 | 0,733 / 0,732 |
+
+Slutsatserna påverkas inte. `metadata.json` i den publicerade datamängden
+innehåller valideringen och ska byggas om (`tools/build_release.py`) innan
+taggen sätts.
+
+### 15.3 Resultat för Brasilien 2022
+
+Lägesfel, Barmore (docs/validation/ibge_position.csv):
+
+| Serie | Nivå 0 | Nivå 1 (27 delstater) | Nivå 2 (5 567 kommuner) |
+| --- | --- | --- | --- |
+| Publicerad (v2.0.0) | 94,4 km (−53 öst, −78 nord) | median 16,5, p90 39,6 | median 1,11, p90 4,30 |
+| Chiovelli bloomtopcode_fix | 110,9 | 13,8 | 1,53 |
+
+Nivå 2 ligger i samma storleksordning som i USA, Europa och Mexiko
+(0,7–1,5 km). Nivå 1 är sämre (16,5 km mot 0,8–7,4), men delstaterna är
+mycket stora: Amazonas och Pará är 1,6 och 1,3 miljoner km², och de har de
+största felen (76 och 82 km). I nordöstra Brasiliens kuststater ligger
+ljuscentroiden 15–32 km för långt västerut, alltså inåt land (Bahia,
+Pernambuco, Paraíba, Alagoas, Rio Grande do Norte); i São Paulo ligger den
+45 km mot nordväst, bort från storstadsområdet.
+
+### 15.4 Identiteten för Brasilien
+
+`tools/check_identity.py --facit points` med VIIRS 2022 (docs/check_identity/id_BRA_*.json):
+
+| Rutnät | Andel ljus i befolkade celler | D | A | Bb (mellan delstater) | Bw (inom) | C |
+| --- | --- | --- | --- | --- | --- | --- |
+| 10′ | 1,00 | 94,6 | 0,6 | 91,8 | 13,4 | 0,1 |
+| 2′ | 0,99 | 94,6 | 3,3 | 93,5 | 12,8 | 0,1 |
+| 1′ | 0,95 | 94,6 | 6,2 | 95,2 | 11,5 | 0,0 |
+
+(Delarna är vektorer; längderna summeras inte.) Skillnaderna i ljus per
+invånare mellan delstaterna förklarar felet, oberoende av rutnätet.
+Ljus per invånare i förhållande till landets medel: Mato Grosso 1,69,
+Distrito Federal 1,54, Sergipe 1,45, Santa Catarina 1,32, Goiás 1,29;
+Amazonas 0,60, Pará 0,72, Maranhão 0,73, Acre 0,77, Pernambuco 0,77,
+Rio de Janeiro 0,83, São Paulo 0,95.
+
+**Slutsatser.**
+1. Brasilien prövades efter att metoden och identiteten utvecklats på de
+   andra facit, och resultatet är detsamma: det nationella felet är ett fel
+   i ljus per invånare mellan regioner.
+2. Ljus per invånare följer inte bara inkomst. De största storstads-
+   områdena (Rio de Janeiro, São Paulo, och Distrito Federal i Mexiko med
+   0,62) har lågt ljus per invånare trots hög inkomst, sannolikt för att tät
+   bebyggelse ger mindre ljus per person. Glest befolkade jordbruks- och
+   gruvregioner (Mato Grosso; Norrbotten, Finnmark) har högt. Mekanismen i
+   P2 bör därför beskrivas som rumslig variation i ljus per invånare, med
+   inkomst och bebyggelsetäthet som två kända orsaker, inte som enbart
+   inkomst.

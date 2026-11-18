@@ -1,0 +1,204 @@
+{
+ "country": "MEX",
+ "grid_deg": 0.1666667,
+ "max_lat": null,
+ "pop_points": 189350,
+ "pop": 126009122.0,
+ "light_share_in_populated_cells": 0.9989833662764337,
+ "error_gc_km": 131.18868028309805,
+ "light_centroid": [
+  -100.784304864086,
+  22.291719764812065
+ ],
+ "pop_centroid": [
+  -100.05058426494485,
+  21.328428963505267
+ ],
+ "D_total": {
+  "east_km": -75.41,
+  "north_km": 107.18,
+  "length_km": 131.05
+ },
+ "A_light_unpopulated": {
+  "east_km": -0.35,
+  "north_km": 0.37,
+  "length_km": 0.51
+ },
+ "Bb_between_regions": {
+  "east_km": -76.54,
+  "north_km": 101.64,
+  "length_km": 127.23
+ },
+ "Bw_within_regions": {
+  "east_km": 1.18,
+  "north_km": 5.18,
+  "length_km": 5.31
+ },
+ "C_within_cells": {
+  "east_km": 0.29,
+  "north_km": -0.01,
+  "length_km": 0.29
+ },
+ "light_per_capita_by_region_rel": [
+  {
+   "name": "Guerrero",
+   "r_rel": 0.539,
+   "P": 3510822.0
+  },
+  {
+   "name": "Distrito Federal",
+   "r_rel": 0.619,
+   "P": 9655698.0
+  },
+  {
+   "name": "Oaxaca",
+   "r_rel": 0.647,
+   "P": 4183942.0
+  },
+  {
+   "name": "Nayarit",
+   "r_rel": 0.673,
+   "P": 1217646.0
+  },
+  {
+   "name": "Michoacán",
+   "r_rel": 0.68,
+   "P": 4744012.0
+  },
+  {
+   "name": "Chiapas",
+   "r_rel": 0.729,
+   "P": 5538361.0
+  },
+  {
+   "name": "Veracruz",
+   "r_rel": 0.749,
+   "P": 7820384.0
+  },
+  {
+   "name": "México",
+   "r_rel": 0.821,
+   "P": 16452804.0
+  },
+  {
+   "name": "Puebla",
+   "r_rel": 0.823,
+   "P": 6832647.0
+  },
+  {
+   "name": "Morelos",
+   "r_rel": 0.847,
+   "P": 1961542.0
+  },
+  {
+   "name": "Jalisco",
+   "r_rel": 0.956,
+   "P": 8355443.0
+  },
+  {
+   "name": "Quintana Roo",
+   "r_rel": 0.995,
+   "P": 1859623.0
+  },
+  {
+   "name": "Hidalgo",
+   "r_rel": 1.07,
+   "P": 3231721.0
+  },
+  {
+   "name": "San Luis Potosí",
+   "r_rel": 1.076,
+   "P": 2820422.0
+  },
+  {
+   "name": "Yucatán",
+   "r_rel": 1.099,
+   "P": 2326671.0
+  },
+  {
+   "name": "Colima",
+   "r_rel": 1.12,
+   "P": 732899.0
+  },
+  {
+   "name": "Sinaloa",
+   "r_rel": 1.128,
+   "P": 3029577.0
+  },
+  {
+   "name": "Nuevo León",
+   "r_rel": 1.146,
+   "P": 5786513.0
+  },
+  {
+   "name": "Campeche",
+   "r_rel": 1.154,
+   "P": 915357.0
+  },
+  {
+   "name": "Tabasco",
+   "r_rel": 1.18,
+   "P": 2402962.0
+  },
+  {
+   "name": "Tlaxcala",
+   "r_rel": 1.252,
+   "P": 1252589.0
+  },
+  {
+   "name": "Guanajuato",
+   "r_rel": 1.258,
+   "P": 6097925.0
+  },
+  {
+   "name": "Tamaulipas",
+   "r_rel": 1.259,
+   "P": 3581596.0
+  },
+  {
+   "name": "Baja California",
+   "r_rel": 1.269,
+   "P": 3757125.0
+  },
+  {
+   "name": "Querétaro",
+   "r_rel": 1.426,
+   "P": 2423842.0
+  },
+  {
+   "name": "Zacatecas",
+   "r_rel": 1.459,
+   "P": 1630816.0
+  },
+  {
+   "name": "Aguascalientes",
+   "r_rel": 1.484,
+   "P": 1416502.0
+  },
+  {
+   "name": "Durango",
+   "r_rel": 1.502,
+   "P": 1700726.0
+  },
+  {
+   "name": "Coahuila",
+   "r_rel": 1.556,
+   "P": 3276739.0
+  },
+  {
+   "name": "Baja California Sur",
+   "r_rel": 1.652,
+   "P": 798368.0
+  },
+  {
+   "name": "Chihuahua",
+   "r_rel": 1.722,
+   "P": 3739587.0
+  },
+  {
+   "name": "Sonora",
+   "r_rel": 1.755,
+   "P": 2954261.0
+  }
+ ]
+}
