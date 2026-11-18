@@ -807,7 +807,10 @@ enheter:
 **Följd.** PCNL tar nästan bort skarven per enhet. Skarven är inte större än
 ett vanligt DMSP-hopp, för alla mått utom tänd yta (kvot 4,1, troligen
 tröskeln för vad som räknas som tänt). Påstående P1 måste därför
-formuleras om. De två serierna som är anpassade för summor (Li m.fl.;
+formuleras om. *(Karakteristiken i detta stycke är rättad i
+docs/LITERATURE.md §11: Chiovelli m.fl. är anpassad per pixel, och PCNL är en
+bakåtskarvning per pixel, så dess kontinuitet följer av konstruktionen.)*
+De två serierna som är anpassade för summor (Li m.fl.;
 Chiovelli m.fl.) hänger inte ihop enhet för enhet. En serie som anpassats
 pixel för pixel gör det i stort sett, utom i tänd yta. Utvärderingen per
 enhet skiljer alltså mellan serierna, och det är ett argument för att
