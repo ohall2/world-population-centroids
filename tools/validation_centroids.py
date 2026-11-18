@@ -18,6 +18,13 @@ Data (tools/download_validation.py):
            modellerade rutor ("D", "M") och JRC-filen tas inte med.
            Befolkning som inte har kunnat placeras i en ruta (2021,
            "CC_unallocated") kan inte användas; andelen redovisas.
+  ibge     IBGE Grade Estatística, Censo Demográfico 2022, rutor om 1 km²
+           för hela Brasilien (BR1KM_20251002.zip, shapefil i SIRGAS 2000).
+           Rutans tyngdpunkt används; bara rutor med befolkning (TOTAL > 0).
+           Hämtas med:
+             mkdir -p data/raw/validation/ibge/2022 && curl -C - -o \
+               data/raw/validation/ibge/2022/BR1KM_20251002.zip \
+               https://geoftp.ibge.gov.br/recortes_para_fins_estatisticos/grade_estatistica/censo_2022/grade_1km/BR1KM_20251002.zip
 
 För varje GADM-enhet (nivå 0–2) beräknas befolkningsviktade centroider med
 samma metoder som för nattljuset (wpc.centroids): Aboufadel–Austin
@@ -175,6 +182,20 @@ def read_geostat(root: Path, year: int):
     return pd.DataFrame({"lon": lon, "lat": lat, "pop": pop}), info
 
 
+def read_ibge(root: Path, year: int):
+    import pyogrio
+    import shapely
+    zips = sorted((root / str(year)).glob("BR1KM_*.zip"))
+    if not zips:
+        sys.exit(f"Ingen IBGE-fil för {year} i {root}")
+    d = pyogrio.read_dataframe(f"/vsizip/{zips[0]}/BR1KM.shp", columns=["nome_1KM", "TOTAL"],
+                               where="TOTAL > 0")
+    c = shapely.centroid(d.geometry.values)
+    info = {"file": zips[0].name, "cells": int(len(d)), "pop_total": float(d.TOTAL.sum())}
+    return pd.DataFrame({"lon": shapely.get_x(c), "lat": shapely.get_y(c),
+                         "pop": d.TOTAL.astype(float).values}), info
+
+
 def assign(points: pd.DataFrame, units) -> np.ndarray:
     """Index i `units` för varje punkt (−1 om punkten ligger utanför alla)."""
     import geopandas as gpd
@@ -224,7 +245,7 @@ def missing_light_share(have: dict, light: dict, u1: pd.DataFrame, u2: pd.DataFr
 
 def main(argv=None):
     p = argparse.ArgumentParser(description="Befolkningscentroider från folkräkningar.")
-    p.add_argument("--dataset", choices=["census", "geostat", "inegi"], required=True)
+    p.add_argument("--dataset", choices=["census", "geostat", "inegi", "ibge"], required=True)
     p.add_argument("--years", type=int, nargs="+", required=True)
     p.add_argument("--raw", type=Path, default=Path("data/raw/validation"))
     p.add_argument("--out", type=Path, default=Path("data/validation"))
@@ -249,7 +270,8 @@ def main(argv=None):
 
     for year in args.years:
         t0 = time.time()
-        reader = {"census": read_census, "geostat": read_geostat, "inegi": read_inegi}[args.dataset]
+        reader = {"census": read_census, "geostat": read_geostat, "inegi": read_inegi,
+                  "ibge": read_ibge}[args.dataset]
         with Progress(f"Läser {args.dataset} {year}"):
             pts, info = reader(args.raw / args.dataset, year)
         pts = pts[(pts["pop"] > 0) & np.isfinite(pts.lon) & np.isfinite(pts.lat)].reset_index(drop=True)
