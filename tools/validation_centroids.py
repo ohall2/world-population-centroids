@@ -72,6 +72,10 @@ from wpc.progress import Progress, log  # noqa: E402
 # geopandas, pyproj och wpc.centroids/wpc.run importeras i de funktioner som
 # behöver dem, så att läsarna kan testas där bara pandas finns.
 
+# Länder som facit täcker helt. Enheter i andra länder räknas aldrig som
+# fullständiga (GEOSTAT täcker många länder och styrs av kontrollen av ljuset).
+DATASET_COUNTRIES = {"census": {"USA", "PRI"}, "inegi": {"MEX"}, "ibge": {"BRA"}}
+
 CENSUS_COLS = ["STATEFP", "COUNTYFP", "TRACTCE", "BLKGRPCE", "POPULATION", "LATITUDE", "LONGITUDE"]
 
 
@@ -294,6 +298,10 @@ def main(argv=None):
             res = results[lv]
             res["missing_light_share"] = res.unit_id.map(miss[lv]).fillna(0.0).values
             res["complete"] = res.missing_light_share < args.max_missing
+            if args.dataset in DATASET_COUNTRIES:
+                # Enheter i grannländer kan få några randrutor eller -punkter och då
+                # se fullständiga ut (t.ex. Paraguay för IBGE); de räknas inte.
+                res["complete"] &= res.unit_id.str[:3].isin(DATASET_COUNTRIES[args.dataset]).values
             res.insert(1, "level", lv)
             res.insert(2, "year", year)
             res.insert(3, "dataset", args.dataset)

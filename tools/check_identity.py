@@ -93,31 +93,38 @@ def run(country, pts, viirs, units, flares, grid, max_lat=None):
     src = rasterio.open(viirs)
     win = from_bounds(minx, miny, maxx, maxy, src.transform).round_offsets().round_lengths()
     tr = src.window_transform(win)
-    light = src.read(1, window=win).astype("float64")
-    light[~np.isfinite(light) | (light < 0)] = 0
-    shp = light.shape
-    cmask = rasterize([(geom, 1)], out_shape=shp, transform=tr, fill=0, dtype="uint8").astype(bool)
-    reg = rasterize(list(zip(a1.geometry, a1.index + 1)), out_shape=shp, transform=tr, fill=0, dtype="int32")
+    shp = (int(win.height), int(win.width))
     fl = gpd.read_file(flares, engine="pyogrio", bbox=(minx, miny, maxx, maxy))
-    if len(fl):
-        light[rasterize([(g, 1) for g in fl.geometry], out_shape=shp, transform=tr, fill=0, dtype="uint8") == 1] = 0
-    rows, cols = np.indices(shp)
-    lon = tr.c + tr.a * (cols + 0.5)
-    lat = tr.f + tr.e * (rows + 0.5)
-    light[~cmask] = 0
-    if max_lat is not None:
-        light[lat > max_lat] = 0
-    w = light * np.cos(np.radians(lat))
-    sel = w > 0
-    Lw, Llon, Llat = w[sel], lon[sel], lat[sel]
+    flshapes = [(g, 1) for g in fl.geometry]
+    # Läs i band om 1024 rader för att hålla nere minnet; spara bara tända pixlar.
+    Lw, Llon, Llat = [], [], []
+    lon_all = tr.c + tr.a * (np.arange(shp[1]) + 0.5)
+    for r0 in range(0, shp[0], 1024):
+        h = min(1024, shp[0] - r0)
+        sw = rasterio.windows.Window(win.col_off, win.row_off + r0, shp[1], h)
+        st = src.window_transform(sw)
+        light = src.read(1, window=sw).astype("float64")
+        light[~np.isfinite(light) | (light < 0)] = 0
+        cm = rasterize([(geom, 1)], out_shape=(h, shp[1]), transform=st, fill=0, dtype="uint8").astype(bool)
+        light[~cm] = 0
+        if flshapes:
+            light[rasterize(flshapes, out_shape=(h, shp[1]), transform=st, fill=0, dtype="uint8") == 1] = 0
+        lat_r = st.f + st.e * (np.arange(h) + 0.5)
+        if max_lat is not None:
+            light[lat_r > max_lat] = 0
+        w = light * np.cos(np.radians(lat_r))[:, None]
+        rr, cc = np.nonzero(w > 0)
+        Lw.append(w[rr, cc]); Llon.append(lon_all[cc]); Llat.append(lat_r[rr])
+    Lw, Llon, Llat = np.concatenate(Lw), np.concatenate(Llon), np.concatenate(Llat)
+    cmask_geom = geom
 
-    # befolkningspunkter i landet (pixeln de ligger i)
-    c = np.floor((pts.lon.values - tr.c) / tr.a).astype(int)
-    r = np.floor((pts.lat.values - tr.f) / tr.e).astype(int)
-    ok = (c >= 0) & (c < shp[1]) & (r >= 0) & (r < shp[0])
-    ok[ok] = cmask[r[ok], c[ok]]
-    P = pts[ok].copy()
-    P["reg"] = reg[r[ok], c[ok]]
+    # befolkningspunkter i landet och deras region (punkt i polygon)
+    pg = gpd.GeoDataFrame(pts.reset_index(drop=True), geometry=gpd.points_from_xy(pts.lon, pts.lat), crs=4326)
+    j = gpd.sjoin(pg, a1[["geometry"]].assign(reg=a1.index + 1), how="left", predicate="within")
+    j = j[~j.index.duplicated(keep="first")]
+    inside = pg.within(cmask_geom) if len(pg) < 200000 else j.reg.notna()
+    P = pts.reset_index(drop=True)[inside.values].copy()
+    P["reg"] = j.reg[inside.values].fillna(0).astype(int).values
 
     # gemensamt rutnät
     x0, y0 = tr.c, tr.f
@@ -198,7 +205,7 @@ def run(country, pts, viirs, units, flares, grid, max_lat=None):
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.split("\n")[1])
     p.add_argument("--country", required=True)
-    p.add_argument("--facit", choices=["inegi", "geostat"], required=True)
+    p.add_argument("--facit", choices=["inegi", "geostat", "points"], required=True)
     p.add_argument("--facit-file", type=Path, required=True)
     p.add_argument("--viirs", type=Path, required=True)
     p.add_argument("--units", type=Path, required=True, help="GeoPackage med lagren adm0 och adm1")
@@ -207,7 +214,8 @@ def main(argv=None):
     p.add_argument("--max-lat", type=float, default=None)
     p.add_argument("--out", type=Path, default=None)
     a = p.parse_args(argv)
-    pts = read_inegi(a.facit_file) if a.facit == "inegi" else read_geostat_csv(a.facit_file)
+    pts = (read_inegi(a.facit_file) if a.facit == "inegi" else read_geostat_csv(a.facit_file)
+           if a.facit == "geostat" else pd.read_csv(a.facit_file, usecols=["lon", "lat", "pop"]))
     res = run(a.country, pts, a.viirs, a.units, a.flares, a.grid, a.max_lat)
     txt = json.dumps(res, indent=1, ensure_ascii=False)
     print(txt)
