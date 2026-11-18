@@ -696,8 +696,11 @@ till exempel 0,85 mot 0,25 km på nivå 2.
 Mexikos nationella fel (avsnitt 10) har en annan orsak – regionala
 skillnader i ljus per invånare som följer inkomst – och redovisas som en
 begränsning. Det tidigare arbetet (Niedomysl m.fl. 2017) prövade felets
-samband med enheternas yta, form och befolkningstäthet i Sverige; bara ytan
-hade ett signifikant samband (R² = 0,12).
+samband med enheternas yta, form och befolkningstäthet i Sverige (lokala
+arbetsmarknader, n = 78): inget samband med form eller täthet och bara ett
+mycket svagt med ytan, som författarna förklarade med sex mycket stora och
+glest befolkade regioner i norra Sverige. *(Rättat 2026-11-18 efter läsning
+av fulltexten, s. 598–599; uppgiften R² = 0,12 finns inte i artikeln.)*
 
 ## 12. Gäller skarven bara centroider? (kontroll inför artikeln, 2026-11-17)
 
