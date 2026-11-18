@@ -1088,8 +1088,8 @@ den verkliga förflyttningens storlek (nivå 2, docs/change_detection/*_bins.csv
    nivå 2 pekar den uppmätta förflyttningen åt rätt håll i 51–66 % av
    enheterna (slumpen ger 50 %). Rangkorrelationen är 0,02–0,34, och i 71–92 %
    av enheterna är felet större än den verkliga förflyttningen. På nivå 1 är
-   intervallen så breda att rätt riktning inte skiljer sig från slumpen i
-   fem av sex fall.
+   intervallen breda, och rätt riktning skiljer sig inte från slumpen i
+   tre av fem fall (undantagen är USA 2000–2020 och Mexiko).
 2. **Det som syns är svagt och dämpat.** Där ett samband finns (USA nivå 2,
    Mexiko nivå 1) är lutningen 0,3–0,5: ljuset fångar mindre än hälften av
    förflyttningen.
