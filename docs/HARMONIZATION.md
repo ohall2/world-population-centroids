@@ -898,7 +898,7 @@ Ljus per invånare i förhållande till landets medel (rutnät 10′): i Mexiko
 från 0,54 (Guerrero), 0,62 (Distrito Federal) och 0,65 (Oaxaca) till
 1,72 (Chihuahua) och 1,76 (Sonora). I Sverige är Norrbotten 2,33 och Skåne
 0,77, i Norge är Finnmark 3,00, Troms 1,95 och Oslo 0,34, och i Finland är
-Lappland 1,56 och Södra Finland 0,64 (rutnät 1′).
+Lappland 1,56 och Södra Finland 0,64 (rutnät 1′). På rutnätet 10′, som artikeln använder: Norrbotten 3,07, Finnmark 3,98, Oslo 0,29.
 
 **Rutnätets betydelse.** Identiteten gäller exakt för varje rutnät, men
 fördelningen mellan A och B beror på cellstorleken:
@@ -1134,3 +1134,13 @@ inte användas. Nivå 2 påverkas inte. Testet av förändring på nivå 1 för
 census (§16) domineras av Puerto Rico och redovisas i artikeln inte som ett
 resultat för USA. Slutsatserna om nivå 2 står fast; landsfelet för USA
 (65–88 km) ligger i samma storleksordning som för Mexiko och Brasilien.
+
+## 18. Ändringar efter granskningen av manuset (2026-11-18)
+
+Granskningen (docs/review/review-manuscript-2026-11-18.md) ledde till följande
+ändringar utan nya körningar: figurerna 1 och 2 bytte nummer (lägesfelet först);
+Fig. 6 mäter skarven i varje series eget skarvår (2012→13 för v2.0.0, kvot 0,89;
+2013→14 för övriga); antalet skarvade enheter i utgåvan är 250 av 263, 3 496 av
+3 661 och 44 019 av 47 217 (splice_ok = 1 år 2012); 34 DMSP-kompositer används
+(F15 2008 saknar kalibrering). Manusets påståenden om förändring, landsfel och
+korrektion formulerades om enligt granskningen.

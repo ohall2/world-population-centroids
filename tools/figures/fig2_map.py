@@ -1,4 +1,4 @@
-"""Fig. 1: ljus per invånare per region (GADM nivå 1, rutnät 10′) och förskjutningen av
+"""Fig. 2: ljus per invånare per region (GADM nivå 1, rutnät 10′) och förskjutningen av
 landets ljuscentroid från befolkningens centroid. Mexiko, Brasilien, Sverige, Norge, Finland.
 Läser docs/check_identity/id_*.json och GADM nivå 1 (förenklad) som argument
 (standard data/derived/check/adm1_simpl.gpkg)."""
@@ -44,5 +44,5 @@ cb.set_label("Light per resident relative to the national mean (GADM level 1, 10
 fig.text(0.01, 0.005, "Arrows run from the census population centroid (white dot) towards the light-weighted centroid, drawn 3 times their true length;\n"
          "labels give the true distance. VIIRS 2020 (Mexico), 2022 (Brazil), 2021 (Sweden, Norway, Finland); no masking north of 65° N.", fontsize=6.6, color="#52514e")
 fig.subplots_adjust(left=0.01, right=0.99, top=0.93, bottom=0.25, wspace=0.05)
-for ext in ("pdf", "png"): fig.savefig(O / f"fig1_map.{ext}", dpi=300)
+for ext in ("pdf", "png"): fig.savefig(O / f"fig2_map.{ext}", dpi=300)
 print("ok")
