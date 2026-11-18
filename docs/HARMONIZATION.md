@@ -890,9 +890,9 @@ D och Bb, riktning (öst, nord):
 
 Ljus per invånare i förhållande till landets medel (rutnät 10′): i Mexiko
 från 0,54 (Guerrero), 0,62 (Distrito Federal) och 0,65 (Oaxaca) till
-1,72 (Chihuahua) och 1,75 (Sonora). I Sverige är Norrbotten 2,36, i Norge
-är Finnmark 3,03 och Troms 1,98, och i Finland är Lappland 1,56 och
-Södra Finland 0,64 (rutnät 1′).
+1,72 (Chihuahua) och 1,76 (Sonora). I Sverige är Norrbotten 2,33 och Skåne
+0,77, i Norge är Finnmark 3,00, Troms 1,95 och Oslo 0,34, och i Finland är
+Lappland 1,56 och Södra Finland 0,64 (rutnät 1′).
 
 **Rutnätets betydelse.** Identiteten gäller exakt för varje rutnät, men
 fördelningen mellan A och B beror på cellstorleken:
