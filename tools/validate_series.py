@@ -89,7 +89,7 @@ def truth(root: Path, dataset: str, year: int, level: int) -> pd.DataFrame:
 
 def main(argv=None):
     p = argparse.ArgumentParser(description="Validera nattljusets centroider mot befolkningens.")
-    p.add_argument("--dataset", choices=["census", "geostat", "inegi"], required=True)
+    p.add_argument("--dataset", choices=["census", "geostat", "inegi", "ibge"], required=True)
     p.add_argument("--years", type=int, nargs="+", required=True)
     p.add_argument("--change", type=int, nargs=2, action="append", default=[])
     p.add_argument("--series", nargs="+", default=[])

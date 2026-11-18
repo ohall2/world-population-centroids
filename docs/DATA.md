@@ -19,6 +19,8 @@ Alla filer läggs under `data/`, som inte ingår i git. Sökvägarna nedan är d
 | Facit: US Census, befolkning och befolkningsmittpunkt per block group 2000, 2010, 2020 | `data/raw/validation/census/` | `python tools/download_validation.py --only census` |
 | Facit: Eurostat GEOSTAT 1 km-rutnät 2011 (V2.0.1) och 2021 (V3) | `data/raw/validation/geostat/` | `python tools/download_validation.py --only geostat` |
 | Facit: INEGI ortsregister (ITER) 2010 och 2020 | `data/raw/validation/inegi/` | `python tools/download_validation.py --only inegi` |
+| Facit: IBGE Grade Estatística, Censo 2022, rutor om 1 km² (BR1KM_20251002.zip, 416 MB, sha256 944579f2…870a) | `data/raw/validation/ibge/2022/` | `curl -C - -o data/raw/validation/ibge/2022/BR1KM_20251002.zip https://geoftp.ibge.gov.br/recortes_para_fins_estatisticos/grade_estatistica/censo_2022/grade_1km/BR1KM_20251002.zip` (203 002 064 personer i 1 501 555 rutor) |
+| PCNL (Li, S. m.fl. 2023), jämförelse | `data/raw/pcnl/PCNL<år>.tif` | `python tools/download_zenodo.py --record 7612389 --out data/raw/pcnl --pattern 'PCNL201[0-7].tif'` |
 | GADM 2.8, färdig | `data/processed/gadm28.gpkg` | `python tools/prepare_gadm28.py` (använder `legacy/v1/` för attributen) |
 
 ## Licenser
