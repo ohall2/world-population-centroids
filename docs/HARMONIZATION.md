@@ -1063,11 +1063,11 @@ nivå 2, land för Europa nivå 1, annars enheten). Kommando:
 | USA | 1 | 2000–2010 | 121 | 0,20 | 0,54 (0,45–0,63) | 0,05 (−0,12–0,22) | 0,73 (−0,42–2,04) | 26 % |
 | USA | 1 | 2010–2020 | 120 | 0,15 | 0,51 (0,43–0,59) | 0,06 (−0,13–0,25) | 0,02 (−1,0–0,90) | 18 % |
 | USA | 1 | 2000–2020 | 121 | 0,31 | 0,64 (0,55–0,72) | 0,24 (0,08–0,39) | 0,32 (−0,25–0,96) | 33 % |
-| USA | 2 | 2000–2010 | 2 381 | 0,37 | 0,61 (0,59–0,64) | 0,24 (0,18–0,29) | 0,45 (0,30–0,60) | 26 % |
+| USA | 2 | 2000–2010 | 2 381 | 0,37 | 0,61 (0,58–0,64) | 0,24 (0,18–0,29) | 0,45 (0,30–0,60) | 26 % |
 | USA | 2 | 2010–2020 | 2 383 | 0,26 | 0,58 (0,56–0,60) | 0,18 (0,14–0,21) | 0,49 (0,19–0,77) | 16 % |
-| USA | 2 | 2000–2020 | 2 373 | 0,54 | 0,66 (0,64–0,69) | 0,34 (0,29–0,38) | 0,49 (0,36–0,59) | 29 % |
-| Europa | 1 | 2011–2021 | 329 | 0,42 | 0,49 (0,43–0,53) | −0,09 (−0,16–−0,01) | −0,14 (−0,70–0,53) | 6 % |
-| Europa | 2 | 2011–2021 | 6 161 | 0,13 | 0,51 (0,49–0,53) | 0,02 (−0,01–0,05) | 0,22 (−0,03–0,48) | 8 % |
+| USA | 2 | 2000–2020 | 2 373 | 0,54 | 0,66 (0,64–0,69) | 0,34 (0,29–0,38) | 0,48 (0,36–0,59) | 28 % |
+| Europa | 1 | 2011–2021 | 329 | 0,42 | 0,49 (0,43–0,53) | −0,08 (−0,16–−0,01) | −0,14 (−0,70–0,53) | 5 % |
+| Europa | 2 | 2011–2021 | 6 161 | 0,13 | 0,51 (0,49–0,53) | 0,02 (−0,01–0,05) | 0,22 (−0,03–0,47) | 8 % |
 | Mexiko | 1 | 2010–2020 | 32 | 2,07 | 0,72 (0,56–0,88) | 0,42 (0,09–0,73) | 0,38 (−0,26–2,44) | 19 % |
 | Mexiko | 2 | 2010–2020 | 1 915 | 0,25 | 0,56 (0,53–0,58) | 0,13 (0,08–0,18) | 0,26 (0,02–0,86) | 14 % |
 
@@ -1089,7 +1089,7 @@ den verkliga förflyttningens storlek (nivå 2, docs/change_detection/*_bins.csv
 **Slutsatser.**
 1. **Förflyttningar av den storlek som förekommer går inte att mäta.** På
    nivå 2 pekar den uppmätta förflyttningen åt rätt håll i 51–66 % av
-   enheterna (slumpen ger 50 %). Rangkorrelationen är 0,02–0,34, och i 71–92 %
+   enheterna (slumpen ger 50 %). Rangkorrelationen är 0,02–0,34, och i 72–92 %
    av enheterna är felet större än den verkliga förflyttningen. På nivå 1 är
    intervallen breda, och rätt riktning skiljer sig inte från slumpen i
    tre av fem fall (undantagen är USA 2000–2020 och Mexiko).
@@ -1109,6 +1109,8 @@ den verkliga förflyttningens storlek (nivå 2, docs/change_detection/*_bins.csv
    en del av "den verkliga förflyttningen" kan vara skillnader i facit.
    Europas resultat är därför den svagaste delen av belägget; USA och Mexiko
    bygger på samma typ av underlag båda åren.
+
+*Avrundning rättad 2026-11-18: tabellen ovan avrundades tidigare uppåt på fel sätt i fyra celler; värdena följer nu CSV-filerna med avrundning halvt uppåt (tools/write_release_docs.py).*
 
 ## 17. Rättelse: USA och Puerto Rico redovisas var för sig (2026-11-18)
 
