@@ -102,6 +102,8 @@ def row(ds, lv, y1, y2, ids, t, e, blocks, **extra):
 
 def permutation(t, e, blocks, n=1000):
     obs = metrics(t, e)
+    if len(np.unique(blocks)) == len(blocks):   # nivå 1 utan överordnat block: blanda över alla enheter
+        blocks = np.zeros(len(blocks), int)
     ub, inv = np.unique(blocks, return_inverse=True)
     members = [np.flatnonzero(inv == k) for k in range(len(ub))]
     dr, rho = [], []
