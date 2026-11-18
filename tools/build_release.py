@@ -231,6 +231,9 @@ def main(argv=None):
         "- Enheter med splice_ok = 0 har DMSP-år som inte är jämförbara med VIIRS-åren.\n"
         "- Enhets-ID och namn följer GADM 4.1, inklusive dess egna koder som \"?\" för okända enheter.\n")
     log(f"metadata och README -> {out}")
+    # Slutlig validering, förändringstest och README på engelska (ersätter texten ovan).
+    from write_release_docs import main as write_docs  # noqa: E402
+    write_docs(["--release", str(out)])
 
 
 if __name__ == "__main__":
