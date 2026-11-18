@@ -25,7 +25,7 @@ r = r[r.year.isin(Y)]
 for c in ("aa_lon", "aa_lat"): r[c] = pd.to_numeric(r[c], errors="coerce")
 v = r.pivot(index="unit_id", columns="year").dropna()
 v = v.rename(columns={"aa_lon": "lon", "aa_lat": "lat"}, level=0)
-W["v2"] = v; series["v2"] = "This series (v2.0.0)"
+W["v2"] = v; series["v2"] = "This series"
 ids = set.intersection(*[set(w.index) for w in W.values()])
 ids = sorted(ids); print("common units:", len(ids))
 rows = []
@@ -36,27 +36,32 @@ for k, w in W.items():
                      "median_km": float(np.median(hav(w["lon"][a], w["lat"][a], w["lon"][b], w["lat"][b])))})
 t = pd.DataFrame(rows); t.to_csv(O / "data/fig6_seam_jumps.csv", index=False)
 piv = t.pivot(index="series", columns="a", values="median_km")
-ratio = piv[2013] / piv[[2010, 2011, 2012]].median(axis=1)
+# Skarven ligger 2013->14 för Li, Chiovelli och PCNL (sista DMSP-året 2013) men 2012->13 för
+# v2.0.0 (DMSP 1992-2012, rå VIIRS från 2013). Kvoten = skarvsteget / median av DMSP-stegen före.
+JOIN = {"li": 2013, "li_dn7": 2013, "chiov": 2013, "pcnl": 2013, "v2": 2012}
+ratio = pd.Series({k: piv.loc[k, j] / piv.loc[k, [y for y in range(2010, j)]].median() for k, j in JOIN.items()})
 print(piv.round(2).to_string()); print("seam / median DMSP-era jump:", ratio.round(2).to_dict())
 col = {"li": "#e87ba4", "li_dn7": "#eb6834", "chiov": "#6250d6", "pcnl": "#1baf7a", "v2": "#2a78d6"}
 mk = {"li": "v", "li_dn7": "^", "chiov": "s", "pcnl": "D", "v2": "o"}
 plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 8.5})
 fig, ax = plt.subplots(figsize=(6.4, 3.8))
 ax.axvspan(2.5, 3.5, color="#f0efec", zorder=0)
-ax.text(3, 0.12, "sensor change\nDMSP → VIIRS", ha="center", va="bottom", fontsize=7.5, color="#52514e")
+ax.text(3, 0.12, "DMSP → VIIRS\n(join of most series)", ha="center", va="bottom", fontsize=7.5, color="#52514e")
 x = np.arange(len(Y) - 1)
 for k in ["li", "li_dn7", "chiov", "pcnl", "v2"]:
     y = piv.loc[k, Y[:-1]].values
     ax.plot(x, y, color=col[k], marker=mk[k], ms=5, lw=2.4 if k == "v2" else 1.6,
-            label=f"{series[k]}  (seam ×{ratio[k]:.1f})", zorder=4 if k == "v2" else 3,
+            label=f"{series[k]}  (join {JOIN[k]}–{str(JOIN[k] + 1)[2:]}: ×{ratio[k]:.1f})", zorder=4 if k == "v2" else 3,
             markeredgecolor="white", markeredgewidth=0.8)
+    j = Y.index(JOIN[k])
+    ax.scatter([x[j]], [y[j]], s=90, facecolor="none", edgecolor=col[k], lw=1.4, zorder=5)
 ax.set_xticks(x); ax.set_xticklabels([f"{a}–{str(b)[2:]}" for a, b in zip(Y[:-1], Y[1:])])
 ax.set_ylabel("Median year-to-year shift of the\nlight-weighted centroid (km)"); ax.set_ylim(0, 5.3)
 ax.set_xlabel("Year pair (GADM level 1 units, n = %d)" % len(ids))
 for s in ("top", "right"): ax.spines[s].set_visible(False)
 ax.grid(axis="y", color="#e4e3df", lw=0.6); ax.set_axisbelow(True)
 ax.legend(frameon=False, fontsize=7.3, loc="upper right", bbox_to_anchor=(1.0, 0.82))
-fig.text(0.01, 0.005, "Seam ratio: 2013–14 shift divided by the median of the 2010–11, 2011–12 and 2012–13 shifts.",
+fig.text(0.01, 0.005, "Circles mark each series' join step; ratio = join step / median of the DMSP-era steps before it.",
          fontsize=6.8, color="#52514e")
 fig.tight_layout(rect=(0, 0.03, 1, 1))
 for ext in ("pdf", "png"): fig.savefig(O / f"fig6_seam.{ext}", dpi=300)
