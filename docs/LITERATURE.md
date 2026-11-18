@@ -24,7 +24,7 @@ Artikelns tre kärnpåståenden (se diskussionen 2026-11-17):
 
 | Källa | Vad den visar | Status | Betydelse för oss |
 | --- | --- | --- | --- |
-| Tuttle, Anderson, Sutton, Elvidge & Baugh (2013), "It used to be dark here: geolocation calibration of the DMSP OLS". Tidskrift, volym och DOI att fastställa (citeras som *Photogrammetric Engineering & Remote Sensing* 79(3):287–297 i andrahandskällor). | GPS-placerade lampor i Colorado och New Mexico 2009–2011 (F16, F18): systematisk förskjutning i medel 2,9 km, nästan rakt norrut (bäring −0,05°), "about one smooth pixel". Rekommenderar att data flyttas en smooth pixel söderut. Gäller överflygningsdata, inte årskompositerna; 28 punkter. | Kontrollerad (inskickat manus, P. Suttons webbsida). Tidskrift att kontrollera. | Riktningen (norr) stämmer med vår samregistrering (alla 35 kompositer ligger norrut om VIIRS, dy −0,14 … −1,38 px). Lägesfel i DMSP är alltså känt; vårt bidrag är mätningen per komposit mot VIIRS och följden för en serie av lägen. |
+| Tuttle, Anderson, Sutton, Elvidge & Baugh (2013), "It used to be dark here: geolocation calibration of the Defense Meteorological Satellite Program Operational Linescan System", *Photogrammetric Engineering & Remote Sensing* 79(3):287–297, doi:10.14358/PERS.79.3.287. | GPS-placerade lampor i Colorado och New Mexico 2009–2011 (F16, F18): systematisk förskjutning i medel 2,9 km, nästan rakt norrut (bäring −0,05°), "about one smooth pixel". Gäller överflygningsdata, inte årskompositerna; 28 punkter. | Kontrollerad (manus på P. Suttons webbsida; tidskrift fastställd i granskningen 2026-11-18). | Riktningen (norr) stämmer med vår samregistrering (alla 35 kompositer ligger norrut om VIIRS). Lägesfel i DMSP är alltså känt. |
 | Stathakis (2016), "Intercalibration of DMSP/OLS by parallel regressions", *IEEE Geoscience and Remote Sensing Letters* 13:1421–1424 (enligt referenslistan i Li & Zhou 2017, *Remote Sensing* 9:637). | Citeras för att F162009, F182010 och F182011 är förskjutna en halv pixel. | Att kontrollera i fulltext. | Se nästa rad. |
 | Geng, Xue, Yan, Xie & Huo (2020), "Shift estimation for DMSP-OLS night-time light rasters in 2009–2011", *J. Remote Sensing & GIS* 9(2):273, doi:10.35248/2469-4134.20.9.273. | F162009, F182010, F182011 saknar TFW-filer och är förskjutna av okänd anledning. FFT-korrelation mot medel av F162008 och F182012: x −0,64 / −1,27 / +0,27 px, y +0,55 / ±0,09 / +0,36 px (positivt = nedåt). | Kontrollerad (förlagets webbsida). Tidskriften är inte en etablerad fjärranalystidskrift. | Vår samregistrering mot VIIRS ger, räknat relativt grannkompositerna, x −0,43 / −1,06 / +0,49 px och y +0,69 / +0,45 / +0,61 px (relativt medlet av F162008 och F182012, som hos Geng m.fl.): samma tecken i x för alla tre och i y för F162009 och F182011; för F182010 anger Geng m.fl. motstridiga tecken i tabell och text. Oberoende stöd för att samregistreringen fungerar. Earth Engine anger hörnet (−180; 75) just för dessa tre kompositer (se HARMONIZATION.md §7.1). |
 | Ash & Mazur (2020), "Identifying and correcting signal shift in DMSP-OLS data", *Remote Sensing* 12(14):2219, doi:10.3390/rs12142219. | Systematisk förskjutning av DN-lägen under en satellits livstid (F16 2004–2009), upptäckt i en studie av Syrien; föreslår korrigering med förskjutning av rastret. | Kontrollerad (abstract, MDPI). | Stämmer med vår iakttagelse att F15 2002–2008 och F16 2005–2009 avviker mest och regionalt (avsnitt 7). |
@@ -37,7 +37,7 @@ Artikelns tre kärnpåståenden (se diskussionen 2026-11-17):
 | Li, Zhou, Zhao & Zhao (2020), "A harmonized global nighttime light dataset 1992–2018", *Scientific Data* 7:168, doi:10.1038/s41597-020-0510-y. | Summor och tända pixlar över tid; "consistent temporal trends". Rekommenderar DN > 7. | Kontrollerad (abstract, Nature). | Utvärderas med summor, inte med lägen eller fördelning. Vår kontroll kör både utan och med DN > 7. |
 | Zhao, Cao, Chen & Cui (2022), CCNL 1992–2013, *Scientific Data* 9:424, doi:10.1038/s41597-022-01540-x. | Mellanårskonsistens, stadskärnor, blooming. | Kontrollerad (abstract). | Bara DMSP; ingen sensorskarv. |
 | Chen m.fl. (2024), "A global annual simulated VIIRS nighttime light dataset from 1992 to 2023", *Scientific Data*, doi:10.1038/s41597-024-04228-6. | Pixel- och regionnivå, R² mot VIIRS. Konstaterar tydliga diskontinuiteter mellan DMSP och VIIRS i rådata. | Kontrollerad (förlagets sida). | Pixelöverensstämmelse, inte lägen. |
-| Chiovelli, Michalopoulos, Papaioannou & Regan (2026), "Illuminating the Global South", *The Economic Journal*, doi:10.1093/ej/ueaf134 (advance article jan. 2026). Data: Zenodo doi:10.5281/zenodo.20558766. | Korrigering för mättnad, blooming och sensorbyte; validering mot lokala utvecklingsmått (utbildning, förmögenhet, elektrifiering) i låginkomstländer. Ingen synlig diskontinuitet 2012–2013 enligt författarnas sammanfattning (VoxDev). | Kontrollerad (CEP/LSE-sidan, arbetspapper nov. 2025). Utgivningsår: advance article 2026; zenodo-metadatan säger 2025 – välj 2026 med doi. | Validering mot utvecklingsmått, inte lägen. I vår jämförelse har den fortfarande en skarv 1,5 gånger ett DMSP-årshopp. |
+| Chiovelli, Michalopoulos, Papaioannou & Regan (2026), "Illuminating the Global South", *The Economic Journal*, doi:10.1093/ej/ueaf134 (arbetspapper GWU CER 2025-009). Data: Zenodo doi:10.5281/zenodo.20558766. | *Rättat 2026-11-18.* VIIRS omvandlas till DMSP-likt med en ensemble av "extremely randomized trees" på 30″-pixlar, med statistik för pixeln och grannskapet och regionindikatorer; modellen tränas på 2013 och utvärderas utanför urvalet (tränad på 2012, prövad på 2013): RMSE per pixel 1,50 mot 3,27 för Li m.fl. 2020 och 1,57 för Nechaev m.fl. 2021. DMSP-delen bygger på Li m.fl. 2020 med korrigering för mättnad (Bluhm & Krause 2022) och blooming (Cao m.fl. 2019). | Kontrollerad (arbetspappret, GWU). | Anpassad och utvärderad per pixel, inte för summor. I vår kontroll har den en skarv per enhet (kvot 1,5–1,6 mot DMSP-år). |
 | Cheng, Geng, Li, Li, Zhao, Lin, Wang, Gong & Zhou (2026), "A temporally consistent global 500 m-resolution monthly VIIRS-like nighttime light dataset (1992–2024)", *ESSD* 18:3449, doi:10.5194/essd-18-3449-2026. | R² mot radianskalibrerad DMSP på stadsnivå; nämner att hjälpdata har "spatial misalignments" mot DMSP. | Att kontrollera i fulltext. | Visar att lägesfel uppmärksammas som indata-problem, inte som utvärderingsmått. |
 | Gibson, Olivia, Boe-Gibson & Li (2021), "Which night lights data should we use in economics, and where?", *J. Development Economics* 149:102602, doi:10.1016/j.jdeveco.2020.102602. | DMSP är ett dåligt mått på BNP utanför städer; skillnaden mot VIIRS är störst på låg nivå i hierarkin och i glesa områden. | Kontrollerad (abstract). | Stöder att VIIRS bör vara förankringen (P1). |
 
@@ -64,7 +64,7 @@ Bör kompletteras med sökning i Web of Science/Scopus.
 | --- | --- | --- | --- |
 | Mirza, Xu, van Bavel, van Nes & Scheffer (2021), "Global inequality remotely sensed", *PNAS* 118(18):e1919913118, doi:10.1073/pnas.1919913118. | Rumslig variation i ljus per invånare återspeglar inkomstfördelningen; motiveras med att ljus per person ökar med inkomsten (större, bättre upplysta hus och områden). Gini-koefficienter av ljus per invånare. | Kontrollerad (PMC). | Mekanismen (ljus per invånare följer inkomst) är känd. Vårt bidrag är följden för läge. |
 | Galimberti, Pichler & Pleninger, "Measuring inequality using geospatial data" (arbetspapper 2020; publicerad version att fastställa). | Ojämlikhetsmått ur ljus per invånare. | Kontrollerad (arbetspapper). | Samma som ovan. |
-| Gaughan m.fl.? (2019), "Evaluating nighttime lights and population distribution as proxies for mapping anthropogenic CO2 emission in Vietnam, Cambodia and Laos", *Environ. Res. Commun.* 1:091006, doi:10.1088/2515-7620/ab3d91. Författare att fastställa. | Fördelning med nattljus koncentrerar utsläpp annorlunda än fördelning med befolkning, på subnationell nivå. | Kontrollerad (abstract). | Analog till P2 för en annan tillämpning. |
+| Gaughan, Oda, Sorichetta, Stevens, Bondarenko, Bun, Krauser, Yetman & Nghiem (2019), "Evaluating nighttime lights and population distribution as proxies for mapping anthropogenic CO2 emission in Vietnam, Cambodia and Laos", *Environ. Res. Commun.* 1:091006, doi:10.1088/2515-7620/ab3d91. | Fördelning med nattljus koncentrerar utsläpp annorlunda än fördelning med befolkning, på subnationell nivå. | Kontrollerad (abstract; författare fastställda i granskningen). | Analog till P2 för en annan tillämpning. |
 | Price (1972), "Extension of covariance selection mathematics", *Annals of Human Genetics* 35(4):485–490. Jfr Price (1970), "Selection and covariance", *Nature* 227:520–521, doi:10.1038/227520a0. | Identiteten ave_w(x) = x̄ + cov(w, x)/w̄ (ekv. A7). | Kontrollerad (faksimil av s. 485–486). Doi för 1972 att fastställa (Scilit anger en uppenbart felaktig doi). | **Identiteten i P2 är inte ny**; den är Price-identiteten med w = ljus per invånare. Vårt bidrag är tillämpningen och tolkningen. |
 | Niedomysl m.fl. (2017) (se 4) | Lägesfelet i Sverige hade bara signifikant samband med enhetens yta (R² = 0,12). | Enligt HARMONIZATION.md 11.4; att kontrollera i fulltext. | P2 ger en förklaring till varför yta, form och täthet inte förklarar felet. |
 
@@ -74,13 +74,13 @@ Bör kompletteras med sökning i Web of Science/Scopus.
 | --- | --- | --- | --- |
 | Hall, Archila Bustos, Boke Olén & Niedomysl (2019), *Scientific Data* 6:235, doi:10.1038/s41597-019-0250-z. | v1. Validering mot SCB:s rutnät 2007–2008 (Sverige); jämförelse av Aboufadel–Austin och Barmore för 2008 (skillnaden växer med ytan); ingen prövning av projektioner. Anger att data kan användas för att analysera förändringar i befolkningens fördelning och som mått på flyttavstånd. Maskning norr om 65° N berör 7 länder och 0,036 % av befolkningen. | Kontrollerad (fulltext, PMC). | P3 begränsar v1:s påstående om förändring. |
 | Niedomysl, Hall, Archila Bustos & Ernstson (2017), "Using satellite data on nighttime lights intensity to estimate contemporary human migration distances", *Annals of the AAG* 107(3):591–605, doi:10.1080/24694452.2016.1270191. | Ljusets centroider ligger nära befolkningens; kan ge flyttavstånd. | Kontrollerad (abstract). | Lägen i tvärsnitt (flyttavstånd) påverkas inte av P3; förändring gör det. |
-| Gibson m.fl. (Waikato arbetspapper 2407) | Ljus förutsäger lokala förändringar i ekonomisk aktivitet dåligt, även där tvärsnittet förutsägs väl. | Att kontrollera (arbetspapper; titel att fastställa). | Parallell till P3 för ekonomisk aktivitet. |
+| Zhang & Gibson (2025), "How well do gridded population estimates proxy for actual population changes? Evidence from China", *Population and Development Review*, doi:10.1111/padr.70025 (arbetspapper Waikato 2407). *Rättat 2026-11-18: tidigare felaktigt angiven som en studie av ljus och ekonomisk aktivitet.* | Befolkningsrutnät förklarar över 95 % av variationen i nivå men under 20 % av förändringen per county. | Enligt granskningen (Population Council-sammanfattning); att kontrollera i fulltext. |
 
 ## 5. Konsistens per enhet i harmoniserade serier (P1, tillägg 2026-11-17)
 
 | Källa | Vad den visar | Status | Betydelse |
 | --- | --- | --- | --- |
-| Li, S., Cao, Zhao, Jie, Liu, Chen & Cui (2023), "Developing a pixel-scale corrected nighttime light dataset (PCNL, 1992–2021) combining DMSP-OLS and NPP-VIIRS", *Remote Sensing* 15(16):3925, doi:10.3390/rs15163925. Data: Zenodo record 7612389. | Jämför PCNL med Li m.fl. 2020 och Chen m.fl. 2021: regional summa av ljus (TSOL) stiger abrupt 2013–2014 i Li-serien och 2010–2013 i Chen-serien. PCNL utvärderas för konsistens på global, nationell, stads- och pixelnivå. | Kontrollerad (abstract och sammanfattning i sökresultat; fulltext kunde inte hämtas). | **Delvis föregångare till P1**: ett hopp i regionala summor i Li-serien vid skarven är redan rapporterat. Vårt bidrag: alla enheter på nivå 1 i världen, fem mått, två oberoende serier, och jämförelse med ett vanligt årshopp. PCNL är tillagd i HARMONIZATION.md §12: skarven per enhet är nästan borta (kvot 0,85–1,6 utom tänd yta 4,1). |
+| Li, S., Cao, Zhao, Jie, Liu, Chen & Cui (2023), "Developing a pixel-scale corrected nighttime light dataset (PCNL, 1992–2021) combining DMSP-OLS and NPP-VIIRS", *Remote Sensing* 15(16):3925, doi:10.3390/rs15163925. Data: Zenodo 7612389 (den nedladdade versionen heter 1992–2024; att stämma av mot artikeln). | *Rättat 2026-11-18.* VNL regresseras mot CCNL för 2013; ett **skillnadsraster för 2013** (regresserad VNL − CCNL) läggs på alla DMSP-år 1992–2013, och VNL används från 2014. Det är en **bakåtskarvning förankrad i VIIRS, per pixel**. Rapporterar att den regionala summan (TSOL) stiger abrupt 2013–2014 i Li-serien. | Kontrollerad (MDPI, metodavsnittet). | Föregångare till både P1 och vår bakåtskarvning. Att PCNL saknar skarv per enhet (HARMONIZATION.md §12) följer av konstruktionen, eftersom PCNL 2013 i stort sett är regresserad VIIRS. Vår bakåtskarvning per enhet är alltså inte ny som princip. |
 | Li, X., Lei, Shen, Xin & Qu (2026), "Spatiotemporal dynamics and relative growth of county-level CO2 emissions in China (1997–2021) derived from harmonized nighttime lights", *Environmental Monitoring and Assessment* 198(12):1287, doi:10.1007/s10661-026-16129-9. | Konstaterar att den harmoniserade serien saknar hopp 2013–2014 i aggregat, men att det "does not, by itself, establish temporal stability at the county level". | Kontrollerad (förlagets sida). | Visar att problemet uppmärksammas som förbehåll men inte mäts. |
 | Zhao, N., Zhou & Samson (2015), "Correcting incompatible DN values and geometric errors in nighttime lights time-series images", *IEEE TGRS* 53(4):2039–2049, doi:10.1109/TGRS.2014.2352598. | Geometrisk korrektion som ett av fyra steg för DMSP-tidsserier i Kina och USA 1992–2008. | Kontrollerad (abstract); metod och storlek på felen att läsa i fulltext. | Föregångare för geometrisk korrektion av DMSP mellan år; inte mot VIIRS och inte globalt. |
 | Shen, Zhu, Cao & Chen (2019), "Measurement of blooming effect of DMSP-OLS nighttime light data based on NPP-VIIRS data", *Annals of GIS* 25(2):153–165, doi:10.1080/19475683.2019.1570336. | Registrerar DMSP mot VIIRS för Kina innan blooming mäts; blooming underskattar rumslig heterogenitet med 90 % där VIIRS > 10. | Kontrollerad (abstract och sidhuvud; storleken på registreringsförskjutningen att läsa i fulltext). | Visar att DMSP och VIIRS inte ligger kongruent; registrering görs men redovisas inte som felkälla för tidsserier. |
@@ -158,3 +158,45 @@ och att de beräknas ur rutnätsdata som själva kan vara modellerade.
   harmoniserade serier med lägesmått.
 - Litteratur om befolkningsmodeller som använder nattljus som förklaring
   (WorldPop, LandScan, GHS-POP): finns studier av skevhet mot rikare områden?
+
+
+## 11. Efter den oberoende granskningen (2026-11-18)
+
+En separat agent som inte deltagit i arbetet granskade underlaget
+(docs/review/granskning-2026-11-18.md). Koden bedömdes som korrekt (siffrorna
+i §12 och §14 återskapades), men tolkningen som för stark. Följande gäller nu
+och ersätter avsnitt 9 där de skiljer sig:
+
+- **P1.** Skillnaden mellan serierna är inte "summor mot pixlar". Li m.fl.
+  (global sigmoid) och Chiovelli m.fl. (maskininlärning per pixel) använder en
+  *global överföringsfunktion* från VIIRS till DMSP; PCNL och vår serie
+  *förankrar lokalt i överlappsåret* (per pixel respektive per enhet) och
+  skarvar bakåt. Att bakåtskarvning är ny som princip faller (PCNL). Kvoten
+  för skarven beror på referensen: mot enbart DMSP-år är den 1,5–1,6 i
+  Chiovelli m.fl., och viktat med ljus hoppar Chiovellis totala ljusmängd inte
+  mer än ett vanligt DMSP-år. I Li m.fl. (DN > 7) är hoppet 2016 → 2017 lika
+  stort som skarven. "Tänd yta" är i huvudsak en tröskeleffekt. "Bakåtskarvning
+  ger bäst lägen" gäller nivå 1–2 under DMSP-år, inte nivå 0 i Mexiko
+  (133 mot 35–42 km för framåtskarvning) och Brasilien (94 mot 73 km).
+- **P2.** Identiteten är en tautologi: med nästan allt ljus i befolkade celler
+  är D = Cov/E per definition, så den *beskriver* felet men förklarar det
+  inte empiriskt. Det empiriska innehållet är var variationen i ljus per
+  invånare ligger, och det beror på indelningen (Bb går från 0 till 95 km i
+  Sverige när antalet regioner går från 1 till 21). "Förutsägbart" och
+  "motsatta håll under samma omvandling" är inte prövade och stryks tills de
+  prövats. Föregångare för mekanismen: Sutton m.fl. (2001), *IJRS*
+  22(16):3061–3076 (sambandet ljus–befolkning varierar med inkomst och
+  täthet).
+- **P3.** Alla förändringsperioder med facit innehåller DMSP-år, och skarvens
+  eget fel är lika stort som de uppmätta felen. Brusgolvet är därför inte
+  skilt från DMSP och skarven. Intervallet är 1,5–5 (Europa 4,8–5,0), inte
+  1,5–3. Förändring helt inom VIIRS är inte prövad. Kompletterande litteratur:
+  Dong m.fl. (2021), *Remote Sensing* 13(16):3142; Gibson & Boe-Gibson (2021),
+  *Remote Sensing* 13(14):2741; Gibson (2021), *Oxford Bulletin of Economics
+  and Statistics* 83(3):770–791; Zhang & Gibson (2025).
+
+Källor som granskningen inte kunde verifiera: Li, X. m.fl. 2026
+(*Environ. Monit. Assess.*) — förlagets sida hämtades 2026-11-17 men posten
+bör kontrolleras igen; Wang m.fl. 2025 (doi ser ut som en platshållare).
+Geng m.fl. 2020 är utgiven av ett förlag som brukar räknas som rovförlag och
+ska inte bära något argument.
