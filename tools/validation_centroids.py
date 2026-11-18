@@ -32,7 +32,10 @@ samma metoder som för nattljuset (wpc.centroids): Aboufadel–Austin
 är befolkningen i punkten; ingen ytviktning behövs, eftersom vikten redan är
 ett antal personer.
 
-Fullständig täckning (kolumnen `complete`, och `missing_light_share`):
+Fullständig täckning (kolumnen `complete`, och `missing_light_share`).
+Först måste landet vara täckt: minst 90 % av landets finaste GADM-enheter
+ska ha befolkning i facit (MIN_COUNTRY_COVERAGE; tillagt 2026-11-18, se
+docs/HARMONIZATION.md §15). Därefter gäller:
 andelen av enhetens nattljus (DMSP 2010, samregistrerad) som ligger i
 underenheter på den finaste GADM-nivå som finns för landet och som saknar
 befolkning i facit. En adm2-enhet är täckt om den har befolkning; för en
@@ -72,9 +75,11 @@ from wpc.progress import Progress, log  # noqa: E402
 # geopandas, pyproj och wpc.centroids/wpc.run importeras i de funktioner som
 # behöver dem, så att läsarna kan testas där bara pandas finns.
 
-# Länder som facit täcker helt. Enheter i andra länder räknas aldrig som
-# fullständiga (GEOSTAT täcker många länder och styrs av kontrollen av ljuset).
-DATASET_COUNTRIES = {"census": {"USA", "PRI"}, "inegi": {"MEX"}, "ibge": {"BRA"}}
+# Ett land räknas som täckt av facit om minst så stor andel av dess
+# finaste GADM-enheter har befolkning i facit. Det utesluter grannländer som
+# bara fått några randrutor eller -punkter (t.ex. Paraguay för IBGE, Ukraina
+# för GEOSTAT) och länder med ofullständigt facit (Bulgarien 2011).
+MIN_COUNTRY_COVERAGE = 0.9
 
 CENSUS_COLS = ["STATEFP", "COUNTYFP", "TRACTCE", "BLKGRPCE", "POPULATION", "LATITUDE", "LONGITUDE"]
 
@@ -227,6 +232,26 @@ def centroids(points: pd.DataFrame, idx: np.ndarray, units, label: str):
     return pd.DataFrame(rows, columns=["unit_id", "pop", "n_points", "aa_lon", "aa_lat", "bm_lon", "bm_lat"])
 
 
+def _gid0(u: pd.DataFrame) -> pd.Series:
+    """Landskod per enhet (på nivå 0 är GID_0 själva enhets-ID:t)."""
+    return u.GID_0 if "GID_0" in u.columns else u.unit_id
+
+
+def covered_countries(have: dict, units: dict) -> tuple[set, dict]:
+    """Länder där minst MIN_COUNTRY_COVERAGE av de finaste enheterna har befolkning.
+
+    De finaste enheterna är adm2 där landet har sådana, annars adm1, annars adm0.
+    """
+    coverage = {}
+    for c in _gid0(units[0]).unique():
+        for lv in (2, 1, 0):
+            ids = units[lv].unit_id[_gid0(units[lv]) == c]
+            if len(ids):
+                coverage[c] = float(ids.isin(have[lv]).mean())
+                break
+    return {c for c, v in coverage.items() if v >= MIN_COUNTRY_COVERAGE}, coverage
+
+
 def missing_light_share(have: dict, light: dict, u1: pd.DataFrame, u2: pd.DataFrame) -> dict:
     """Andel av enhetens ljus i underenheter utan befolkning i facit (se ovan)."""
     l2 = u2.assign(light=u2.unit_id.map(light[2]).fillna(0.0).values,
@@ -294,14 +319,14 @@ def main(argv=None):
             results[lv] = res
             summary["levels"][f"adm{lv}"] = {"units": int(len(res)), "pop_outside_units": float(outside)}
         miss = missing_light_share(have, light, u1, u2)
+        covered, coverage = covered_countries(have, units)
+        summary["country_coverage"] = {k: round(v, 4) for k, v in coverage.items() if v > 0}
+        country_of = {lv: pd.Series(_gid0(units[lv]).values, index=units[lv].unit_id.values) for lv in (0, 1, 2)}
         for lv in (2, 1, 0):
             res = results[lv]
             res["missing_light_share"] = res.unit_id.map(miss[lv]).fillna(0.0).values
             res["complete"] = res.missing_light_share < args.max_missing
-            if args.dataset in DATASET_COUNTRIES:
-                # Enheter i grannländer kan få några randrutor eller -punkter och då
-                # se fullständiga ut (t.ex. Paraguay för IBGE); de räknas inte.
-                res["complete"] &= res.unit_id.str[:3].isin(DATASET_COUNTRIES[args.dataset]).values
+            res["complete"] &= res.unit_id.map(country_of[lv]).isin(covered).values
             res.insert(1, "level", lv)
             res.insert(2, "year", year)
             res.insert(3, "dataset", args.dataset)
