@@ -1,0 +1,179 @@
+{
+ "country": "BRA",
+ "grid_deg": 0.1666667,
+ "max_lat": null,
+ "pop_points": 1499364,
+ "pop": 202437502.0,
+ "light_share_in_populated_cells": 0.9995617795163587,
+ "error_gc_km": 94.50707029220025,
+ "light_centroid": [
+  -46.269839221109194,
+  -17.87376754437707
+ ],
+ "pop_centroid": [
+  -45.771803088667134,
+  -17.168917290661078
+ ],
+ "D_total": {
+  "east_km": -52.77,
+  "north_km": -78.53,
+  "length_km": 94.61
+ },
+ "A_light_unpopulated": {
+  "east_km": -0.27,
+  "north_km": 0.51,
+  "length_km": 0.58
+ },
+ "Bb_between_regions": {
+  "east_km": -39.79,
+  "north_km": -82.78,
+  "length_km": 91.84
+ },
+ "Bw_within_regions": {
+  "east_km": -12.82,
+  "north_km": 3.72,
+  "length_km": 13.35
+ },
+ "C_within_cells": {
+  "east_km": 0.11,
+  "north_km": 0.02,
+  "length_km": 0.12
+ },
+ "light_per_capita_by_region_rel": [
+  {
+   "name": "Amazonas",
+   "r_rel": 0.601,
+   "P": 3925770.0
+  },
+  {
+   "name": "Pará",
+   "r_rel": 0.717,
+   "P": 8078526.0
+  },
+  {
+   "name": "Maranhão",
+   "r_rel": 0.731,
+   "P": 6728915.0
+  },
+  {
+   "name": "Acre",
+   "r_rel": 0.769,
+   "P": 828811.0
+  },
+  {
+   "name": "Pernambuco",
+   "r_rel": 0.774,
+   "P": 9006557.0
+  },
+  {
+   "name": "Ceará",
+   "r_rel": 0.794,
+   "P": 8760921.0
+  },
+  {
+   "name": "Rio de Janeiro",
+   "r_rel": 0.829,
+   "P": 15903058.0
+  },
+  {
+   "name": "Amapá",
+   "r_rel": 0.859,
+   "P": 738400.0
+  },
+  {
+   "name": "Piauí",
+   "r_rel": 0.937,
+   "P": 3314549.0
+  },
+  {
+   "name": "Bahia",
+   "r_rel": 0.946,
+   "P": 14136215.0
+  },
+  {
+   "name": "Rio Grande do Norte",
+   "r_rel": 0.95,
+   "P": 3287771.0
+  },
+  {
+   "name": "São Paulo",
+   "r_rel": 0.951,
+   "P": 44342613.0
+  },
+  {
+   "name": "Minas Gerais",
+   "r_rel": 0.973,
+   "P": 20492816.0
+  },
+  {
+   "name": "Paraíba",
+   "r_rel": 1.031,
+   "P": 3920768.0
+  },
+  {
+   "name": "Alagoas",
+   "r_rel": 1.072,
+   "P": 3125983.0
+  },
+  {
+   "name": "Roraima",
+   "r_rel": 1.106,
+   "P": 632687.0
+  },
+  {
+   "name": "Tocantins",
+   "r_rel": 1.158,
+   "P": 1513581.0
+  },
+  {
+   "name": "Espírito Santo",
+   "r_rel": 1.159,
+   "P": 3813976.0
+  },
+  {
+   "name": "Paraná",
+   "r_rel": 1.19,
+   "P": 11335008.0
+  },
+  {
+   "name": "Rio Grande do Sul",
+   "r_rel": 1.214,
+   "P": 10859561.0
+  },
+  {
+   "name": "Rondônia",
+   "r_rel": 1.227,
+   "P": 1579482.0
+  },
+  {
+   "name": "Mato Grosso do Sul",
+   "r_rel": 1.278,
+   "P": 2746302.0
+  },
+  {
+   "name": "Goiás",
+   "r_rel": 1.286,
+   "P": 7055935.0
+  },
+  {
+   "name": "Santa Catarina",
+   "r_rel": 1.322,
+   "P": 7623650.0
+  },
+  {
+   "name": "Sergipe",
+   "r_rel": 1.447,
+   "P": 2202633.0
+  },
+  {
+   "name": "Distrito Federal",
+   "r_rel": 1.54,
+   "P": 2814033.0
+  },
+  {
+   "name": "Mato Grosso",
+   "r_rel": 1.688,
+   "P": 3668981.0
+  }
+ ]
+}
