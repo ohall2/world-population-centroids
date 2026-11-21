@@ -1,0 +1,7 @@
+dataset,year,estimate,n,err_med,err_med_lo,err_med_hi
+geostat,2011,light,341,2.9664,2.5459,3.5644
+geostat,2011,hybrid_light,341,0.4691,0.3390,0.6270
+geostat,2011,hybrid_geom,341,1.5671,1.2070,2.4520
+geostat,2021,light,419,2.4704,2.0582,3.1791
+geostat,2021,hybrid_light,419,0.4826,0.3382,0.6237
+geostat,2021,hybrid_geom,419,1.6577,1.2880,2.3945

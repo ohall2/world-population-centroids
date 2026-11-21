@@ -1,0 +1,5 @@
+dataset,year,pair,n,diff_med,diff_lo,diff_hi
+geostat,2011,light_minus_hybrid_light,341,2.3712,1.7458,2.8511
+geostat,2011,hybrid_geom_minus_hybrid_light,341,0.9997,0.6946,1.7429
+geostat,2021,light_minus_hybrid_light,419,1.7255,1.3862,2.3086
+geostat,2021,hybrid_geom_minus_hybrid_light,419,1.0889,0.8241,1.8314

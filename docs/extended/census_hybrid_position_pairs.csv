@@ -1,0 +1,7 @@
+dataset,year,pair,n,diff_med,diff_lo,diff_hi
+census,2000,light_minus_hybrid_light,50,12.2365,8.1232,17.4091
+census,2000,hybrid_geom_minus_hybrid_light,50,2.2858,1.6297,4.1193
+census,2010,light_minus_hybrid_light,50,10.3322,6.3550,16.8200
+census,2010,hybrid_geom_minus_hybrid_light,50,2.3639,1.6267,4.4831
+census,2020,light_minus_hybrid_light,50,11.0925,7.8691,15.6810
+census,2020,hybrid_geom_minus_hybrid_light,50,2.3473,1.5537,4.1506

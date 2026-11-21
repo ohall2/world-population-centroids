@@ -1,0 +1,10 @@
+dataset,year,estimate,n,err_med,err_med_lo,err_med_hi
+census,2000,light,50,13.1461,10.2341,17.6190
+census,2000,hybrid_light,50,0.5204,0.3539,0.6594
+census,2000,hybrid_geom,50,3.0203,2.0451,4.9673
+census,2010,light,50,10.5329,7.1295,17.5728
+census,2010,hybrid_light,50,0.3527,0.2503,0.5862
+census,2010,hybrid_geom,50,2.6648,1.8890,4.8363
+census,2020,light,50,12.1359,8.2146,16.5843
+census,2020,hybrid_light,50,0.3806,0.2779,0.6036
+census,2020,hybrid_geom,50,2.5667,1.8113,4.6725

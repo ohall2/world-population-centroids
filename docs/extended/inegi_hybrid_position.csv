@@ -1,0 +1,7 @@
+dataset,year,estimate,n,err_med,err_med_lo,err_med_hi
+inegi,2010,light,32,8.8778,3.8067,11.5405
+inegi,2010,hybrid_light,32,0.8652,0.4065,1.0237
+inegi,2010,hybrid_geom,32,2.8606,1.6476,6.0427
+inegi,2020,light,32,7.3813,3.9533,10.5669
+inegi,2020,hybrid_light,32,0.8687,0.5475,1.1957
+inegi,2020,hybrid_geom,32,2.7396,1.4426,6.2478

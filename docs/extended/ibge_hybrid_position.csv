@@ -1,0 +1,4 @@
+dataset,year,estimate,n,err_med,err_med_lo,err_med_hi
+ibge,2022,light,27,16.5220,11.9653,19.6270
+ibge,2022,hybrid_light,27,0.4392,0.2325,0.6214
+ibge,2022,hybrid_geom,27,3.1225,2.2055,6.1039

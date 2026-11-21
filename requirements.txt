@@ -7,6 +7,7 @@ pyogrio>=0.10
 shapely>=2.0
 pyproj>=3.6
 pandas>=2.2
+scipy>=1.10      # pandas Spearman (tools/change_detection.py) i pandas >= 3
 exactextract>=0.3
 pytest>=8
 openpyxl>=3.1      # tools/prepare_flares_viirs.py

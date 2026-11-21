@@ -1,0 +1,3 @@
+dataset,year,pair,n,diff_med,diff_lo,diff_hi
+ibge,2022,light_minus_hybrid_light,27,15.8921,11.8951,19.5229
+ibge,2022,hybrid_geom_minus_hybrid_light,27,2.8059,1.7920,5.6406
