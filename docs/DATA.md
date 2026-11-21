@@ -23,6 +23,7 @@ Alla filer läggs under `data/`, som inte ingår i git. Sökvägarna nedan är d
 | PCNL (Li, S. m.fl. 2023), jämförelse | `data/raw/pcnl/PCNL<år>.tif` | `python tools/download_zenodo.py --record 7612389 --out data/raw/pcnl --pattern 'PCNL201[0-7].tif'` |
 | GHS-POP R2023A, befolkning per cell, WGS84 30″ (epoker 2000, 2010, 2020), jämförelse (analys B) | `data/raw/ghspop/GHS_POP_E<epok>_GLOBE_R2023A_4326_30ss_V1_0.tif` + `.json` | `python tools/download_ghsl.py --product pop --epochs 2000 2010 2020` (JRC GHSL, https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_POP_GLOBE_R2023A/ ; tre zip om ca 447/454/460 MB; GeoTIFF:en packas upp och SHA-256 skrivs i JSON) |
 | GHS-BUILT-S R2023A, bebyggd yta (m²) per cell, WGS84 30″ (epoker 2000, 2010, 2020), jämförelse (analys B) | `data/raw/ghsbuilts/GHS_BUILT_S_E<epok>_GLOBE_R2023A_4326_30ss_V1_0.tif` + `.json` | `python tools/download_ghsl.py --product built_s --epochs 2000 2010 2020` (JRC GHSL, https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_BUILT_S_GLOBE_R2023A/ ; tre zip om ca 171/175/178 MB; GeoTIFF:en packas upp och SHA-256 skrivs i JSON) |
+| WorldPop Global 2000–2020, unconstrained, 1 km, befolkning per cell (åren 2000, 2010, 2011, 2020), jämförelse (analys B) | `data/raw/worldpop/ppp_<år>_1km_Aggregated.tif` + `.json` | `python tools/download_worldpop.py --years 2000 2010 2011 2020` (WorldPop, https://data.worldpop.org/GIS/Population/Global_2000_2020/ ; fyra GeoTIFF om ca 1,1/1,1/1,1/0,87 GB; SHA-256 skrivs i JSON) |
 | GADM 2.8, färdig | `data/processed/gadm28.gpkg` | `python tools/prepare_gadm28.py` (använder `legacy/v1/` för attributen) |
 
 ## Licenser
@@ -34,6 +35,7 @@ Alla filer läggs under `data/`, som inte ingår i git. Sökvägarna nedan är d
 - EOG:s årliga fackelkataloger: ingen licenstext på nedladdningssidan; EOG ska anges som källa.
 - GADM: fritt för akademiskt och annat icke-kommersiellt bruk; vidarespridning och kommersiellt bruk kräver tillstånd.
 - GHS-POP och GHS-BUILT-S (JRC GHSL, release R2023A; referens Pesaresi m.fl. 2024, *Int. J. Digital Earth* 17(1)): CC BY 4.0 (bekräftad på GHSL:s FAQ-sida). Dataseten hämtas med `tools/download_ghsl.py`. Datasetens exakta DOI är inte kontrollerade.
+- WorldPop (www.worldpop.org, Global 2000–2020, unconstrained, 1 km): CC BY 4.0. WorldPop använder nattljus som en förklaringsvariabel och är därför inte oberoende av det utgåvan mäter; redovisas skilt i analys B. Licensvillkoren är inte kontrollerade i detalj mot WorldPops sida.
 
 ## Om nedladdningen
 

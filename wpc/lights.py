@@ -214,11 +214,14 @@ ANNUAL = {
                "note": "GHS-POP R2023A, 30\", befolkning per cell (JRC GHSL, CC BY 4.0)"},
     "ghsbuilts": {"glob": "GHS_BUILT_S_E*_GLOBE_R2023A_4326_30ss_V1_0",
                   "note": "GHS-BUILT-S R2023A, 30\", bebyggd yta (m²) per cell (JRC GHSL, CC BY 4.0)"},
+    "worldpop": {"glob": "ppp_*_1km_Aggregated",
+                 "note": "WorldPop Global unconstrained, 1 km, befolkning per cell "
+                         "(beror på nattljus; CC BY 4.0)"},
 }
 
 # Källor vars cellvärde är en total per cell (befolkning, bebyggd yta) och som
 # därför räknas om till täthet (värde/cellyta) innan centroidkoden används.
-DENSITY_SOURCES = {"ghspop", "ghsbuilts"}
+DENSITY_SOURCES = {"ghspop", "ghsbuilts", "worldpop"}
 
 
 def snap_transform(t: Affine, tol: float = 1e-8) -> Affine:

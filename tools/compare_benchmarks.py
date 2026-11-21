@@ -51,6 +51,15 @@ def _reseed():
     cd.RNG = _np.random.default_rng(BOOT_SEED)
     he.RNG = _np.random.default_rng(BOOT_SEED)
 
+
+def pairwise(err_light, err_source):
+    """Parvis läges-jämförelse per enhet mellan ljuset och en källa:
+    andel enheter där källan ligger närmare facit, och median av den parvisa
+    skillnaden ljus − källa (positiv = källan närmare)."""
+    err_light = np.asarray(err_light, float)
+    err_source = np.asarray(err_source, float)
+    return float(np.mean(err_source < err_light)), float(np.median(err_light - err_source))
+
 DS = {"census":  {"iso": ["USA"], "years": [2000, 2010, 2020],
                   "pairs": [(2000, 2010), (2010, 2020), (2000, 2020)]},
       "inegi":   {"iso": ["MEX"], "years": [2010, 2020], "pairs": [(2010, 2020)]},
@@ -100,7 +109,7 @@ def coords(series, unit_ids):
 
 def run_dataset(ds, cfg, truth_root, release_path, results_dir, cache_dir, bset,
                 source_names, epochs, n_boot):
-    pos_rows, chg_rows = [], []
+    pos_rows, chg_rows, pair_rows = [], [], []
     for lv in (1, 2):
         isos = facit_iso(cfg, truth_root, ds, lv)
         tru = {y: truth(truth_root, ds, y, lv, 10) for y in cfg["years"]}
@@ -139,6 +148,22 @@ def run_dataset(ds, cfg, truth_root, release_path, results_dir, cache_dir, bset,
                                  "n": len(kids), "err_med": float(np.median(e)),
                                  "err_med_lo": lo, "err_med_hi": hi})
 
+            # Parvis jämförelse per enhet: ljus mot var och en av källorna
+            el = errs["light"][ok]
+            for name in names:
+                if name == "light":
+                    continue
+                es = errs[name][ok]
+                closer, diff = pairwise(el, es)
+                _reseed()
+                cs_lo, cs_hi = boot_ci(lambda idx, a=es, b=el: float(np.mean(a[idx] < b[idx])), blk, n_boot)
+                _reseed()
+                dm_lo, dm_hi = boot_ci(lambda idx, a=es, b=el: float(np.median(b[idx] - a[idx])), blk, n_boot)
+                pair_rows.append({"dataset": ds, "level": lv, "year": y, "source": name,
+                                  "n": len(kids), "closer_share": closer,
+                                  "closer_lo": cs_lo, "closer_hi": cs_hi,
+                                  "diff_med": diff, "diff_lo": dm_lo, "diff_hi": dm_hi})
+
         # Förändring per period
         for y1, y2 in cfg["pairs"]:
             ids = tru[y1].index.intersection(tru[y2].index)
@@ -168,7 +193,7 @@ def run_dataset(ds, cfg, truth_root, release_path, results_dir, cache_dir, bset,
                 ci = bootstrap(t, e, blk, n_boot)
                 chg_rows.append({"dataset": ds, "level": lv, "from": y1, "to": y2,
                                  "source": name, "n": len(kids), **m, **ci})
-    return pd.DataFrame(pos_rows), pd.DataFrame(chg_rows)
+    return pd.DataFrame(pos_rows), pd.DataFrame(chg_rows), pd.DataFrame(pair_rows)
 
 
 def main(argv=None):
@@ -192,12 +217,15 @@ def main(argv=None):
 
     for ds in a.datasets:
         print(f"== {ds} ==")
-        pos, chg = run_dataset(ds, DS[ds], a.truth, a.release, a.results, a.cache_dir,
-                               a.boundary_set, a.sources, ep, a.n_boot)
+        pos, chg, pair = run_dataset(ds, DS[ds], a.truth, a.release, a.results, a.cache_dir,
+                                     a.boundary_set, a.sources, ep, a.n_boot)
         pos.to_csv(a.out / f"{ds}_benchmark_position.csv", index=False, float_format="%.4f")
         chg.to_csv(a.out / f"{ds}_benchmark_change.csv", index=False, float_format="%.4f")
+        pair.to_csv(a.out / f"{ds}_benchmark_pairs.csv", index=False, float_format="%.4f")
         if len(pos):
             print(pos[["level", "year", "source", "n", "err_med", "err_med_lo", "err_med_hi"]].round(3).to_string(index=False))
+        if len(pair):
+            print(pair[["level", "year", "source", "n", "closer_share", "closer_lo", "closer_hi", "diff_med"]].round(3).to_string(index=False))
         if len(chg):
             print(chg[["level", "from", "to", "source", "n", "err_med", "dir_right", "dir_right_lo", "dir_right_hi"]].round(3).to_string(index=False))
 
