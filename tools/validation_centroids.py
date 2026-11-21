@@ -212,6 +212,51 @@ def read_ibge(root: Path, year: int):
                          "pop": d.TOTAL.astype(float).values}), info
 
 
+def read_statcan(root: Path, year: int):
+    """Statistics Canada Geographic Attribute File (92-151-X), 2016 eller 2021.
+
+    Filen har en rad per dissemination block (DB) med blockbefolkning och, på
+    dissemination area-nivå (DA), den representativa punkten (DArplat/DArplong).
+    Blockpunkter saknas båda åren, så DA används som punkt (planen §7). DB-raderna
+    läggs ihop till DA: en punkt per DA (DA-punkten) med DA-befolkning = summan av
+    blockens befolkning. Kolumnnamnen är tvåspråkiga och kan variera, så de matchas
+    med reguljära uttryck; matchar något inte avbryts med kolumnlistan."""
+    folder = root / str(year)
+    zips = sorted(folder.glob("*.zip"))
+    if zips:
+        zf = zipfile.ZipFile(zips[0])
+        name = next(n for n in zf.namelist() if n.lower().endswith(".csv"))
+        src, fname = zf.open(name), f"{zips[0].name}:{name}"
+    else:
+        csvs = sorted(folder.glob("*.csv"))
+        if not csvs:
+            sys.exit(f"Ingen StatCan-fil (zip/csv) för {year} i {folder}")
+        src, fname = csvs[0].open("rb"), csvs[0].name
+    d = pd.read_csv(src, dtype=str, encoding="latin-1", low_memory=False)
+
+    def pick(pattern: str) -> str:
+        for c in d.columns:
+            if re.match(pattern, c, re.I):
+                return c
+        raise ValueError(f"StatCan {year}: ingen kolumn matchar {pattern!r}. "
+                         f"Kolumner: {list(d.columns)}")
+
+    da = pick(r"da_?uid")          # dissemination area-id
+    lat = pick(r"darplat")         # DA-representativ punkt, latitud (decimalgrader)
+    lon = pick(r"darplong")        # DA-representativ punkt, longitud
+    pop = pick(r"db_?pop")         # dissemination block-befolkning
+    df = pd.DataFrame({"da": d[da].astype(str),
+                       "lat": pd.to_numeric(d[lat], errors="coerce"),
+                       "lon": pd.to_numeric(d[lon], errors="coerce"),
+                       "pop": pd.to_numeric(d[pop], errors="coerce").fillna(0.0)})
+    g = df.groupby("da", sort=False).agg(lat=("lat", "first"), lon=("lon", "first"),
+                                         pop=("pop", "sum"))
+    info = {"file": fname, "columns": {"da": da, "lat": lat, "lon": lon, "pop": pop},
+            "blocks": int(len(df)), "dissemination_areas": int(len(g)),
+            "pop_total": float(g["pop"].sum())}
+    return g.reset_index()[["lon", "lat", "pop"]], info
+
+
 def assign(points: pd.DataFrame, units) -> np.ndarray:
     """Index i `units` för varje punkt (−1 om punkten ligger utanför alla)."""
     import geopandas as gpd
@@ -281,7 +326,7 @@ def missing_light_share(have: dict, light: dict, u1: pd.DataFrame, u2: pd.DataFr
 
 def main(argv=None):
     p = argparse.ArgumentParser(description="Befolkningscentroider från folkräkningar.")
-    p.add_argument("--dataset", choices=["census", "geostat", "inegi", "ibge"], required=True)
+    p.add_argument("--dataset", choices=["census", "geostat", "inegi", "ibge", "statcan"], required=True)
     p.add_argument("--years", type=int, nargs="+", required=True)
     p.add_argument("--raw", type=Path, default=Path("data/raw/validation"))
     p.add_argument("--out", type=Path, default=Path("data/validation"))
@@ -307,7 +352,7 @@ def main(argv=None):
     for year in args.years:
         t0 = time.time()
         reader = {"census": read_census, "geostat": read_geostat, "inegi": read_inegi,
-                  "ibge": read_ibge}[args.dataset]
+                  "ibge": read_ibge, "statcan": read_statcan}[args.dataset]
         with Progress(f"Läser {args.dataset} {year}"):
             pts, info = reader(args.raw / args.dataset, year)
         pts = pts[(pts["pop"] > 0) & np.isfinite(pts.lon) & np.isfinite(pts.lat)].reset_index(drop=True)

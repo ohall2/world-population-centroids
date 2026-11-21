@@ -37,6 +37,33 @@ Alla filer läggs under `data/`, som inte ingår i git. Sökvägarna nedan är d
 - GHS-POP och GHS-BUILT-S (JRC GHSL, release R2023A; referens Pesaresi m.fl. 2024, *Int. J. Digital Earth* 17(1)): CC BY 4.0 (bekräftad på GHSL:s FAQ-sida). Dataseten hämtas med `tools/download_ghsl.py`. Datasetens exakta DOI är inte kontrollerade.
 - WorldPop (www.worldpop.org, Global 2000–2020, unconstrained, 1 km): CC BY 4.0. WorldPop använder nattljus som en förklaringsvariabel och är därför inte oberoende av det utgåvan mäter; redovisas skilt i analys B. Licensvillkoren är inte kontrollerade i detalj mot WorldPops sida.
 
+## Kanadas facit (Statistics Canada Geographic Attribute File)
+
+Statistics Canada Geographic Attribute File (GAF), katalog 92-151-X, folkräkning
+2016 och 2021. Filen har en rad per dissemination block (DB) med befolknings- och
+bostadstal per DB och, på dissemination area-nivå (DA), den representativa
+punkten `DArplat`/`DArplong` (latitud/longitud i decimalgrader). Ingen
+DB-representativ punkt finns i filen något år.
+
+**DA-punktens definition (båda åren, oförändrad metod).** DA-punkten är ett
+befolkningsviktat medelcentrum av DA:ns dissemination blocks representativa
+punkter, viktat med blockens befolkning. Faller den viktade punkten utanför DA:n
+eller i vatten flyttas den med minsta befolkningsviktade kvadratavstånd så att
+den ligger inom DA:n. Metoden är densamma 2016 och 2021; varje års fil väger med
+det årets folkräkningsbefolkning (vilket specifikt år anges inte ordagrant i
+referensguiden, men följer av att varje fil är en produkt för respektive
+folkräkning). Källa: StatCans referensguide 92-151-G (2016 och 2021) och
+folkräkningsordlistan; sidorna på statcan.gc.ca kunde inte hämtas direkt (403)
+utan lästes via sökträffar på samma sidor.
+
+**Facit som byggs här.** DB-raderna läggs ihop till DA: en punkt per DA
+(`DArplat`/`DArplong`) med DA-befolkning = summan av dess blocks befolkning.
+DA-punkterna viktas med DA-befolkningen in i GADM-enheterna (nivå 1 = provins,
+nivå 2 = census division), som för övriga facit. Samma nivå och punkttyp båda
+åren (planens §7, reservregeln: blockpunkter saknas i filen båda åren).
+
+Licens: Open Government Licence – Canada (`ca-ogl-lgo`).
+
 ## Om nedladdningen
 
 `tools/download_ee.py` hämtar varje band i källans eget rutnät (inga pixlar
