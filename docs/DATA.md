@@ -64,6 +64,30 @@ nivå 2 = census division), som för övriga facit. Samma nivå och punkttyp bå
 
 Licens: Open Government Licence – Canada (`ca-ogl-lgo`).
 
+## Japans facit (e-Stat, folkräkningens rutnätsstatistik)
+
+Statistics Bureau of Japan / e-Stat, rutnätsstatistik (Grid Square Statistics) ur
+folkräkningen (räknade tal, ej modellerade), 2015 och 2020. Rutstorlek: 500 m
+(halvmesh) om den finns med räknade tal i samma form båda åren, annars 1 km
+(3:e ordningens mesh). Samma JIS-meshsystem båda åren. Rutans mittpunkt används
+som punkt (härledd ur meshkoden `KEY_CODE`, `tools/validation_centroids.py:
+mesh_centroids`), rutans befolkning som vikt. Läsaren hittar befolkningskolumnen
+via den japanska etiketten (人口…総数) i CSV:ns andra rubrikrad (cp932).
+
+**Sekretess (markering och hantering, lika båda åren).** e-Stat markerar
+sekretess och sammanslagning i fälten `HTKSYORI` (秘匿処理, flagga för
+sekretessbehandling), `HTKSAKI` (秘匿先, meshkod dit den hemliga rutans tal har
+flyttats) och `GASSAN` (合算, flagga för sammanslagning). En hemlighållen rutas
+befolkning anges inte som ett tal (t.ex. `*` eller `-`); sådana rutor får
+icke-numerisk befolkning och utgår (räknas som saknad, inte 0). Sammanslagna tal
+ligger kvar på destinationsrutan (`HTKSAKI`) och bevaras därmed i summan. Samma
+regel tillämpas för 2015 och 2020, så sekretessen inte skiljer mellan åren.
+
+Facit läggs i `data/validation_japan/` (inte den frysta `data/validation/`), på
+samma sätt som Kanada. Licens: Government of Japan Standard Terms of Use v2.0,
+förenlig med CC BY 4.0; källa anges som "Source: e-Stat". Hämtväg (e-Stats
+statistiska GIS) och exakta filer förs in här när de är hämtade (steg 2).
+
 ## Om nedladdningen
 
 `tools/download_ee.py` hämtar varje band i källans eget rutnät (inga pixlar

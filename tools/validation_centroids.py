@@ -261,6 +261,75 @@ def read_statcan(root: Path, year: int):
     return g.reset_index()[["lon", "lat", "pop"]], info
 
 
+def mesh_centroids(codes) -> tuple[np.ndarray, np.ndarray]:
+    """Mittpunkt (lon, lat) för japanska JIS-meshkoder (8 siffror = 1 km, 9 = 500 m).
+
+    Primärmesh (4 siffror): lat_sw = pq/1,5, lon_sw = rs + 100, storlek 40'×1°.
+    Sekundärmesh (siffra 5–6): dela i 8×8. 3:e mesh (7–8), 1 km: dela i 10×10.
+    Halvmesh (siffra 9), 500 m: 1=SV, 2=SÖ, 3=NV, 4=NÖ. Koderna i en fil har
+    samma längd (samma rutstorlek)."""
+    c = pd.Series(list(codes), dtype="object").astype(str).str.strip()
+    L = int(c.str.len().mode().iloc[0])
+    lat = c.str[0:2].astype(float) / 1.5
+    lon = c.str[2:4].astype(float) + 100.0
+    dlat, dlon = 2 / 3, 1.0
+    if L >= 6:
+        lat += c.str[4:5].astype(float) * (dlat / 8); lon += c.str[5:6].astype(float) * (dlon / 8)
+        dlat, dlon = dlat / 8, dlon / 8
+    if L >= 8:
+        lat += c.str[6:7].astype(float) * (dlat / 10); lon += c.str[7:8].astype(float) * (dlon / 10)
+        dlat, dlon = dlat / 10, dlon / 10
+    if L >= 9:
+        q = c.str[8:9].astype(float)
+        lat += ((q - 1) // 2) * (dlat / 2); lon += ((q - 1) % 2) * (dlon / 2)
+        dlat, dlon = dlat / 2, dlon / 2
+    return (lon + dlon / 2).to_numpy(), (lat + dlat / 2).to_numpy()
+
+
+def _jis_mesh_centroid(code: str) -> tuple[float, float]:
+    lon, lat = mesh_centroids([code])
+    return float(lon[0]), float(lat[0])
+
+
+def read_estat_jp(root: Path, year: int):
+    """Japans folkräkning, rutnätsstatistik från e-Stat (räknade tal), 2015/2020.
+
+    CSV:n (cp932) har två rubrikrader: en med kolumnkoder (KEY_CODE, sekretess-
+    fälten HTKSYORI/HTKSAKI/GASSAN, T-koder) och en med japanska etiketter.
+    Befolkningskolumnen hittas via etiketten (人口 … 総数). Rutans mittpunkt
+    härleds ur KEY_CODE (meshkoden), rutans befolkning är vikten. Sekretess: rutor
+    vars befolkning inte är ett tal (hemlighållna, t.ex. "*"/"-") utgår; metoden är
+    densamma båda åren (se docs/DATA.md)."""
+    folder = root / str(year)
+    zips = sorted(folder.glob("*.zip"))
+    if zips:
+        zf = zipfile.ZipFile(zips[0])
+        name = next(n for n in zf.namelist() if n.lower().endswith(".csv"))
+        src, fname = zf.open(name), f"{zips[0].name}:{name}"
+    else:
+        csvs = sorted(folder.glob("*.csv"))
+        if not csvs:
+            sys.exit(f"Ingen e-Stat-fil (zip/csv) för {year} i {folder}")
+        src, fname = csvs[0].open("rb"), csvs[0].name
+    d = pd.read_csv(src, dtype=str, encoding="cp932", low_memory=False)
+    labels = {c: str(v) for c, v in d.iloc[0].items()}   # andra rubrikraden (japanska)
+    key = "KEY_CODE" if "KEY_CODE" in d.columns else d.columns[0]
+    popcol = next((c for c in d.columns if "人口" in labels[c] and "総数" in labels[c]),
+                  next((c for c in d.columns if "人口" in labels[c]), None))
+    if popcol is None:
+        raise ValueError(f"e-Stat {year}: ingen befolkningskolumn (人口…総数). "
+                         f"Etiketter: {labels}")
+    data = d.iloc[1:]
+    pop = pd.to_numeric(data[popcol], errors="coerce")
+    lon, lat = mesh_centroids(data[key].values)
+    secrecy = [c for c in ("HTKSYORI", "HTKSAKI", "GASSAN") if c in d.columns]
+    info = {"file": fname, "pop_column": popcol, "pop_label": labels[popcol],
+            "meshes": int(len(data)), "mesh_len": int(pd.Series(data[key]).astype(str).str.strip().str.len().mode().iloc[0]),
+            "pop_total": float(pop.fillna(0).sum()), "secrecy_columns": secrecy,
+            "meshes_nonnumeric_pop": int(pop.isna().sum())}
+    return pd.DataFrame({"lon": lon, "lat": lat, "pop": pop.values}), info
+
+
 def assign(points: pd.DataFrame, units) -> np.ndarray:
     """Index i `units` för varje punkt (−1 om punkten ligger utanför alla)."""
     import geopandas as gpd
@@ -330,7 +399,7 @@ def missing_light_share(have: dict, light: dict, u1: pd.DataFrame, u2: pd.DataFr
 
 def main(argv=None):
     p = argparse.ArgumentParser(description="Befolkningscentroider från folkräkningar.")
-    p.add_argument("--dataset", choices=["census", "geostat", "inegi", "ibge", "statcan"], required=True)
+    p.add_argument("--dataset", choices=["census", "geostat", "inegi", "ibge", "statcan", "estat_jp"], required=True)
     p.add_argument("--years", type=int, nargs="+", required=True)
     p.add_argument("--raw", type=Path, default=Path("data/raw/validation"))
     p.add_argument("--out", type=Path, default=Path("data/validation"))
@@ -356,7 +425,7 @@ def main(argv=None):
     for year in args.years:
         t0 = time.time()
         reader = {"census": read_census, "geostat": read_geostat, "inegi": read_inegi,
-                  "ibge": read_ibge, "statcan": read_statcan}[args.dataset]
+                  "ibge": read_ibge, "statcan": read_statcan, "estat_jp": read_estat_jp}[args.dataset]
         with Progress(f"Läser {args.dataset} {year}"):
             pts, info = reader(args.raw / args.dataset, year)
         pts = pts[(pts["pop"] > 0) & np.isfinite(pts.lon) & np.isfinite(pts.lat)].reset_index(drop=True)
