@@ -232,7 +232,11 @@ def read_statcan(root: Path, year: int):
         if not csvs:
             sys.exit(f"Ingen StatCan-fil (zip/csv) för {year} i {folder}")
         src, fname = csvs[0].open("rb"), csvs[0].name
-    d = pd.read_csv(src, dtype=str, encoding="latin-1", low_memory=False)
+    # 2016 års fil har blanksteg efter varje komma, så både rubriker och värden
+    # har inledande blanksteg; skipinitialspace + strip tar bort dem. Rubrikerna
+    # är tvåspråkiga med "/" (2016) eller "_" (2021); prefixen matchas nedan.
+    d = pd.read_csv(src, dtype=str, encoding="latin-1", low_memory=False, skipinitialspace=True)
+    d.columns = d.columns.str.strip()
 
     def pick(pattern: str) -> str:
         for c in d.columns:
