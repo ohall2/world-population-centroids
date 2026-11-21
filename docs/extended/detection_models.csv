@@ -1,0 +1,3 @@
+model,predictor,fit_dataset,from,to,n,beta0,beta1
+snr,log(|t|/sigma),census,2000,2020,2373,0.699245,0.379183
+abs_t,log|t|,census,2000,2020,2373,0.926121,0.356461
