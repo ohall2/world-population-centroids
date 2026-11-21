@@ -79,7 +79,7 @@ Ljuset och utgåvan använder exakt 2016 och 2021. Jämförelsekällornas epoker
 | 2021 | hybrid-ljus | 0,99 |
 | 2021 | hybrid-geom | 15,01 |
 
-**A3 (detektionsmodellen) – redovisas inte.** Den frysta A3-modellens brusmått σ är definierat för perioder inom DMSP och över skarven, men inte för en period helt inom VIIRS (2016–2021). A3-modellen klarade dessutom inte sin egen prövning (H3b, H3c; se `A3_detection.md`). A3-bimåttet redovisas därför inte utan en uttrycklig σ-definition för VIIRS-perioden.
+**A3 (detektionsmodellen) – lämnas oredovisat.** A3-bimåttet lämnas oredovisat för Kanada, av två skäl. För det första är den frysta A3-modellens brusmått σ definierat för perioder inom DMSP (`noise_dmsp_km`) och över skarven (√(`noise_dmsp_km`² + `noise_viirs_km`²)), men inte för en period helt inom VIIRS (2016–2021); att tillämpa modellen skulle kräva en ny σ-definition utöver planen. För det andra klarade A3-modellen inte sin egen prövning (H3b och H3c, se `A3_detection.md`), så dess förutsägelser används inte. Att införa en σ för VIIRS-perioden bedöms som en analys utöver planen och görs inte här.
 
 ## Förbehåll
 
