@@ -180,4 +180,4 @@ eller en egen artikel.
 
 | Datum | Avsnitt | Ändring | Skäl |
 | --- | --- | --- | --- |
-| | | | |
+| 2026-11-21 | §2 | scipy lagt till i `requirements.txt` och installerat i miljön. | De frysta måtten i `tools/change_detection.py` använder pandas Spearman, som kräver scipy under pandas ≥ 3. Ingen ändring av koden eller måtten. |
