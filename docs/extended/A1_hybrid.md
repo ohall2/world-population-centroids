@@ -124,3 +124,5 @@ Stöds = intervallet pekar åt hypotesens håll för alla år/perioder (H1a/H1c:
 | Brasilien (delstater) | stöds | – | stöds |
 | Europa (regioner) | stöds | stöds | stöds |
 
+**Not om förändringen.** För förändringsmåtten (tabellerna ovan) är hybrid-geom lika bra som eller bättre än hybrid-ljus i alla facit. Ljuset bidrar alltså inte till förändringen när befolkningstalen per nivå 2-enhet är kända; det som bär förändringen är omviktningen mellan enheterna, inte var ljuset ligger inom dem.
+

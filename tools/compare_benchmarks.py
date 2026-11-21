@@ -34,9 +34,22 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
+import tools.change_detection as cd
+import tools.hybrid_estimate as he
 from tools.change_detection import en, metrics, block_ids, bootstrap, truth, release
 from tools.hybrid_estimate import geometric_centroids, great_circle_km, boot_ci
 from tools.compare_sources import nearest
+
+# Blockbootstrapen återställs till samma frö före varje mått, så intervallen blir
+# reproducerbara och oberoende av vilka och hur många källor som ingår (annars
+# skulle en tillagd källa flytta de andras intervall via RNG-sekvensen).
+BOOT_SEED = 20261121
+
+
+def _reseed():
+    import numpy as _np
+    cd.RNG = _np.random.default_rng(BOOT_SEED)
+    he.RNG = _np.random.default_rng(BOOT_SEED)
 
 DS = {"census":  {"iso": ["USA"], "years": [2000, 2010, 2020],
                   "pairs": [(2000, 2010), (2010, 2020), (2000, 2020)]},
@@ -120,6 +133,7 @@ def run_dataset(ds, cfg, truth_root, release_path, results_dir, cache_dir, bset,
             blk = block_ids(kids, lv, multi)
             for name in names:
                 e = errs[name][ok]
+                _reseed()
                 lo, hi = boot_ci(lambda idx, e=e: np.median(e[idx]), blk, n_boot)
                 pos_rows.append({"dataset": ds, "level": lv, "year": y, "source": name,
                                  "n": len(kids), "err_med": float(np.median(e)),
@@ -150,6 +164,7 @@ def run_dataset(ds, cfg, truth_root, release_path, results_dir, cache_dir, bset,
                 l1, l2 = est_xy[name]
                 e = np.column_stack(en(l1[okmask, 0], l1[okmask, 1], l2[okmask, 0], l2[okmask, 1]))
                 m = metrics(t, e)
+                _reseed()
                 ci = bootstrap(t, e, blk, n_boot)
                 chg_rows.append({"dataset": ds, "level": lv, "from": y1, "to": y2,
                                  "source": name, "n": len(kids), **m, **ci})

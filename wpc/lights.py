@@ -208,15 +208,17 @@ ANNUAL = {
     "chiovelli-bltc": {"glob": "DMSP*_bltcfix",
                        "note": "Chiovelli m.fl. 2026, bloomtopcode_fix (zenodo 20558766)"},
     # Jämförelsekällor för analys B (docs/ANALYSIS_PLAN.md §6). Totaler per cell;
-    # räknas om till täthet i GhsPop så centroidkoden ger en befolkningsviktad
-    # centroid utan att ändras.
+    # räknas om till täthet i DensitySource så centroidkoden ger en viktad
+    # centroid (befolkning respektive bebyggd yta) utan att ändras.
     "ghspop": {"glob": "GHS_POP_E*_GLOBE_R2023A_4326_30ss_V1_0",
                "note": "GHS-POP R2023A, 30\", befolkning per cell (JRC GHSL, CC BY 4.0)"},
+    "ghsbuilts": {"glob": "GHS_BUILT_S_E*_GLOBE_R2023A_4326_30ss_V1_0",
+                  "note": "GHS-BUILT-S R2023A, 30\", bebyggd yta (m²) per cell (JRC GHSL, CC BY 4.0)"},
 }
 
 # Källor vars cellvärde är en total per cell (befolkning, bebyggd yta) och som
 # därför räknas om till täthet (värde/cellyta) innan centroidkoden används.
-DENSITY_SOURCES = {"ghspop"}
+DENSITY_SOURCES = {"ghspop", "ghsbuilts"}
 
 
 def snap_transform(t: Affine, tol: float = 1e-8) -> Affine:
@@ -297,14 +299,14 @@ class Annual:
         self._src.close()
 
 
-class GhsPop(Annual):
-    """Årsprodukt vars cellvärde är en total per cell (t.ex. GHS-POP:s
-    befolkning), omräknad till täthet per km².
+class DensitySource(Annual):
+    """Årsprodukt vars cellvärde är en total per cell (GHS-POP:s befolkning,
+    GHS-BUILT-S:s bebyggda yta), omräknad till täthet per km².
 
     Centroidkoden viktar varje pixel med värde x andel x cellyta. För en total C
     per cell blir rätt vikt C x andel, inte C x andel x yta. Genom att leverera
     tätheten C/yta blir vikten (C/yta) x andel x yta = C x andel, exakt den
-    befolkningsviktade centroiden, utan att centroids.py ändras (planen §6,
+    totalviktade centroiden, utan att centroids.py ändras (planen §6,
     'samma centroidkod', preciserad under Avvikelser).
     """
 
@@ -374,7 +376,7 @@ def make_source(name: str, year: int, raw_dir: Path, calibration: Path | None,
     elif name == "dmsp-irqr-reg":
         src = DmspIrqr(year, raw_dir, calibration, flares, offsets=read_offsets())
     elif name in ANNUAL:
-        cls = GhsPop if name in DENSITY_SOURCES else Annual
+        cls = DensitySource if name in DENSITY_SOURCES else Annual
         src = cls(name, year, raw_dir, flares)
     else:
         raise ValueError(f"Okänd ljuskälla: {name}")

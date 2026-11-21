@@ -14,8 +14,9 @@ from pathlib import Path
 import pandas as pd
 
 DS = {"census": "USA", "inegi": "Mexiko", "ibge": "Brasilien", "geostat": "Europa"}
-SRC = {"light": "ljus (utgåvan)", "ghspop": "GHS-POP", "geometric": "geometrisk"}
-ORDER = ["light", "ghspop", "geometric"]
+SRC = {"light": "ljus (utgåvan)", "ghspop": "GHS-POP", "ghsbuilts": "GHS-BUILT-S",
+       "geometric": "geometrisk"}
+ORDER = ["light", "ghspop", "ghsbuilts", "geometric"]
 
 
 def f(x, nd=2) -> str:
@@ -31,7 +32,8 @@ def read(path: Path) -> pd.DataFrame:
 
 
 def position_table(pos: pd.DataFrame) -> list[str]:
-    out = ["| Nivå | År | ljus (utgåvan) | GHS-POP | geometrisk |", "| --- | --- | --- | --- | --- |"]
+    head = " | ".join(SRC[s] for s in ORDER)
+    out = [f"| Nivå | År | {head} |", "| " + " | ".join(["---"] * (2 + len(ORDER))) + " |"]
     for (lv, y), g in pos.groupby(["level", "year"]):
         g = g.set_index("source")
         n = int(g["n"].iloc[0])
@@ -67,14 +69,16 @@ def main(argv=None):
          "centroidkod som ljuset och jämförs mot facit med samma läges- och "
          "förändringsmått, på nivå 1 och 2, bara för facitländerna. Geometrisk "
          "mittpunkt är med som jämförelse.", "",
-         "**Denna körning:** ljus (utgåvan) och **GHS-POP** (JRC GHSL, R2023A, 30\", "
-         "epokerna 2000/2010/2020; facitår knutet till närmaste epok). WorldPop och "
-         "GHS-BUILT-S läggs till i senare körningar.", "",
-         "**Förbehåll.** GHS-POP bygger på folkräkning och bebyggelse, inte på "
-         "nattljus; den är inte oberoende av facit, och förändringen mellan epoker "
-         "är delvis interpolerad. Jämförelsen visar vad en användare kan få, inte "
-         "ett oberoende test av nattljuset. WorldPop (senare) använder nattljus som "
-         "förklaringsvariabel och redovisas skilt från GHS-POP och GHS-BUILT-S.", "",
+         "**Denna körning:** ljus (utgåvan), **GHS-POP** och **GHS-BUILT-S** (JRC "
+         "GHSL, R2023A, 30\", epokerna 2000/2010/2020; facitår knutet till närmaste "
+         "epok). WorldPop läggs till i en senare körning.", "",
+         "**Förbehåll.** GHS-POP bygger på folkräkning och GHS-BUILT-S på bebyggd "
+         "yta, inte på nattljus; de är ändå inte oberoende av facit (GHS-POP "
+         "fördelar folkräkningens folk), och förändringen mellan epoker är delvis "
+         "interpolerad. Jämförelsen visar vad en användare kan få, inte ett "
+         "oberoende test av nattljuset. WorldPop (senare körning) använder nattljus "
+         "som förklaringsvariabel och är inte oberoende av ljuset; den redovisas "
+         "skilt från GHS-POP och GHS-BUILT-S.", "",
          "Alla tal är skrivna ur `docs/extended/<facit>_benchmark_*.csv` med "
          "`tools/write_comparison_doc.py`. Läge: median great circle-fel mot facit "
          "(km); förändring: de frysta måtten i `tools/change_detection.py`; båda med "

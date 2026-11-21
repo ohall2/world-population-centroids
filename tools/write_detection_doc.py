@@ -96,6 +96,9 @@ def main(argv=None):
 
     # Steg 4
     L += ["## Steg 4: minsta upptäckbara förflyttning (km)", "",
+          "**Modellen klarade inte prövningen (H3b och H3c, steg 3). Tabellen nedan "
+          "får därför inte användas** – den visas bara för fullständighet. En per-"
+          "enhetströskel för riktning kräver en modell som håller i prövningen.", "",
           "Det |t| där σ-modellen (anpassad på USA 2000–2020) ger 0,8 sannolikhet "
           "för rätt riktning, per enhet. Fördelning över enheterna i varje facit.", "",
           "| Period | n | σ median | min. flytt median | q25 | q75 |",

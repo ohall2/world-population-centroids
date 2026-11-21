@@ -21,7 +21,8 @@ Alla filer läggs under `data/`, som inte ingår i git. Sökvägarna nedan är d
 | Facit: INEGI ortsregister (ITER) 2010 och 2020 | `data/raw/validation/inegi/` | `python tools/download_validation.py --only inegi` |
 | Facit: IBGE Grade Estatística, Censo 2022, rutor om 1 km² (BR1KM_20251002.zip, 416 MB, sha256 944579f2…870a) | `data/raw/validation/ibge/2022/` | `curl -C - -o data/raw/validation/ibge/2022/BR1KM_20251002.zip https://geoftp.ibge.gov.br/recortes_para_fins_estatisticos/grade_estatistica/censo_2022/grade_1km/BR1KM_20251002.zip` (203 002 064 personer i 1 501 555 rutor) |
 | PCNL (Li, S. m.fl. 2023), jämförelse | `data/raw/pcnl/PCNL<år>.tif` | `python tools/download_zenodo.py --record 7612389 --out data/raw/pcnl --pattern 'PCNL201[0-7].tif'` |
-| GHS-POP R2023A, befolkning per cell, WGS84 30″ (epoker 2000, 2010, 2020), jämförelse (analys B) | `data/raw/ghspop/GHS_POP_E<epok>_GLOBE_R2023A_4326_30ss_V1_0.tif` + `.json` | `python tools/download_ghspop.py --epochs 2000 2010 2020` (JRC GHSL, https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_POP_GLOBE_R2023A/ ; tre zip om ca 447/454/460 MB; GeoTIFF:en packas upp och SHA-256 skrivs i JSON) |
+| GHS-POP R2023A, befolkning per cell, WGS84 30″ (epoker 2000, 2010, 2020), jämförelse (analys B) | `data/raw/ghspop/GHS_POP_E<epok>_GLOBE_R2023A_4326_30ss_V1_0.tif` + `.json` | `python tools/download_ghsl.py --product pop --epochs 2000 2010 2020` (JRC GHSL, https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_POP_GLOBE_R2023A/ ; tre zip om ca 447/454/460 MB; GeoTIFF:en packas upp och SHA-256 skrivs i JSON) |
+| GHS-BUILT-S R2023A, bebyggd yta (m²) per cell, WGS84 30″ (epoker 2000, 2010, 2020), jämförelse (analys B) | `data/raw/ghsbuilts/GHS_BUILT_S_E<epok>_GLOBE_R2023A_4326_30ss_V1_0.tif` + `.json` | `python tools/download_ghsl.py --product built_s --epochs 2000 2010 2020` (JRC GHSL, https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_BUILT_S_GLOBE_R2023A/ ; tre zip om ca 171/175/178 MB; GeoTIFF:en packas upp och SHA-256 skrivs i JSON) |
 | GADM 2.8, färdig | `data/processed/gadm28.gpkg` | `python tools/prepare_gadm28.py` (använder `legacy/v1/` för attributen) |
 
 ## Licenser
@@ -32,7 +33,7 @@ Alla filer läggs under `data/`, som inte ingår i git. Sökvägarna nedan är d
 - MYC25Q4 (Zhizhin m.fl. 2026): CC BY-NC 4.0, dvs. bara icke-kommersiellt bruk. Masken som byggs av katalogen omfattas.
 - EOG:s årliga fackelkataloger: ingen licenstext på nedladdningssidan; EOG ska anges som källa.
 - GADM: fritt för akademiskt och annat icke-kommersiellt bruk; vidarespridning och kommersiellt bruk kräver tillstånd.
-- GHS-POP (JRC GHSL, release R2023A; referens Pesaresi m.fl. 2024, *Int. J. Digital Earth* 17(1)): CC BY 4.0 (bekräftad på GHSL:s FAQ-sida). Datasetets exakta DOI är inte kontrollerad.
+- GHS-POP och GHS-BUILT-S (JRC GHSL, release R2023A; referens Pesaresi m.fl. 2024, *Int. J. Digital Earth* 17(1)): CC BY 4.0 (bekräftad på GHSL:s FAQ-sida). Dataseten hämtas med `tools/download_ghsl.py`. Datasetens exakta DOI är inte kontrollerade.
 
 ## Om nedladdningen
 
