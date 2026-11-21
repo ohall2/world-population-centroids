@@ -1,0 +1,13 @@
+dataset,level,year,source,n,err_med,err_med_lo,err_med_hi
+geostat,1,2011,light,348,2.9697,2.5304,3.6222
+geostat,1,2011,ghspop,348,0.1997,0.1555,0.2476
+geostat,1,2011,geometric,348,8.6719,6.7727,12.6728
+geostat,1,2021,light,331,2.4165,2.0446,3.2676
+geostat,1,2021,ghspop,331,0.4434,0.3559,0.5377
+geostat,1,2021,geometric,331,9.0842,6.8534,13.0238
+geostat,2,2011,light,6266,0.9492,0.8902,1.0107
+geostat,2,2011,ghspop,6266,0.2232,0.2090,0.2391
+geostat,2,2011,geometric,6266,1.7884,1.6396,1.9889
+geostat,2,2021,light,6247,0.7058,0.6607,0.7572
+geostat,2,2021,ghspop,6247,0.2680,0.2538,0.2828
+geostat,2,2021,geometric,6247,1.8054,1.6508,2.0089

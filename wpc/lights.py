@@ -207,7 +207,16 @@ ANNUAL = {
                      "note": "Chiovelli m.fl. 2026, bloom_fix (zenodo 20558766)"},
     "chiovelli-bltc": {"glob": "DMSP*_bltcfix",
                        "note": "Chiovelli m.fl. 2026, bloomtopcode_fix (zenodo 20558766)"},
+    # Jämförelsekällor för analys B (docs/ANALYSIS_PLAN.md §6). Totaler per cell;
+    # räknas om till täthet i GhsPop så centroidkoden ger en befolkningsviktad
+    # centroid utan att ändras.
+    "ghspop": {"glob": "GHS_POP_E*_GLOBE_R2023A_4326_30ss_V1_0",
+               "note": "GHS-POP R2023A, 30\", befolkning per cell (JRC GHSL, CC BY 4.0)"},
 }
+
+# Källor vars cellvärde är en total per cell (befolkning, bebyggd yta) och som
+# därför räknas om till täthet (värde/cellyta) innan centroidkoden används.
+DENSITY_SOURCES = {"ghspop"}
 
 
 def snap_transform(t: Affine, tol: float = 1e-8) -> Affine:
@@ -288,6 +297,30 @@ class Annual:
         self._src.close()
 
 
+class GhsPop(Annual):
+    """Årsprodukt vars cellvärde är en total per cell (t.ex. GHS-POP:s
+    befolkning), omräknad till täthet per km².
+
+    Centroidkoden viktar varje pixel med värde x andel x cellyta. För en total C
+    per cell blir rätt vikt C x andel, inte C x andel x yta. Genom att leverera
+    tätheten C/yta blir vikten (C/yta) x andel x yta = C x andel, exakt den
+    befolkningsviktade centroiden, utan att centroids.py ändras (planen §6,
+    'samma centroidkod', preciserad under Avvikelser).
+    """
+
+    def read_window(self, win: Window) -> Window2D:
+        from .centroids import cell_area_km2
+        w = super().read_window(win)            # totaler, nodata/negativa -> 0
+        t = w.transform
+        lat = t.f + t.e * (np.arange(w.data.shape[0]) + 0.5)
+        area = cell_area_km2(lat, -t.e, t.a)    # km² per rad
+        w.data = (w.data / area[:, None]).astype("float32")
+        return w
+
+    def describe(self) -> dict:
+        return {**super().describe(), "values": "total per cell omräknad till täthet per km²"}
+
+
 SOURCES = ["dmsp-irqr", "dmsp-irqr-reg", *ANNUAL]
 OFFSETS_FILE = Path("config/dmsp_offsets.csv")
 
@@ -341,7 +374,8 @@ def make_source(name: str, year: int, raw_dir: Path, calibration: Path | None,
     elif name == "dmsp-irqr-reg":
         src = DmspIrqr(year, raw_dir, calibration, flares, offsets=read_offsets())
     elif name in ANNUAL:
-        src = Annual(name, year, raw_dir, flares)
+        cls = GhsPop if name in DENSITY_SOURCES else Annual
+        src = cls(name, year, raw_dir, flares)
     else:
         raise ValueError(f"Okänd ljuskälla: {name}")
     return LatitudeMask(src, max_lat) if max_lat is not None else src

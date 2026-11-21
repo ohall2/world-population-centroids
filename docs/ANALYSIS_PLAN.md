@@ -181,3 +181,5 @@ eller en egen artikel.
 | Datum | Avsnitt | Ändring | Skäl |
 | --- | --- | --- | --- |
 | 2026-11-21 | §2 | scipy lagt till i `requirements.txt` och installerat i miljön. | De frysta måtten i `tools/change_detection.py` använder pandas Spearman, som kräver scipy under pandas ≥ 3. Ingen ändring av koden eller måtten. |
+| 2026-11-21 | §6 | "Samma centroidkod" preciserad: jämförelsekällor vars cellvärde är en total per cell (GHS-POP) räknas om till täthet (värde/cellyta) i källklassen `wpc.lights.GhsPop`, så vikten blir antal × andel. `wpc/centroids.py` ändras inte. | Centroidkoden viktar med värde × andel × yta, rätt för radians men inte för totaler per cell; omräkningen ger den befolkningsviktade centroiden (prövas i `tests/test_ghspop.py`). |
+| 2026-11-21 | §6 | Förbehållet utökat: WorldPop använder nattljus som förklaringsvariabel och är inte oberoende av ljuset; GHS-POP och GHS-BUILT-S bygger på folkräkning respektive bebyggelse. WorldPop redovisas skilt från de två andra. | Oberoendet av facit skiljer sig mellan källorna och måste framgå i texten. |
