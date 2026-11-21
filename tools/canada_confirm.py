@@ -85,11 +85,12 @@ def change_measure(truth_root, release_path, ds, y1, y2, level, min_points=10,
 
 # --- läge (median great circle-fel mot facit) ------------------------------
 
-def position_measure(truth_root, release_path, source_year_pts, year, level, n_boot, source="light"):
+def position_measure(truth_root, release_path, source_year_pts, year, level, n_boot,
+                     source="light", ds="statcan", iso=ISO):
     """Median lägesfel mot facit för en källa. source_year_pts: None för ljuset
     (läses ur utgåvan) eller {unit_id:(lon,lat)} för en jämförelsekälla."""
-    t = truth(truth_root, "statcan", year, level, 10)
-    t = t[t.index.str[:3] == ISO]
+    t = truth(truth_root, ds, year, level, 10)
+    t = t[t.index.str[:3] == iso]
     if source == "light":
         rel = release(release_path, level, {year})
         rel = rel[rel.year == year].set_index("unit_id")
@@ -111,8 +112,8 @@ def position_measure(truth_root, release_path, source_year_pts, year, level, n_b
 
 # --- jämförelsekällornas centroider för Kanada (B) -------------------------
 
-def canada_source_points(source, level, years, cache_dir, raw_dir):
-    """{facitår: {unit_id: (lon, lat)}} ur en jämförelsekälla, för Kanadas
+def canada_source_points(source, level, years, cache_dir, raw_dir, iso=ISO):
+    """{facitår: {unit_id: (lon, lat)}} ur en jämförelsekälla, för landets
     GADM-enheter, via samma centroidkod (compute_unit). Facitår -> närmaste epok."""
     import geopandas as gpd
     from wpc.lights import make_source, available_years
@@ -120,7 +121,7 @@ def canada_source_points(source, level, years, cache_dir, raw_dir):
     from tools.compare_sources import nearest
     g = gpd.read_file(cache_dir / f"gadm41_adm{level}.gpkg", engine="pyogrio")
     g = g.rename(columns={f"GID_{level}": "unit_id"})
-    g = g[g.unit_id.str[:3] == ISO].set_index("unit_id")
+    g = g[g.unit_id.str[:3] == iso].set_index("unit_id")
     epochs = available_years(source, raw_dir, None)
     year_epoch = {y: nearest(epochs, y) for y in years}
     by_epoch = {}
@@ -136,7 +137,11 @@ def canada_source_points(source, level, years, cache_dir, raw_dir):
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(description="C – Kanada, bekräftande (drivrutin).")
+    p = argparse.ArgumentParser(description="C – bekräftande drivrutin (Kanada/Japan).")
+    p.add_argument("--dataset", default="statcan", help="facit-dataset (statcan, estat_jp)")
+    p.add_argument("--iso", default="CAN", help="landkod (GADM GID_0)")
+    p.add_argument("--years", type=int, nargs=2, default=[2016, 2021], help="y1 y2")
+    p.add_argument("--tag", default="canada", help="namn i utdatafilerna C_<tag>_*.csv")
     p.add_argument("--truth", type=Path, default=Path("data/validation_canada"))
     p.add_argument("--release", type=Path, default=Path("data/release/v2.0.0"))
     p.add_argument("--cache-dir", type=Path, default=Path("data/processed/boundaries"))
@@ -145,20 +150,23 @@ def main(argv=None):
     p.add_argument("--out", type=Path, default=Path("docs/extended"))
     a = p.parse_args(argv)
     a.out.mkdir(parents=True, exist_ok=True)
+    ds, iso, (y1, y2), tag, n_boot = a.dataset, a.iso, a.years, a.tag, a.n_boot
+    import geopandas as gpd
 
-    # ---- Huvudmått: rätt riktning nivå 2, 2016–2021, block=provins, + permutation
-    r2 = change_measure(a.truth, a.release, "statcan", Y1, Y2, 2, iso=ISO, n_boot=a.n_boot)
+    # ---- Huvudmått: rätt riktning nivå 2, y1–y2, block = nivå 1-enhet, + permutation
+    r2 = change_measure(a.truth, a.release, ds, y1, y2, 2, iso=iso, n_boot=n_boot)
     _reseed()
     perm = permutation(r2["t"], r2["e"], r2["blocks"])
     ci = r2["ci"]
     width = ci["dir_right_hi"] - ci["dir_right_lo"]
-    main_row = {"measure": "dir_right_adm2_2016_2021", "n": r2["n"], "n_blocks": r2["n_blocks"],
+    main_row = {"measure": f"dir_right_adm2_{y1}_{y2}", "n": r2["n"], "n_blocks": r2["n_blocks"],
                 "dir_right": r2["metrics"]["dir_right"], "dir_right_lo": ci["dir_right_lo"],
                 "dir_right_hi": ci["dir_right_hi"], "ci_width": width,
                 "perm_null_mean": perm["dir_right_null_mean"], "perm_null_lo": perm["dir_right_null_lo"],
-                "perm_null_hi": perm["dir_right_null_hi"], "perm_p_upper": perm["p_dir_right_upper"]}
-    pd.DataFrame([main_row]).to_csv(a.out / "C_canada_main.csv", index=False, float_format="%.4f")
-    print(f"HUVUDMÅTT nivå 2 2016–2021: n={r2['n']} block(provins)={r2['n_blocks']}  "
+                "perm_null_hi": perm["dir_right_null_hi"], "perm_p_upper": perm["p_dir_right_upper"],
+                "perm_p_lower": perm["p_dir_right_lower"]}
+    pd.DataFrame([main_row]).to_csv(a.out / f"C_{tag}_main.csv", index=False, float_format="%.4f")
+    print(f"[{tag}] HUVUDMÅTT nivå 2 {y1}–{y2}: n={r2['n']} block(nivå1)={r2['n_blocks']}  "
           f"rätt riktning {r2['metrics']['dir_right']:.4f} "
           f"[{ci['dir_right_lo']:.4f}, {ci['dir_right_hi']:.4f}] bredd {width:.4f}  "
           f"perm null {perm['dir_right_null_mean']:.4f} p(övre)={perm['p_dir_right_upper']:.4f}")
@@ -166,52 +174,50 @@ def main(argv=None):
     # ---- Förändring nivå 1–2: median |e−t| mot median |t|, rätt riktning
     chg_rows = []
     for lv in (1, 2):
-        r = r2 if lv == 2 else change_measure(a.truth, a.release, "statcan", Y1, Y2, 1, iso=ISO, n_boot=a.n_boot)
+        r = r2 if lv == 2 else change_measure(a.truth, a.release, ds, y1, y2, 1, iso=iso, n_boot=n_boot)
         m, c = r["metrics"], r["ci"]
-        chg_rows.append({"level": lv, "from": Y1, "to": Y2, "n": r["n"], "true_med": m["true_med"],
+        chg_rows.append({"level": lv, "from": y1, "to": y2, "n": r["n"], "true_med": m["true_med"],
                          "err_med": m["err_med"], "ratio": m["ratio"], "dir_right": m["dir_right"],
                          "dir_right_lo": c["dir_right_lo"], "dir_right_hi": c["dir_right_hi"]})
-    pd.DataFrame(chg_rows).to_csv(a.out / "C_canada_change.csv", index=False, float_format="%.4f")
+    pd.DataFrame(chg_rows).to_csv(a.out / f"C_{tag}_change.csv", index=False, float_format="%.4f")
 
-    # ---- A1 hybrid på provinsnivå (beskrivande), 2016 och 2021
-    geo = geometry_table(a.gadm2, [ISO])
-    cfg = {"iso": [ISO], "years": [Y1, Y2], "pairs": [(Y1, Y2)]}
+    # ---- A1 hybrid på nivå 1 (beskrivande), y1 och y2
+    geo = geometry_table(a.gadm2, [iso])
+    cfg = {"iso": [iso], "years": [y1, y2], "pairs": [(y1, y2)]}
     hyb_rows = []
-    for year in (Y1, Y2):
-        E, _cov = per_year_table(cfg, "statcan", year, a.truth, a.release, geo, 10)
+    for year in (y1, y2):
+        E, _cov = per_year_table(cfg, ds, year, a.truth, a.release, geo, 10)
         for est, (lo, la) in {"light": ("L_lon", "L_lat"), "hybrid_light": ("hyl_lon", "hyl_lat"),
                               "hybrid_geom": ("hyg_lon", "hyg_lat")}.items():
             err = great_circle_km(E[lo].to_numpy(), E[la].to_numpy(), E.tru_lon.to_numpy(), E.tru_lat.to_numpy())
             err = err[np.isfinite(err)]
             hyb_rows.append({"year": year, "level": 1, "estimate": est, "n": int(len(err)),
                              "err_med": float(np.median(err))})
-    pd.DataFrame(hyb_rows).to_csv(a.out / "C_canada_hybrid.csv", index=False, float_format="%.4f")
+    pd.DataFrame(hyb_rows).to_csv(a.out / f"C_{tag}_hybrid.csv", index=False, float_format="%.4f")
 
-    # ---- Lägesfel 2021 (bimått): ljuset + jämförelsekällorna (B), nivå 1–2,
+    # ---- Lägesfel y2 (bimått): ljuset + jämförelsekällorna (B), nivå 1–2,
     #      och parvis jämförelse per enhet mot ljuset.
-    import geopandas as gpd
-    n_boot = a.n_boot
     pos_rows, pair_rows, epochs_note = [], [], {}
     for lv in (1, 2):
-        light = position_measure(a.truth, a.release, None, Y2, lv, n_boot, "light")
+        light = position_measure(a.truth, a.release, None, y2, lv, n_boot, "light", ds=ds, iso=iso)
         pos_rows.append({k: light[k] for k in ("source", "level", "year", "n", "err_med", "err_med_lo", "err_med_hi")})
         el, lids = light["err"], light["ids"]
-        # källpunkter för år 2021: jämförelsekällorna + geometrisk mittpunkt (B:s fjärde)
+        # källpunkter för år y2: jämförelsekällorna + geometrisk mittpunkt (B:s fjärde)
         src_pts = {}
         for source in BENCH:
             raw_dir = Path("data/raw") / source
             if not raw_dir.exists():
                 continue
-            pts, year_epoch = canada_source_points(source, lv, [Y1, Y2], a.cache_dir, raw_dir)
+            pts, year_epoch = canada_source_points(source, lv, [y1, y2], a.cache_dir, raw_dir, iso=iso)
             epochs_note[source] = year_epoch
-            src_pts[source] = pts[Y2]
+            src_pts[source] = pts[y2]
         g = gpd.read_file(a.cache_dir / f"gadm41_adm{lv}.gpkg", engine="pyogrio").rename(columns={f"GID_{lv}": "unit_id"})
-        g = g[g.unit_id.str[:3] == ISO]
-        glon, glat = geometric_centroids(g, ISO)
+        g = g[g.unit_id.str[:3] == iso]
+        glon, glat = geometric_centroids(g, iso)
         src_pts["geometric"] = {u: (lo, la) for u, lo, la in zip(g.unit_id.to_numpy(), glon, glat)}
 
         for source, pts2 in src_pts.items():
-            pm = position_measure(a.truth, a.release, pts2, Y2, lv, n_boot, source)
+            pm = position_measure(a.truth, a.release, pts2, y2, lv, n_boot, source, ds=ds, iso=iso)
             pos_rows.append({k: pm[k] for k in ("source", "level", "year", "n", "err_med", "err_med_lo", "err_med_hi")})
             common = lids.intersection(pm["ids"])
             if len(common):
@@ -224,12 +230,12 @@ def main(argv=None):
                 cs_lo, cs_hi = boot_ci(lambda idx, s=es, l=ei: float(np.mean(s[idx] < l[idx])), blk, n_boot)
                 _reseed()
                 dm_lo, dm_hi = boot_ci(lambda idx, s=es, l=ei: float(np.median(l[idx] - s[idx])), blk, n_boot)
-                pair_rows.append({"source": source, "level": lv, "year": Y2, "n": int(len(common)),
+                pair_rows.append({"source": source, "level": lv, "year": y2, "n": int(len(common)),
                                   "closer_share": closer, "closer_lo": cs_lo, "closer_hi": cs_hi,
                                   "diff_med": diff, "diff_lo": dm_lo, "diff_hi": dm_hi})
-    pd.DataFrame(pos_rows).to_csv(a.out / "C_canada_position.csv", index=False, float_format="%.4f")
-    pd.DataFrame(pair_rows).to_csv(a.out / "C_canada_benchmark_pairs.csv", index=False, float_format="%.4f")
-    print("epokval (facitår -> epok):", epochs_note)
+    pd.DataFrame(pos_rows).to_csv(a.out / f"C_{tag}_position.csv", index=False, float_format="%.4f")
+    pd.DataFrame(pair_rows).to_csv(a.out / f"C_{tag}_benchmark_pairs.csv", index=False, float_format="%.4f")
+    print(f"[{tag}] epokval (facitår -> epok):", epochs_note)
     print("klart ->", a.out)
 
 

@@ -327,15 +327,23 @@ def read_estat_jp(root: Path, year: int):
         data = d.iloc[1:]
         frames.append(pd.DataFrame({"code": data[key].astype(str).str.strip(),
                                     "pop": pd.to_numeric(data[pc], errors="coerce")}))
-    allrows = pd.concat(frames, ignore_index=True).drop_duplicates("code", keep="first")
-    lon, lat = mesh_centroids(allrows["code"].values)
+    allrows = pd.concat(frames, ignore_index=True)
+    # e-Stat delar en ruta som ligger på en prefekturgräns mellan prefekturfilerna;
+    # varje fil bär sin del av rutans befolkning. Rader med samma rutkod summeras
+    # därför (inte dedup), så hela rutans befolkning hamnar på dess mittpunkt.
+    border = int((allrows.groupby("code")["code"].transform("size") > 1).sum())
+    agg = allrows.groupby("code", sort=False)["pop"].sum(min_count=1)
+    codes = agg.index.to_numpy()
+    pop = agg.to_numpy()
+    lon, lat = mesh_centroids(codes)
     info = {"files": len(sources), "pop_column": popcol, "pop_label": poplabel,
-            "meshes": int(len(allrows)),
-            "mesh_len": int(allrows["code"].str.len().mode().iloc[0]),
-            "pop_total": float(allrows["pop"].fillna(0).sum()),
+            "input_rows": int(len(allrows)), "border_mesh_rows": border,
+            "meshes": int(len(agg)),
+            "mesh_len": int(pd.Series(codes).str.len().mode().iloc[0]),
+            "pop_total": float(pd.Series(pop).sum()),
             "secrecy_columns": sorted(secrecy),
-            "meshes_nonnumeric_pop": int(allrows["pop"].isna().sum())}
-    return pd.DataFrame({"lon": lon, "lat": lat, "pop": allrows["pop"].values}), info
+            "meshes_nonnumeric_pop": int(pd.Series(pop).isna().sum())}
+    return pd.DataFrame({"lon": lon, "lat": lat, "pop": pop}), info
 
 
 def assign(points: pd.DataFrame, units) -> np.ndarray:

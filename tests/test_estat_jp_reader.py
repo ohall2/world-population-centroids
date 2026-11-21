@@ -52,3 +52,24 @@ def test_read_estat_jp(tmp_path):
     assert (df.lon.iloc[0], df.lat.iloc[0]) == pytest.approx((139.71875, 35.70416667), abs=1e-6)
     assert df["pop"].iloc[0] == pytest.approx(100.0)
     assert np.isnan(df["pop"].iloc[2])                    # hemlig ruta -> NaN (utgår senare)
+
+
+def test_read_estat_jp_sums_border_meshes(tmp_path):
+    # Två prefekturfiler delar rutan 53394547 (30 + 70); e-Stat delar gränsrutor
+    # mellan prefekturer, så läsaren ska summera dem till en rad med 100.
+    folder = tmp_path / "2020"
+    folder.mkdir(parents=True)
+    head = ["KEY_CODE,HTKSYORI,GASSAN,T001", ",秘匿処理,合算,人口（総数）"]
+    (folder / "pref_a.csv").write_text(
+        "\n".join(head + ["53394547,,,30", "53394557,,,50"]) + "\n", encoding="cp932")
+    (folder / "pref_b.csv").write_text(
+        "\n".join(head + ["53394547,,,70", "53394567,,,20"]) + "\n", encoding="cp932")
+
+    df, info = read_estat_jp(tmp_path, 2020)
+    pops = dict(zip([round(x, 5) for x in df.lon], df["pop"]))   # per ruta via longitud
+    assert len(df) == 3                                   # tre unika rutkoder
+    assert info["border_mesh_rows"] == 2                  # två rader för gränsrutan
+    assert info["pop_total"] == pytest.approx(170.0)      # 100 + 50 + 20
+    # gränsrutan 53394547 ska ha summan 30 + 70 = 100
+    lon0, _ = _jis_mesh_centroid("53394547")
+    assert df.loc[df.lon.round(5) == round(lon0, 5), "pop"].iloc[0] == pytest.approx(100.0)

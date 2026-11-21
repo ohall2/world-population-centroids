@@ -1,0 +1,2 @@
+measure,n,n_blocks,dir_right,dir_right_lo,dir_right_hi,ci_width,perm_null_mean,perm_null_lo,perm_null_hi,perm_p_upper,perm_p_lower
+dir_right_adm2_2015_2020,1792,47,0.4637,0.4398,0.4896,0.0498,0.4948,0.4721,0.5179,0.9980,0.0030

@@ -1,0 +1,7 @@
+year,level,estimate,n,err_med
+2015,1,light,46,1.7948
+2015,1,hybrid_light,46,0.2712
+2015,1,hybrid_geom,46,2.6665
+2020,1,light,47,2.2887
+2020,1,hybrid_light,47,0.2753
+2020,1,hybrid_geom,47,2.7613

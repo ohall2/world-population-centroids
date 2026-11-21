@@ -74,19 +74,31 @@ som punkt (härledd ur meshkoden `KEY_CODE`, `tools/validation_centroids.py:
 mesh_centroids`), rutans befolkning som vikt. Läsaren hittar befolkningskolumnen
 via den japanska etiketten (人口…総数) i CSV:ns andra rubrikrad (cp932).
 
-**Sekretess (markering och hantering, lika båda åren).** e-Stat markerar
-sekretess och sammanslagning i fälten `HTKSYORI` (秘匿処理, flagga för
-sekretessbehandling), `HTKSAKI` (秘匿先, meshkod dit den hemliga rutans tal har
-flyttats) och `GASSAN` (合算, flagga för sammanslagning). En hemlighållen rutas
-befolkning anges inte som ett tal (t.ex. `*` eller `-`); sådana rutor får
-icke-numerisk befolkning och utgår (räknas som saknad, inte 0). Sammanslagna tal
-ligger kvar på destinationsrutan (`HTKSAKI`) och bevaras därmed i summan. Samma
-regel tillämpas för 2015 och 2020, så sekretessen inte skiljer mellan åren.
+**Dataset (statsId) och hämtväg.** 500 m-mesh (halvmesh) används båda åren:
+**2015 = `T000847`**, **2020 = `T001101`** (e-Stats definitionsfiler
+`https://www.e-stat.go.jp/help/data-definition-information/shuroku/T000847.pdf`
+och `.../T001101.pdf`). Hämtas per prefektur (47 filer per år) med
+`tools/download_estat_jp.py`, som anropar e-Stats statistiska GIS:
+`https://www.e-stat.go.jp/gis/statmap-search/data?statsId=<ID>&code=<01..47>&downloadType=2&aggregateUnit=S`
+(zip med en cp932-CSV per prefektur). En ruta som ligger på en prefekturgräns
+delas mellan prefekturfilerna (varje fil bär sin del av rutans befolkning); därför
+summerar läsaren rader med samma rutkod. Då certifieras nationella totalen exakt
+mot folkräkningen: 2015 = 127 094 745 och 2020 = 126 146 099 (kontrollerat).
+
+**Sekretess (markering och hantering, lika båda åren).** Vi använder **total
+befolkning** (人口（総数）). Enligt e-Stats definitionsfil `T000880` döljs inte
+den totala befolkningen per ruta i sekretessbehandlingen (bara köns- och
+åldersfördelade tal kan döljas i små rutor); totalbefolkningens kolumn har alltså
+inga hemlighållna värden, och den nationella summan bevaras. e-Stat har fälten
+`HTKSYORI` (秘匿処理), `HTKSAKI` (秘匿先) och `GASSAN` (合算) för sekretess och
+sammanslagning av de fördelade talen; de rör inte totalen. Läsaren låter ändå en
+ruta utgå om totalbefolkningen inte är ett tal, och regeln är densamma 2015 och
+2020. Källa: definitionsfilen T000880
+(`https://www.e-stat.go.jp/help/data-definition-information/shuroku/T000880.pdf`).
 
 Facit läggs i `data/validation_japan/` (inte den frysta `data/validation/`), på
 samma sätt som Kanada. Licens: Government of Japan Standard Terms of Use v2.0,
-förenlig med CC BY 4.0; källa anges som "Source: e-Stat". Hämtväg (e-Stats
-statistiska GIS) och exakta filer förs in här när de är hämtade (steg 2).
+förenlig med CC BY 4.0; källa anges som "Source: e-Stat".
 
 ## Om nedladdningen
 
