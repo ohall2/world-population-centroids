@@ -301,33 +301,41 @@ def read_estat_jp(root: Path, year: int):
     vars befolkning inte är ett tal (hemlighållna, t.ex. "*"/"-") utgår; metoden är
     densamma båda åren (se docs/DATA.md)."""
     folder = root / str(year)
-    zips = sorted(folder.glob("*.zip"))
-    if zips:
-        zf = zipfile.ZipFile(zips[0])
-        name = next(n for n in zf.namelist() if n.lower().endswith(".csv"))
-        src, fname = zf.open(name), f"{zips[0].name}:{name}"
-    else:
-        csvs = sorted(folder.glob("*.csv"))
-        if not csvs:
-            sys.exit(f"Ingen e-Stat-fil (zip/csv) för {year} i {folder}")
-        src, fname = csvs[0].open("rb"), csvs[0].name
-    d = pd.read_csv(src, dtype=str, encoding="cp932", low_memory=False)
-    labels = {c: str(v) for c, v in d.iloc[0].items()}   # andra rubrikraden (japanska)
-    key = "KEY_CODE" if "KEY_CODE" in d.columns else d.columns[0]
-    popcol = next((c for c in d.columns if "人口" in labels[c] and "総数" in labels[c]),
+    sources = []                                 # (öppen fil, namn) – alla zip/csv i mappen
+    for zp in sorted(folder.glob("*.zip")):
+        zf = zipfile.ZipFile(zp)
+        for n in zf.namelist():
+            if n.lower().endswith((".csv", ".txt")):
+                sources.append((zf.open(n), f"{zp.name}:{n}"))
+    for cf in sorted(folder.glob("*.csv")) + sorted(folder.glob("*.txt")):
+        sources.append((cf.open("rb"), cf.name))
+    if not sources:
+        sys.exit(f"Ingen e-Stat-fil (zip/csv) för {year} i {folder}")
+
+    frames, popcol, poplabel, secrecy = [], None, None, set()
+    for src, _name in sources:                   # en fil per (prefektur/mesh-region)
+        d = pd.read_csv(src, dtype=str, encoding="cp932", low_memory=False)
+        labels = {c: str(v) for c, v in d.iloc[0].items()}   # andra rubrikraden (japanska)
+        key = "KEY_CODE" if "KEY_CODE" in d.columns else d.columns[0]
+        pc = next((c for c in d.columns if "人口" in labels[c] and "総数" in labels[c]),
                   next((c for c in d.columns if "人口" in labels[c]), None))
-    if popcol is None:
-        raise ValueError(f"e-Stat {year}: ingen befolkningskolumn (人口…総数). "
-                         f"Etiketter: {labels}")
-    data = d.iloc[1:]
-    pop = pd.to_numeric(data[popcol], errors="coerce")
-    lon, lat = mesh_centroids(data[key].values)
-    secrecy = [c for c in ("HTKSYORI", "HTKSAKI", "GASSAN") if c in d.columns]
-    info = {"file": fname, "pop_column": popcol, "pop_label": labels[popcol],
-            "meshes": int(len(data)), "mesh_len": int(pd.Series(data[key]).astype(str).str.strip().str.len().mode().iloc[0]),
-            "pop_total": float(pop.fillna(0).sum()), "secrecy_columns": secrecy,
-            "meshes_nonnumeric_pop": int(pop.isna().sum())}
-    return pd.DataFrame({"lon": lon, "lat": lat, "pop": pop.values}), info
+        if pc is None:
+            raise ValueError(f"e-Stat {year}: ingen befolkningskolumn (人口…総数). "
+                             f"Etiketter: {labels}")
+        popcol, poplabel = pc, labels[pc]
+        secrecy |= {c for c in ("HTKSYORI", "HTKSAKI", "GASSAN") if c in d.columns}
+        data = d.iloc[1:]
+        frames.append(pd.DataFrame({"code": data[key].astype(str).str.strip(),
+                                    "pop": pd.to_numeric(data[pc], errors="coerce")}))
+    allrows = pd.concat(frames, ignore_index=True).drop_duplicates("code", keep="first")
+    lon, lat = mesh_centroids(allrows["code"].values)
+    info = {"files": len(sources), "pop_column": popcol, "pop_label": poplabel,
+            "meshes": int(len(allrows)),
+            "mesh_len": int(allrows["code"].str.len().mode().iloc[0]),
+            "pop_total": float(allrows["pop"].fillna(0).sum()),
+            "secrecy_columns": sorted(secrecy),
+            "meshes_nonnumeric_pop": int(allrows["pop"].isna().sum())}
+    return pd.DataFrame({"lon": lon, "lat": lat, "pop": allrows["pop"].values}), info
 
 
 def assign(points: pd.DataFrame, units) -> np.ndarray:
