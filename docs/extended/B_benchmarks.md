@@ -73,6 +73,17 @@ Alla tal är skrivna ur `docs/extended/<facit>_benchmark_*.csv` med `tools/write
 | 2 | 2010–2020 | GHS-BUILT-S | 0,25 | 0,65 (0,63–0,68) |
 | 2 | 2010–2020 | geometrisk | 0,26 | 0,00 (0,00–0,00) |
 
+**Bortfall (den gemensamma mängden kräver värde från alla källor).**
+
+| Nivå | År | facitenheter | använda | bortfall | källor med saknade värden |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 2000 | 50 | 50 | 0 | – |
+| 1 | 2010 | 50 | 50 | 0 | – |
+| 1 | 2020 | 50 | 50 | 0 | – |
+| 2 | 2000 | 2441 | 2441 | 0 | – |
+| 2 | 2010 | 2400 | 2400 | 0 | – |
+| 2 | 2020 | 2436 | 2436 | 0 | – |
+
 ## Mexiko
 
 **Läge: median great circle-fel mot facit (km).**
@@ -114,6 +125,15 @@ Alla tal är skrivna ur `docs/extended/<facit>_benchmark_*.csv` med `tools/write
 | 2 | 2010–2020 | GHS-BUILT-S | 0,49 | 0,50 (0,46–0,53) |
 | 2 | 2010–2020 | geometrisk | 0,25 | 0,00 (0,00–0,00) |
 
+**Bortfall (den gemensamma mängden kräver värde från alla källor).**
+
+| Nivå | År | facitenheter | använda | bortfall | källor med saknade värden |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 2010 | 32 | 32 | 0 | – |
+| 1 | 2020 | 32 | 32 | 0 | – |
+| 2 | 2010 | 1952 | 1950 | 2 | ljus (utgåvan) (2) |
+| 2 | 2020 | 1947 | 1947 | 0 | – |
+
 ## Brasilien
 
 **Läge: median great circle-fel mot facit (km).**
@@ -134,25 +154,62 @@ Alla tal är skrivna ur `docs/extended/<facit>_benchmark_*.csv` med `tools/write
 | 2 | 2022 | GHS-BUILT-S | 0,62 (0,60–0,65) | 0,20 (0,15–0,27) |
 | 2 | 2022 | geometrisk | 0,12 (0,10–0,13) | −2,48 (−3,12–−2,07) |
 
+**Bortfall (den gemensamma mängden kräver värde från alla källor).**
+
+| Nivå | År | facitenheter | använda | bortfall | källor med saknade värden |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 2022 | 27 | 27 | 0 | – |
+| 2 | 2022 | 5567 | 5567 | 0 | – |
+
 ## Europa
 
 **Läge: median great circle-fel mot facit (km).**
 
 | Nivå | År | ljus (utgåvan) | GHS-POP | GHS-BUILT-S | geometrisk |
 | --- | --- | --- | --- | --- | --- |
+| 1 | 2011 (n=348) | 2,97 (2,54–3,62) | 0,20 (0,15–0,25) | 2,37 (1,81–3,09) | 8,67 (6,77–12,61) |
 | 1 | 2021 (n=331) | 2,42 (2,05–3,25) | 0,44 (0,36–0,54) | 2,61 (2,22–3,50) | 9,08 (7,04–13,30) |
+| 2 | 2011 (n=6266) | 0,95 (0,89–1,01) | 0,22 (0,21–0,24) | 0,46 (0,42–0,52) | 1,79 (1,64–1,99) |
 | 2 | 2021 (n=6247) | 0,71 (0,66–0,76) | 0,27 (0,25–0,28) | 0,47 (0,43–0,53) | 1,81 (1,65–2,00) |
 
 **Parvis mot ljuset, per enhet.**
 
 | Nivå | År | källa | andel närmare facit än ljuset | median skillnad ljus−källa (km) |
 | --- | --- | --- | --- | --- |
+| 1 | 2011 | GHS-POP | 0,97 (0,95–0,99) | 2,68 (2,30–3,34) |
+| 1 | 2011 | GHS-BUILT-S | 0,61 (0,53–0,67) | 0,43 (0,17–0,69) |
+| 1 | 2011 | geometrisk | 0,12 (0,08–0,17) | −4,98 (−8,00–−3,59) |
 | 1 | 2021 | GHS-POP | 0,93 (0,91–0,96) | 1,97 (1,55–2,52) |
 | 1 | 2021 | GHS-BUILT-S | 0,51 (0,44–0,59) | 0,02 (−0,33–0,26) |
 | 1 | 2021 | geometrisk | 0,09 (0,06–0,14) | −5,80 (−8,90–−4,54) |
+| 2 | 2011 | GHS-POP | 0,88 (0,87–0,90) | 0,62 (0,56–0,67) |
+| 2 | 2011 | GHS-BUILT-S | 0,76 (0,73–0,78) | 0,38 (0,34–0,43) |
+| 2 | 2011 | geometrisk | 0,27 (0,25–0,30) | −0,78 (−0,93–−0,67) |
 | 2 | 2021 | GHS-POP | 0,81 (0,80–0,83) | 0,36 (0,33–0,41) |
 | 2 | 2021 | GHS-BUILT-S | 0,68 (0,66–0,69) | 0,18 (0,17–0,20) |
 | 2 | 2021 | geometrisk | 0,18 (0,17–0,20) | −0,99 (−1,13–−0,88) |
+
+**Förändring.**
+
+| Nivå | Period | källa | median \|e−t\| | rätt riktning |
+| --- | --- | --- | --- | --- |
+| 1 | 2011–2021 | ljus (utgåvan) | 1,97 | 0,49 (0,43–0,53) |
+| 1 | 2011–2021 | GHS-POP | 0,37 | 0,71 (0,63–0,80) |
+| 1 | 2011–2021 | GHS-BUILT-S | 0,41 | 0,56 (0,51–0,62) |
+| 1 | 2011–2021 | geometrisk | 0,42 | 0,00 (0,00–0,00) |
+| 2 | 2011–2021 | ljus (utgåvan) | 0,64 | 0,51 (0,49–0,52) |
+| 2 | 2011–2021 | GHS-POP | 0,13 | 0,62 (0,60–0,64) |
+| 2 | 2011–2021 | GHS-BUILT-S | 0,14 | 0,59 (0,58–0,60) |
+| 2 | 2011–2021 | geometrisk | 0,13 | 0,00 (0,00–0,00) |
+
+**Bortfall (den gemensamma mängden kräver värde från alla källor).**
+
+| Nivå | År | facitenheter | använda | bortfall | källor med saknade värden |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 2011 | 348 | 348 | 0 | – |
+| 1 | 2021 | 331 | 331 | 0 | – |
+| 2 | 2011 | 6298 | 6266 | 32 | ljus (utgåvan) (32) |
+| 2 | 2021 | 6254 | 6247 | 7 | ljus (utgåvan) (7) |
 
 ## WorldPop (redovisas skilt: beroende av nattljus)
 
@@ -250,13 +307,26 @@ WorldPop använder nattljus som en förklaringsvariabel i fördelningen av befol
 
 | Nivå | År | ljus (utgåvan) | WorldPop |
 | --- | --- | --- | --- |
+| 1 | 2011 (n=348) | 2,97 (2,54–3,62) | 0,26 (0,21–0,32) |
 | 1 | 2021 (n=331) | 2,42 (2,05–3,25) | 0,53 (0,42–0,69) |
+| 2 | 2011 (n=6266) | 0,95 (0,89–1,01) | 0,43 (0,39–0,46) |
 | 2 | 2021 (n=6247) | 0,71 (0,66–0,76) | 0,44 (0,41–0,47) |
 
 **Parvis mot ljuset, per enhet.**
 
 | Nivå | År | källa | andel närmare facit än ljuset | median skillnad ljus−källa (km) |
 | --- | --- | --- | --- | --- |
+| 1 | 2011 | WorldPop | 0,95 (0,91–0,97) | 2,71 (2,21–3,26) |
 | 1 | 2021 | WorldPop | 0,89 (0,86–0,93) | 1,78 (1,42–2,58) |
+| 2 | 2011 | WorldPop | 0,73 (0,71–0,76) | 0,38 (0,32–0,45) |
 | 2 | 2021 | WorldPop | 0,66 (0,63–0,69) | 0,19 (0,15–0,24) |
+
+**Förändring.**
+
+| Nivå | Period | källa | median \|e−t\| | rätt riktning |
+| --- | --- | --- | --- | --- |
+| 1 | 2011–2021 | ljus (utgåvan) | 1,97 | 0,49 (0,43–0,53) |
+| 1 | 2011–2021 | WorldPop | 0,41 | 0,73 (0,65–0,81) |
+| 2 | 2011–2021 | ljus (utgåvan) | 0,64 | 0,51 (0,49–0,52) |
+| 2 | 2011–2021 | WorldPop | 0,22 | 0,53 (0,51–0,55) |
 

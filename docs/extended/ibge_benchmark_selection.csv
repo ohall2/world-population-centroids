@@ -1,0 +1,3 @@
+dataset,level,year,n_facit,n_used,n_dropped,missing_light,missing_ghspop,missing_ghsbuilts,missing_worldpop,missing_geometric
+ibge,1,2022,27,27,0,0,0,0,0,0
+ibge,2,2022,5567,5567,0,0,0,0,0,0

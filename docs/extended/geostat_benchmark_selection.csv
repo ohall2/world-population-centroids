@@ -1,0 +1,5 @@
+dataset,level,year,n_facit,n_used,n_dropped,missing_light,missing_ghspop,missing_ghsbuilts,missing_worldpop,missing_geometric
+geostat,1,2011,348,348,0,0,0,0,0,0
+geostat,1,2021,331,331,0,0,0,0,0,0
+geostat,2,2011,6298,6266,32,32,0,0,0,0
+geostat,2,2021,6254,6247,7,7,0,0,0,0

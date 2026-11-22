@@ -109,14 +109,16 @@ def coords(series, unit_ids):
 
 def run_dataset(ds, cfg, truth_root, release_path, results_dir, cache_dir, bset,
                 source_names, epochs, n_boot):
-    pos_rows, chg_rows, pair_rows = [], [], []
+    # epochs är en dict {källa: epoker}; varje källa knyter facitåret till SIN
+    # närmaste epok (WorldPop har t.ex. 2011 och 2016 som GHS saknar).
+    pos_rows, chg_rows, pair_rows, sel_rows = [], [], [], []
     for lv in (1, 2):
         isos = facit_iso(cfg, truth_root, ds, lv)
         tru = {y: truth(truth_root, ds, y, lv, 10) for y in cfg["years"]}
         tru = {y: t[t.index.str[:3].isin(isos)] for y, t in tru.items()}
         series = {"light": light_series(release_path, lv, cfg["years"])}
         for s in source_names:
-            series[s] = source_series(results_dir, s, lv, epochs, cfg["years"])
+            series[s] = source_series(results_dir, s, lv, epochs[s], cfg["years"])
         geo = geometric_series(cache_dir, bset, lv, isos)
         names = ["light", *source_names, "geometric"]
 
@@ -136,6 +138,12 @@ def run_dataset(ds, cfg, truth_root, release_path, results_dir, cache_dir, bset,
             for v in errs.values():
                 ok &= np.isfinite(v)
             kids = ids[ok]
+            # Bortfall: facitenheter som faller ur den gemensamma mängden (kräver
+            # värde från alla källor), och hur många som saknas per källa.
+            miss = {f"missing_{name}": int((~np.isfinite(errs[name])).sum()) for name in names}
+            sel_rows.append({"dataset": ds, "level": lv, "year": y,
+                             "n_facit": int(len(ids)), "n_used": int(len(kids)),
+                             "n_dropped": int(len(ids) - len(kids)), **miss})
             if len(kids) == 0:
                 continue
             multi = kids.str[:3].nunique() >= 5
@@ -193,7 +201,8 @@ def run_dataset(ds, cfg, truth_root, release_path, results_dir, cache_dir, bset,
                 ci = bootstrap(t, e, blk, n_boot)
                 chg_rows.append({"dataset": ds, "level": lv, "from": y1, "to": y2,
                                  "source": name, "n": len(kids), **m, **ci})
-    return pd.DataFrame(pos_rows), pd.DataFrame(chg_rows), pd.DataFrame(pair_rows)
+    return (pd.DataFrame(pos_rows), pd.DataFrame(chg_rows), pd.DataFrame(pair_rows),
+            pd.DataFrame(sel_rows))
 
 
 def main(argv=None):
@@ -211,17 +220,17 @@ def main(argv=None):
     a.out.mkdir(parents=True, exist_ok=True)
 
     from wpc.lights import available_years
+    # Epoker per källa (de har olika: WorldPop har 2011/2016 som GHS saknar).
     epochs = {s: available_years(s, Path("data/raw") / s, None) for s in a.sources}
-    # alla källor förutsätts ha samma epoker här (GHS-POP). Ta första källans.
-    ep = epochs[a.sources[0]]
 
     for ds in a.datasets:
         print(f"== {ds} ==")
-        pos, chg, pair = run_dataset(ds, DS[ds], a.truth, a.release, a.results, a.cache_dir,
-                                     a.boundary_set, a.sources, ep, a.n_boot)
+        pos, chg, pair, sel = run_dataset(ds, DS[ds], a.truth, a.release, a.results, a.cache_dir,
+                                          a.boundary_set, a.sources, epochs, a.n_boot)
         pos.to_csv(a.out / f"{ds}_benchmark_position.csv", index=False, float_format="%.4f")
         chg.to_csv(a.out / f"{ds}_benchmark_change.csv", index=False, float_format="%.4f")
         pair.to_csv(a.out / f"{ds}_benchmark_pairs.csv", index=False, float_format="%.4f")
+        sel.to_csv(a.out / f"{ds}_benchmark_selection.csv", index=False)
         if len(pos):
             print(pos[["level", "year", "source", "n", "err_med", "err_med_lo", "err_med_hi"]].round(3).to_string(index=False))
         if len(pair):

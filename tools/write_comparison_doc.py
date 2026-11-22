@@ -75,6 +75,19 @@ def pairs_table(pair: pd.DataFrame, sources: list[str]) -> list[str]:
     return out
 
 
+def selection_table(sel: pd.DataFrame) -> list[str]:
+    """Bortfall per nivå och år: facitenheter, använda och vilka källor som saknar
+    värden (så det syns om en källa krymper urvalet för de andra)."""
+    miss_cols = [c for c in sel.columns if c.startswith("missing_")]
+    out = ["| Nivå | År | facitenheter | använda | bortfall | källor med saknade värden |",
+           "| --- | --- | --- | --- | --- | --- |"]
+    for _, r in sel.sort_values(["level", "year"]).iterrows():
+        culprits = [f"{SRC.get(c[8:], c[8:])} ({int(r[c])})" for c in miss_cols if int(r[c]) > 0]
+        out.append(f"| {int(r.level)} | {int(r.year)} | {int(r.n_facit)} | {int(r.n_used)} | "
+                   f"{int(r.n_dropped)} | {', '.join(culprits) if culprits else '–'} |")
+    return out
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description="Skriv B-resultatdokumentet ur CSV.")
     p.add_argument("--dir", type=Path, default=Path("docs/extended"))
@@ -82,8 +95,9 @@ def main(argv=None):
     a = p.parse_args(argv)
     data = {ds: (read(a.dir / f"{ds}_benchmark_position.csv"),
                  read(a.dir / f"{ds}_benchmark_change.csv"),
-                 read(a.dir / f"{ds}_benchmark_pairs.csv")) for ds in a.datasets}
-    has_wp = any(not pos.empty and "worldpop" in set(pos.source) for pos, _, _ in data.values())
+                 read(a.dir / f"{ds}_benchmark_pairs.csv"),
+                 read(a.dir / f"{ds}_benchmark_selection.csv")) for ds in a.datasets}
+    has_wp = any(not pos.empty and "worldpop" in set(pos.source) for pos, _, _, _ in data.values())
 
     L = ["# B – Jämförelsemått (utforskande)", "",
          "Frågan (docs/ANALYSIS_PLAN.md §6): hur står sig utgåvans ljuscentroid mot "
@@ -110,7 +124,7 @@ def main(argv=None):
          "statisk, så dess förändringsskattning är alltid noll.", ""]
 
     for ds in a.datasets:
-        pos, chg, pair = data[ds]
+        pos, chg, pair, sel = data[ds]
         if pos.empty:
             continue
         L += [f"## {DS.get(ds, ds)}", "", "**Läge: median great circle-fel mot facit (km).**", ""]
@@ -121,6 +135,9 @@ def main(argv=None):
         if not chg.empty:
             L += ["**Förändring.**", ""]
             L += change_table(chg, MAIN) + [""]
+        if not sel.empty:
+            L += ["**Bortfall (den gemensamma mängden kräver värde från alla källor).**", ""]
+            L += selection_table(sel) + [""]
 
     if has_wp:
         L += ["## WorldPop (redovisas skilt: beroende av nattljus)", "",
@@ -129,7 +146,7 @@ def main(argv=None):
               "utgåvan mäter. Talen nedan ska läsas som en jämförelse av vad en "
               "användare kan få, inte som ett oberoende test.", ""]
         for ds in a.datasets:
-            pos, chg, pair = data[ds]
+            pos, chg, pair, _sel = data[ds]
             if pos.empty or "worldpop" not in set(pos.source):
                 continue
             L += [f"### {DS.get(ds, ds)}", "", "**Läge (km).**", ""]

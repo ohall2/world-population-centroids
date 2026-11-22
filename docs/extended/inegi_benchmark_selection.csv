@@ -1,0 +1,5 @@
+dataset,level,year,n_facit,n_used,n_dropped,missing_light,missing_ghspop,missing_ghsbuilts,missing_worldpop,missing_geometric
+inegi,1,2010,32,32,0,0,0,0,0,0
+inegi,1,2020,32,32,0,0,0,0,0,0
+inegi,2,2010,1952,1950,2,2,0,0,0,0
+inegi,2,2020,1947,1947,0,0,0,0,0,0
