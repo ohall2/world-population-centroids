@@ -1,4 +1,4 @@
-"""Fig. 6: årshopp i centroiden per enhet (GADM nivå 1), 2010–2017, fem serier.
+"""Fig. S1 (bilagan; tidigare Fig. 6): årshopp i centroiden per enhet (GADM nivå 1), 2010–2017, fem serier.
 Gemensamt urval: enheter med minst 10 tända pixlar alla år i alla fyra jämförelseserier
 (docs/check_seam/*.csv.gz, Aboufadel–Austin) och med centroid i v2.0.0 (aa_lon/aa_lat) alla år.
 Obs: jämförelseserierna är beräknade med tools/check_seam_measures.py (förenklade polygoner),
@@ -34,7 +34,7 @@ for k, w in W.items():
     for a, b in zip(Y[:-1], Y[1:]):
         rows.append({"series": k, "pair": f"{a}–{str(b)[2:]}", "a": a,
                      "median_km": float(np.median(hav(w["lon"][a], w["lat"][a], w["lon"][b], w["lat"][b])))})
-t = pd.DataFrame(rows); t.to_csv(O / "data/fig6_seam_jumps.csv", index=False)
+t = pd.DataFrame(rows); t.to_csv(O / "data/figS1_seam_jumps.csv", index=False)
 piv = t.pivot(index="series", columns="a", values="median_km")
 # Skarven ligger 2013->14 för Li, Chiovelli och PCNL (sista DMSP-året 2013) men 2012->13 för
 # v2.0.0 (DMSP 1992-2012, rå VIIRS från 2013). Kvoten = skarvsteget / median av DMSP-stegen före.
@@ -64,4 +64,4 @@ ax.legend(frameon=False, fontsize=7.3, loc="upper right", bbox_to_anchor=(1.0, 0
 fig.text(0.01, 0.005, "Circles mark each series' join step; ratio = join step / median of the DMSP-era steps before it.",
          fontsize=6.8, color="#52514e")
 fig.tight_layout(rect=(0, 0.03, 1, 1))
-for ext in ("pdf", "png"): fig.savefig(O / f"fig6_seam.{ext}", dpi=300)
+for ext in ("pdf", "png"): fig.savefig(O / f"figS1_seam.{ext}", dpi=300)

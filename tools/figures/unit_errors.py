@@ -1,12 +1,18 @@
 """Lägesfel per enhet (ljus mot facit, Barmore) för utgåvan v2.0.0.
 Samma urval som tools/change_detection.py: complete == True och n_points >= 10.
+Kanada (statcan) och Japan (estat_jp) läses ur data/validation_canada och
+data/validation_japan och begränsas till landet, som i tools/canada_confirm.py.
 Utdata: docs/figures/data/unit_errors.csv.gz (dataset, year, level, unit_id, gid0, err_km).
 Kör från repots rot: python tools/figures/unit_errors.py"""
 import numpy as np, pandas as pd
 from pathlib import Path
 R = Path.cwd(); REL = R / "data/release/v2.0.0"; VAL = R / "data/validation"
 OUT = R / "docs/figures/data"; OUT.mkdir(parents=True, exist_ok=True)
-CASES = {"census": [2000, 2010, 2020], "geostat": [2011, 2021], "inegi": [2010, 2020], "ibge": [2022]}
+# dataset: (facitrot, år, land eller None)
+CASES = {"census": (VAL, [2000, 2010, 2020], None), "geostat": (VAL, [2011, 2021], None),
+         "inegi": (VAL, [2010, 2020], None), "ibge": (VAL, [2022], None),
+         "statcan": (R / "data/validation_canada", [2016, 2021], "CAN"),
+         "estat_jp": (R / "data/validation_japan", [2015, 2020], "JPN")}
 
 def gc(lon0, lat0, lon1, lat1):
     l0, p0, l1, p1 = map(np.radians, (lon0, lat0, lon1, lat1))
@@ -18,10 +24,11 @@ for lv in (0, 1, 2):
     rel = pd.read_csv(REL / f"wpc_v2_gadm41_adm{lv}.csv.gz", keep_default_na=False,
                       usecols=["unit_id", "year", "bm_lon", "bm_lat"])
     for c in ("bm_lon", "bm_lat"): rel[c] = pd.to_numeric(rel[c], errors="coerce")
-    for ds, years in CASES.items():
+    for ds, (root, years, iso) in CASES.items():
         for y in years:
-            t = pd.read_csv(VAL / ds / str(y) / f"adm{lv}.csv", keep_default_na=False)
+            t = pd.read_csv(root / ds / str(y) / f"adm{lv}.csv", keep_default_na=False)
             t = t[(t.complete.astype(str).str.lower() == "true") & (t.n_points >= 10)]
+            if iso is not None: t = t[t.unit_id.str[:3] == iso]
             m = t.merge(rel[rel.year == y], on="unit_id", suffixes=("_t", "_l")).dropna(subset=["bm_lon_l"])
             e = gc(m.bm_lon_t.astype(float), m.bm_lat_t.astype(float), m.bm_lon_l, m.bm_lat_l)
             rows.append(pd.DataFrame({"dataset": ds, "year": y, "level": lv, "unit_id": m.unit_id,
