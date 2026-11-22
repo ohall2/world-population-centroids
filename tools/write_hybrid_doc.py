@@ -167,11 +167,12 @@ def main(argv=None):
     for name, h1a, h1b, h1c in verdict_rows:
         L += [f"| {name} | {h1a} | {h1b} | {h1c} |"]
     L += ["",
-          "**Not om förändringen.** För förändringsmåtten (tabellerna ovan) är "
-          "hybrid-geom lika bra som eller bättre än hybrid-ljus i alla facit. "
-          "Ljuset bidrar alltså inte till förändringen när befolkningstalen per "
-          "nivå 2-enhet är kända; det som bär förändringen är omviktningen mellan "
-          "enheterna, inte var ljuset ligger inom dem.", ""]
+          "**Not om förändringen.** För förändring ger hybrid-geom rätt riktning "
+          "minst lika ofta som hybrid-ljus i alla perioder. Felets storlek är "
+          "ungefär lika; hybrid-ljus har något mindre fel i USA 2000–2010 och "
+          "2000–2020, hybrid-geom mindre i Mexiko och Europa. Ljuset bidrar alltså "
+          "inte till riktningen i förändringen när befolkningstal per nivå 2-enhet "
+          "är kända.", ""]
 
     out = a.dir / "A1_hybrid.md"
     out.write_text("\n".join(L) + "\n", encoding="utf-8")

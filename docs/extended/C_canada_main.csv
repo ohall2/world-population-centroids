@@ -1,2 +1,2 @@
-measure,n,n_blocks,dir_right,dir_right_lo,dir_right_hi,ci_width,perm_null_mean,perm_null_lo,perm_null_hi,perm_p_upper
-dir_right_adm2_2016_2021,287,13,0.5889,0.5092,0.6797,0.1705,0.5026,0.4495,0.5575,0.0020
+measure,n,n_blocks,dir_right,dir_right_lo,dir_right_hi,ci_width,perm_null_mean,perm_null_lo,perm_null_hi,perm_p_upper,perm_p_lower
+dir_right_adm2_2016_2021,287,13,0.5889,0.5092,0.6797,0.1705,0.5026,0.4495,0.5575,0.0020,1.0000
