@@ -12,3 +12,8 @@ __pycache__/
 
 # Facit och jämförelsecentroider för läsare (små filer, se replication/README.md)
 !/replication/data/
+
+# Manus, bilaga, granskningar och läsexemplar hålls utanför git: repot är offentligt
+/docs/manuscript/
+/docs/review/
+/manus_sakerhetskopia_*/

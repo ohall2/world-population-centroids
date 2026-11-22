@@ -2,7 +2,8 @@
 
 This guide is for readers of the draft *Can Nighttime Lights Track Where People Move? Census Evidence
 on Light-Weighted Population Centroids, 1992–2025* (Ola Hall, Lund University). It says where
-everything is, what can be rerun and what cannot. The draft is not for circulation.
+everything is, what can be rerun and what cannot. The manuscript itself is not in this repository;
+the author sends it as a PDF. The draft is not for circulation.
 
 Everything refers to the branch **`utokade-kontroller`**. The branches `v2` and `master` are older.
 
@@ -13,14 +14,12 @@ working documentation and the code comments are in Swedish. Table columns and fi
 
 | What | Where |
 | --- | --- |
-| Reading copy: manuscript, figures, supplement and supplementary tables in one PDF | [`docs/manuscript/manuscript_review.pdf`](docs/manuscript/manuscript_review.pdf) |
-| Manuscript source, supplement, supplementary tables | [`docs/manuscript/`](docs/manuscript/) |
+| Reading copy: manuscript, figures, supplement and supplementary tables in one PDF | Sent by the author; not in this repository |
 | Figures and the scripts that draw them | [`docs/figures/`](docs/figures/), [`tools/figures/`](tools/figures/) |
 | The centroid series (data set v2.0.0) | Zenodo draft, reserved DOI 10.5281/zenodo.24336701, not yet public. The author sends a private link. |
 | Census benchmarks and comparison-source centroids per unit | [`replication/`](replication/) |
 | Raw data (about 40 GB, all from public sources) | Not redistributed. Sources, file names and download commands: [`docs/DATA.md`](docs/DATA.md) |
 | Analysis plan, locked before the extended analyses were run (commit `dbbd88e`), with a log of deviations | [`docs/ANALYSIS_PLAN.md`](docs/ANALYSIS_PLAN.md) |
-| Reviews of the manuscript and of the analyses, and the audit of every number in the manuscript | [`docs/review/`](docs/review/) |
 | Method, and the decisions behind the series step by step | [`docs/METHODS.md`](docs/METHODS.md), [`docs/HARMONIZATION.md`](docs/HARMONIZATION.md) |
 | Literature with verification status | [`docs/LITERATURE.md`](docs/LITERATURE.md) |
 
@@ -38,8 +37,8 @@ working documentation and the code comments are in Swedish. Table columns and fi
 | Change within the VIIRS era, Canada and Japan (Figure 7, Table S5) | `docs/extended/C_canada_*.csv`, `docs/extended/C_japan_*.csv` | `tools/canada_confirm.py` | `docs/extended/C_canada.md`, `docs/extended/C_japan.md` |
 | Regional totals (Figure 7b, Table S3) | `docs/extended/*_hybrid_*.csv` | `tools/hybrid_estimate.py` | `docs/extended/A1_hybrid.md` |
 | The sensor join (Supplement S2, Figure S1) | `docs/check_seam/` | `tools/check_seam_measures.py`, `tools/check_seam_summary.py`, `tools/figures/figS1_seam.py` | `docs/HARMONIZATION.md` |
-| Supplementary tables S1–S6 | `docs/manuscript/supplement_tables.md` | `tools/write_supplement_tables.py` | |
-| Every number in the text | `docs/manuscript/numbers.csv` | `tools/manuscript_numbers.py` | `docs/review/talrevision-2026-11-22.md` |
+| Supplementary tables S1–S6 | in the reading copy | `tools/write_supplement_tables.py` | |
+| Every number in the text | recomputed from the result files by the script | `tools/manuscript_numbers.py` | |
 
 ## 3. What can be rerun from this repository and the data set
 
@@ -94,5 +93,7 @@ an account; GADM and the Statistics Canada files are downloaded by hand.
 - The reference L. Li et al. (2026) has been checked against a summary only, not the full text.
 - The reference list carries a working note on what is not yet checked: authors' initials in the
   older entries, and data citations that are still to be added.
-- The manuscript is not yet anonymised and is about 10,900 words against a limit of 11,000.
+- The manuscript is about 10,900 words against a limit of 11,000.
+- `tools/manuscript_numbers.py`, `tools/write_supplement_tables.py` and `tools/build_review_pdf.py`
+  read the manuscript files, which are kept outside the repository, so they run only for the author.
 - Questions and errors: ola.hall@keg.lu.se, or an issue in this repository.

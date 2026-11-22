@@ -25,5 +25,8 @@ Alla kommandon körs från repots rot. `data/` ingår inte i git.
 - Tal i dokument och manus skrivs ur CSV-filerna med skript, inte för hand.
 - Hitta aldrig på referenser, datakällor eller versioner. Kontrollera i källan
   och ange vad som inte är kontrollerat.
+- Repot på GitHub är offentligt. `docs/manuscript/` och `docs/review/` ligger utanför
+  git (se `.gitignore`). Committa aldrig manus, bilaga, granskningar, läsexemplar
+  eller Zenodo-länken med nyckel, och kontrollera synligheten före varje push.
 - Dokumentation och kodkommentarer på svenska, som i resten av repot. Manuset
   och utgåvans README är på engelska.

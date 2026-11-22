@@ -7,22 +7,25 @@ datamängden på Zenodo och till repot på GitHub. Läsarnas egen vägledning ä
 ## Repot är offentligt
 
 `github.com/ohall2/world-population-centroids` är ett offentligt repo (skapat 2017 för v1). Allt som
-pushas dit kan läsas av vem som helst, också grenarna `v2` och `utokade-kontroller` med manus,
-granskningar och facittabeller. Läsarna behöver därför ingen inbjudan. Det betyder också:
+pushas dit kan läsas av vem som helst. Läsarna behöver därför ingen inbjudan. Det betyder också:
 
-- Manuset ligger öppet med namn, och tidskriften granskar anonymt.
-- Lägg aldrig Zenodo-länken med nyckel i repot. Läsexemplaret i repot byggs utan länk; exemplaret
-  med länk skickas bara till läsarna.
-- Ska arbetet vara stängt tills artikeln är inskickad finns två vägar: gör repot privat
-  (*Settings → Danger Zone → Change visibility*; då slutar också länkar till v1-filerna att fungera
-  för utomstående), eller flytta arbetsgrenarna till ett nytt privat repo och ta bort dem här.
+- **Manuset ligger inte i repot.** `docs/manuscript/` (manus, bilaga, bilagetabeller, talfil,
+  läsexemplar) och `docs/review/` (granskningar, talrevision) finns kvar på datorn men står i
+  `.gitignore`. Den 22 november 2026 rensades de ur historiken på `v2` och `utokade-kontroller`;
+  manuset hade då legat öppet sedan den 18 november. Säkerhetskopia från rensningen:
+  `manus_sakerhetskopia_2026-11-22/`.
+- **De har ingen versionshistorik längre.** Ta egna kopior, eller lägg dem i ett privat repo.
+- **Lägg aldrig Zenodo-länken med nyckel i repot.** Läsexemplaret skickas bara till läsarna.
+- Kod, resultattabeller, figurer, facit och analysplan ligger öppet. Ska också de vara stängda tills
+  artikeln är inskickad: gör repot privat (*Settings → Danger Zone → Change visibility*; då slutar
+  även v1-filerna att synas för utomstående) eller flytta arbetsgrenarna till ett privat repo.
 
 ## Vad som ligger var
 
 | Del | Plats | Läge |
 | --- | --- | --- |
-| Kod, tester, plan, granskningar, resultattabeller, manus, figurer | GitHub, grenen `utokade-kontroller` | Uppladdat |
-| Läsexemplar utan Zenodo-länk | `docs/manuscript/manuscript_review.pdf` | Uppladdat |
+| Kod, tester, plan, resultattabeller, figurer | GitHub, grenen `utokade-kontroller` | Uppladdat |
+| Manus, bilaga, granskningar, läsexemplar | Bara på datorn: `docs/manuscript/`, `docs/review/` | Utanför git |
 | Facit per enhet och jämförelsekällornas centroider (11 MB) | `replication/` | Uppladdat |
 | Centroidserien v2.0.0 | Zenodo, utkast 24336701 | README och metadata rättade lokalt; laddas upp med steg 2 |
 | Rådata, cirka 40 GB | Offentliga källor | Delas inte; källor och kommandon i `docs/DATA.md` |
@@ -64,11 +67,9 @@ Förslag till följebrev:
   ändringen direkt; länkarna i PDF:en pekar på grenen, inte på en viss version.
 - **Nytt läsexemplar** efter ändringar i manuset. Kräver pandoc och xelatex:
 
-      python tools/build_review_pdf.py --data-link "<Zenodo-länken>" --out ~/Desktop/WPC_reading_copy.pdf
-      python tools/build_review_pdf.py
+      python tools/build_review_pdf.py --data-link "<Zenodo-länken>"
 
-  Det första kommandot ger exemplaret till läsarna, med klickbar länk, utanför repot. Det andra
-  uppdaterar exemplaret i repot, utan länk.
+  Filen hamnar i `docs/manuscript/manuscript_review.pdf`, som ligger utanför git.
 - **Ändrad beskrivning av datamängden.** Texten skrivs av `tools/write_release_docs.py`, som räknar
   spannen ur tabellerna. Kör det och sedan `tools/zenodo_upload.py`. Redigera inte README för hand.
 - **Nytt facit eller ny jämförelsekälla.** Kopiera mappen från `data/` till samma plats under
@@ -76,7 +77,8 @@ Förslag till följebrev:
 
 ## Kvar att göra innan inskick
 
-- Manuset är inte anonymiserat (GitHub-namn, DOI, versionsnummer).
+- Manuset är inte anonymiserat (GitHub-namn, DOI, versionsnummer), och koden ligger öppet under
+  ditt namn. Tidskriften granskar anonymt.
 - Villkoren för att sprida tabellerna i `replication/` är inte genomgångna källa för källa.
 - En publicerad Zenodo-post kan inte tas bort. Publicera först när artikeln är antagen eller när
   datamängden ska ut oberoende av den.

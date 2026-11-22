@@ -17,7 +17,8 @@ Manuset är omskrivet efter de utökade kontrollerna (grenen `utokade-kontroller
 folkräkningssystem (USA, Europa, Mexiko, Brasilien, Kanada, Japan), jämförelse med GHS-BUILT-S, GHS-POP
 och WorldPop, hybridskattning, trendskattning, en detektionsmodell per enhet och två
 förhandsspecificerade test inom VIIRS-perioden. Plan och avvikelser: `docs/ANALYSIS_PLAN.md`. Resultat:
-`docs/extended/`. Granskningar och talrevision: `docs/review/`. Utgåvans README är omskriven efter
+`docs/extended/`. Manus, granskningar och talrevision ligger utanför git (`docs/manuscript/`,
+`docs/review/`), eftersom repot är offentligt. Utgåvans README är omskriven efter
 resultaten (`tools/write_release_docs.py`); datafilerna är oförändrade. Avsnittet nedan beskriver
 utgåvan som den stod den 17 november.
 

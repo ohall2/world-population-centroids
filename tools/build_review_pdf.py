@@ -3,8 +3,8 @@
 Bygg läsexemplaret som PDF: manus med figurerna på sina platser, bilaga och
 bilagetabeller, och först en ruta med länkar till data, kod och dokumentation.
 
-Läser docs/manuscript/{manuscript,supplement,supplement_tables}.md och
-figurerna i docs/figures/*.png. Kräver pandoc och xelatex (med tcolorbox och
+Läser docs/manuscript/{manuscript,supplement,supplement_tables}.md (som ligger
+utanför git) och figurerna i docs/figures/*.png. Kräver pandoc och xelatex (med tcolorbox och
 pdflscape). Länkarna pekar på den gren som anges med --branch.
 
 Exempel
@@ -106,7 +106,6 @@ def box(data_link: str | None, branch: str) -> str:
             f"- **Census benchmarks and comparison centroids per unit:** [replication/]({tree}/replication)\n"
             f"- **Raw data:** not redistributed; sources and download commands in [docs/DATA.md]({blob}/docs/DATA.md)\n"
             f"- **Analysis plan and deviations:** [docs/ANALYSIS_PLAN.md]({blob}/docs/ANALYSIS_PLAN.md)\n"
-            f"- **Reviews and the audit of every number:** [docs/review/]({tree}/docs/review)\n"
             ":::\n\n")
 
 
