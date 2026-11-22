@@ -2,8 +2,7 @@
 
 This guide is for readers of the draft *Can Nighttime Lights Track Where People Move? Census Evidence
 on Light-Weighted Population Centroids, 1992–2025* (Ola Hall, Lund University). It says where
-everything is, what can be rerun and what cannot. The repository is private and the draft is not for
-circulation.
+everything is, what can be rerun and what cannot. The draft is not for circulation.
 
 Everything refers to the branch **`utokade-kontroller`**. The branches `v2` and `master` are older.
 
@@ -17,7 +16,7 @@ working documentation and the code comments are in Swedish. Table columns and fi
 | Reading copy: manuscript, figures, supplement and supplementary tables in one PDF | [`docs/manuscript/manuscript_review.pdf`](docs/manuscript/manuscript_review.pdf) |
 | Manuscript source, supplement, supplementary tables | [`docs/manuscript/`](docs/manuscript/) |
 | Figures and the scripts that draw them | [`docs/figures/`](docs/figures/), [`tools/figures/`](tools/figures/) |
-| The centroid series (data set v2.0.0) | Zenodo draft, reserved DOI 10.5281/zenodo.24336701, not yet public. The author sends a private preview link. |
+| The centroid series (data set v2.0.0) | Zenodo draft, reserved DOI 10.5281/zenodo.24336701, not yet public. The author sends a private link. |
 | Census benchmarks and comparison-source centroids per unit | [`replication/`](replication/) |
 | Raw data (about 40 GB, all from public sources) | Not redistributed. Sources, file names and download commands: [`docs/DATA.md`](docs/DATA.md) |
 | Analysis plan, locked before the extended analyses were run (commit `dbbd88e`), with a log of deviations | [`docs/ANALYSIS_PLAN.md`](docs/ANALYSIS_PLAN.md) |
@@ -54,7 +53,7 @@ series and periods are run together.
 python -m venv ~/wpc-venv && source ~/wpc-venv/bin/activate
 pip install numpy pandas scipy matplotlib
 
-# data: benchmarks from the repository, the series from the Zenodo preview link
+# data: benchmarks from the repository, the series from the Zenodo link
 mkdir -p data/release/v2.0.0 && cp -R replication/data/. data/
 # put wpc_v2_gadm41_adm0.csv.gz, _adm1.csv.gz and _adm2.csv.gz in data/release/v2.0.0/
 

@@ -46,4 +46,4 @@ in [`docs/DATA.md`](../docs/DATA.md).
 - WorldPop, Global 2000–2020, unconstrained, 1 km (CC BY 4.0).
 
 The tables here are aggregates computed by us from those sources. The terms for redistributing them
-have not been reviewed for a public release; this repository is private until that is done.
+have not yet been reviewed source by source.

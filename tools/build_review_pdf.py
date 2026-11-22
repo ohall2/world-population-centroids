@@ -96,13 +96,13 @@ def supplement(src: str) -> str:
 
 def box(data_link: str | None, branch: str) -> str:
     blob, tree = f"{REPO}/blob/{branch}", f"{REPO}/tree/{branch}"
-    data = (f"[Zenodo preview]({data_link})" if data_link
-            else "Zenodo draft, reserved DOI 10.5281/zenodo.24336701; the private preview link is sent with this copy")
+    data = (f"[Zenodo, draft of version 2.0.0]({data_link}) – a private link, please do not pass it on" if data_link
+            else "Zenodo draft, reserved DOI 10.5281/zenodo.24336701; the private link is sent with this copy")
     return ("::: {.box}\n"
             "**Reading copy, " + dt.date.today().strftime("%d %B %Y").lstrip("0") + ". Not for circulation.**\n\n"
             f"- **Start here:** [guide for readers]({blob}/READERS.md) – where everything is and what can be rerun\n"
             f"- **Data** (not yet public): {data}\n"
-            f"- **Code, tests and result tables:** [GitHub, branch {branch}]({tree}) (private; ask for access)\n"
+            f"- **Code, tests and result tables:** [GitHub, branch {branch}]({tree})\n"
             f"- **Census benchmarks and comparison centroids per unit:** [replication/]({tree}/replication)\n"
             f"- **Raw data:** not redistributed; sources and download commands in [docs/DATA.md]({blob}/docs/DATA.md)\n"
             f"- **Analysis plan and deviations:** [docs/ANALYSIS_PLAN.md]({blob}/docs/ANALYSIS_PLAN.md)\n"
