@@ -1,0 +1,41 @@
+{
+ "dataset": "estat_jp",
+ "year": 2020,
+ "points": 466156,
+ "population": 126146099.0,
+ "files": 47,
+ "pop_column": "T001101001",
+ "pop_label": "　人口（総数）",
+ "input_rows": 467053,
+ "border_mesh_rows": 1794,
+ "meshes": 466156,
+ "mesh_len": 9,
+ "pop_total": 126146099.0,
+ "secrecy_columns": [
+  "GASSAN",
+  "HTKSAKI",
+  "HTKSYORI"
+ ],
+ "meshes_nonnumeric_pop": 0,
+ "levels": {
+  "adm2": {
+   "units": 1807,
+   "pop_outside_units": 669283.0,
+   "complete": 1807
+  },
+  "adm1": {
+   "units": 47,
+   "pop_outside_units": 669283.0,
+   "complete": 47
+  },
+  "adm0": {
+   "units": 1,
+   "pop_outside_units": 669283.0,
+   "complete": 1
+  }
+ },
+ "country_coverage": {
+  "JPN": 0.9978
+ },
+ "incomplete_adm0": {}
+}

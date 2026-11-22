@@ -8,6 +8,8 @@ slutliga resultaten:
 
   docs/figures/data/unit_errors.csv.gz   lägesfel per enhet (tools/figures/unit_errors.py)
   docs/change_detection/*_change_detection.csv   test av förändring (tools/change_detection.py)
+  docs/extended/C_{canada,japan}_change.csv      förhandsspecificerade test inom VIIRS-perioden
+  docs/manuscript/numbers.csv                    bebyggd yta mot ljus (tools/manuscript_numbers.py)
 
 USA och Puerto Rico redovisas var för sig (HARMONIZATION.md §17). README skrivs
 på engelska, eftersom datamängden är avsedd för internationella användare.
@@ -34,14 +36,16 @@ from wpc import __version__  # noqa: E402
 BENCH = {"census": "US Census Bureau, block-group centres of population",
          "geostat": "Eurostat GEOSTAT 1-km population grid",
          "inegi": "INEGI locality register (ITER)",
-         "ibge": "IBGE Grade Estatística 1-km grid (Censo 2022)"}
+         "ibge": "IBGE Grade Estatística 1-km grid (Censo 2022)",
+         "statcan": "Statistics Canada Geographic Attribute File, dissemination-area points (2016, 2021)",
+         "estat_jp": "Statistics Bureau of Japan (e-Stat), 500-m grid square statistics (2015, 2020)"}
 LEVEL = {0: "country", 1: "region (GADM level 1)", 2: "municipality (GADM level 2)"}
 
 
 def group_name(ds: str, gid0: str) -> str:
     if ds == "census":
         return "United States" if gid0 == "USA" else "Puerto Rico"
-    return {"geostat": "Europe", "inegi": "Mexico", "ibge": "Brazil"}[ds]
+    return {"geostat": "Europe", "inegi": "Mexico", "ibge": "Brazil", "statcan": "Canada", "estat_jp": "Japan"}[ds]
 
 
 def position_table(unit_errors: Path) -> pd.DataFrame:
@@ -50,7 +54,7 @@ def position_table(unit_errors: Path) -> pd.DataFrame:
     t = (d.groupby(["benchmark", "dataset", "level", "year"]).err_km
          .agg(units="size", median_km="median", p90_km=lambda s: s.quantile(0.9)).reset_index())
     t[["median_km", "p90_km"]] = t[["median_km", "p90_km"]].round(2)
-    order = {"United States": 0, "Puerto Rico": 1, "Europe": 2, "Mexico": 3, "Brazil": 4}
+    order = {"United States": 0, "Puerto Rico": 1, "Europe": 2, "Mexico": 3, "Brazil": 4, "Canada": 5, "Japan": 6}
     return t.sort_values(["level", "benchmark", "year"], key=lambda s: s.map(order) if s.name == "benchmark" else s)
 
 
@@ -77,17 +81,50 @@ def change_table(cd_dir: Path) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def viirs_table(ext_dir: Path) -> pd.DataFrame:
+    """Förhandsspecificerade test inom VIIRS-perioden (planens avsnitt 7): Kanada och Japan."""
+    rows = []
+    for key, name in (("canada", "Canada"), ("japan", "Japan")):
+        c = pd.read_csv(ext_dir / f"C_{key}_change.csv").rename(columns={"from": "y0", "to": "y1"})
+        for r in c.itertuples():
+            rows.append({"benchmark": name, "level": int(r.level), "period": f"{r.y0}–{r.y1}",
+                         "units": int(r.n), "true_shift_median_km": r2(r.true_med),
+                         "right_direction": r2(r.dir_right),
+                         "right_direction_95ci": [r2(r.dir_right_lo), r2(r.dir_right_hi)]})
+    return pd.DataFrame(rows)
+
+
+def builtup_range(numbers: Path) -> tuple[int, int]:
+    """Andel kommuner där bebyggd yta (GHS-BUILT-S) ligger närmare facit än ljuset: lägsta och högsta
+    värdet över alla facit och år, i procent (samma nycklar som manuset använder)."""
+    n = pd.read_csv(numbers)
+    k = n.key.astype(str)
+    v = n[k.str.contains("benchmark_pairs:closer_share") & k.str.contains("source=ghsbuilts")
+          & k.str.contains("level=2")].value.astype(float)
+    return int(r2(v.min() * 100, 0)), int(r2(v.max() * 100, 0))
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     p.add_argument("--release", type=Path, default=Path("data/release") / f"v{__version__}")
     p.add_argument("--unit-errors", type=Path, default=Path("docs/figures/data/unit_errors.csv.gz"))
     p.add_argument("--change", type=Path, default=Path("docs/change_detection"))
+    p.add_argument("--extended", type=Path, default=Path("docs/extended"))
+    p.add_argument("--numbers", type=Path, default=Path("docs/manuscript/numbers.csv"))
     a = p.parse_args(argv)
 
     mp = a.release / "metadata.json"
     meta = json.loads(mp.read_text())
     pos = position_table(a.unit_errors)
     chg = change_table(a.change)
+    vch = viirs_table(a.extended)
+    b_lo, b_hi = builtup_range(a.numbers)
+    # Spann som nämns i texten räknas ur samma tabeller som skrivs ut nedan.
+    last = pos[pos.level == 2].sort_values("year").groupby("benchmark").tail(1)
+    last = last[last.benchmark != "Puerto Rico"]
+    p_lo, p_hi = r2(last.median_km.min(), 1), r2(last.median_km.max(), 1)
+    d2 = pd.concat([chg[chg.level == 2].right_direction, vch[vch.level == 2].right_direction])
+    d_lo, d_hi = int(r2(d2.min() * 100, 0)), int(r2(d2.max() * 100, 0))
     meta.pop("validation_position_error", None)
     meta["licence"] = {"data": "CC BY-NC 4.0 (follows the MYC25Q4 flare-site catalogue used for masking)",
                        "code": "MIT"}
@@ -101,6 +138,7 @@ def main(argv=None):
                  "The United States and Puerto Rico are reported separately."),
         "position_error_km": pos.to_dict(orient="records"),
         "change_detection": chg.to_dict(orient="records"),
+        "change_detection_viirs_era": vch.to_dict(orient="records"),
         "change_detection_note": ("Per unit, the measured shift (light) is compared with the true shift (census). "
                                   "right_direction: share with positive cosine (0.5 by chance); 95 % block-bootstrap "
                                   "intervals. U.S. level 1 omitted (dominated by Puerto Rico's municipios)."),
@@ -115,6 +153,10 @@ def main(argv=None):
         f"| {r.benchmark} | {r.level} | {r.period} | {r.units} | {r.true_shift_median_km:g} | "
         f"{r.right_direction:.2f} ({r.right_direction_95ci[0]:.2f}–{r.right_direction_95ci[1]:.2f}) | "
         f"{r.rank_correlation:.2f} | {r.share_true_shift_exceeds_error * 100:.0f}% |" for r in chg.itertuples())
+    vtab = "\n".join(
+        f"| {r.benchmark} | {r.level} | {r.period} | {r.units} | {r.true_shift_median_km:g} | "
+        f"{r.right_direction:.2f} ({r.right_direction_95ci[0]:.2f}–{r.right_direction_95ci[1]:.2f}) |"
+        for r in vch.itertuples())
     files = "\n".join(f"- `{n}`" for lv in meta["files"].values() for n in lv["sha256"])
     readme = f"""# World Population Centroids v2 ({__version__})
 
@@ -122,7 +164,7 @@ Light-weighted population centroids for the countries (GADM 4.1 level 0), region
 municipalities (level 2) of the world, annually 1992–2025. DMSP-OLS (1992–2012, intercalibrated and
 co-registered to VIIRS) is spliced per unit onto VIIRS VNL v2 (2013–2025) at the overlap year 2013.
 Code and full documentation: https://github.com/ohall2/world-population-centroids (docs/METHODS.md,
-docs/HARMONIZATION.md).
+docs/HARMONIZATION.md; the tests behind the statements below are in docs/extended/).
 
 Creator: Ola Hall, Lund University (ORCID 0000-0002-9231-4028).
 Licence: data CC BY-NC 4.0 (follows the VIIRS Nightfire flare-site catalogue MYC25Q4 used for masking);
@@ -130,18 +172,24 @@ code MIT. GADM boundaries and identifiers are free for academic and other non-co
 
 ## What the data are good for
 
-- **Location in a given year.** Within municipalities the centroid lies about 1 km from the census
-  centroid (median 0.7–1.5 km in four census systems). Use it for distances, accessibility and
-  gravity models.
-- **Not change over time at levels 1–2.** Over 10–20 years the measured shift of a municipal centroid
-  points the right way in 51–66 % of units (50 % by chance). Change is detected only where the shift
-  clearly exceeds the location error at that level: Mexican states (shift about 2 km) are detected,
-  U.S. states (3–4 km, but location errors of 11–13 km) are not.
+- **Location in a given year.** Within municipalities the centroid lies a median {p_lo:g}–{p_hi:g} km from
+  the census centroid in six census systems (latest census year of each), far closer than the geometric
+  centre of the unit. Use it for distances, accessibility and gravity models where no detailed census
+  or reliable built-up layer is available. Built-up surface (GHS-BUILT-S) lay closer to the census
+  centroid than the light-weighted centroid in {b_lo}–{b_hi} % of municipalities.
+- **Not change over time at levels 1–2.** Over 5–20 years the measured shift of a municipal centroid
+  points the right way in {d_lo}–{d_hi} % of units (50 % by chance), including two pre-specified tests
+  entirely within the VIIRS era. Three-year means and trend estimates did not change this, and we
+  found no way to identify in advance the units whose measured shift can be trusted. Do not use
+  shifts of these centroids as a measure of population redistribution.
 - **National centroids are biased** towards regions with high light per resident: 65–134 km in the
   United States, Mexico and Brazil. Where regional population totals exist, compute the national
   centroid as the population-weighted mean of the level-1 centroids instead; against censuses this
   reduced the error to 2–12 km in the United States, Mexico and Brazil and to about 1 km in the
   median European country.
+- **Shifts of regional centres.** Where population totals for sub-units exist for two dates, measure
+  the shift of a region's centre from those totals. Light-weighted centroids of the sub-units improve
+  the location of the centre but not the measurement of its shift.
 
 ## Files
 
@@ -190,10 +238,18 @@ Level 2:
 | --- | --- | --- | --- | --- | --- | --- | --- |
 {ctab}
 
+Pre-specified tests entirely within the VIIRS era:
+
+| Benchmark | Level | Period | Units | True shift, median (km) | Right direction (95 % CI) |
+| --- | --- | --- | --- | --- | --- |
+{vtab}
+
 ## Limitations
 
-- Change entirely within the VIIRS era (2013–2025) has not been tested against censuses.
-- No census benchmark outside the Americas and Europe.
+- Change entirely within the VIIRS era has been tested in two census systems only (Canada 2016–2021,
+  Japan 2015–2020).
+- The census benchmarks cover the United States, Canada, Mexico, Brazil, Europe and Japan; there is none
+  in Africa, mainland Asia or Oceania.
 - National centroids exclude light north of 65° N (as in v1); levels 1–2 use all light. Units
   entirely north of 65° N have no national centroid.
 - All VIIRS-based series, this one included, show a larger change from 2016 to 2017 (about 1.4 times

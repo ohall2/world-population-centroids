@@ -1,0 +1,38 @@
+{
+ "dataset": "inegi",
+ "year": 2020,
+ "points": 189432,
+ "population": 126014024.0,
+ "file": "iter_00_cpv2020_csv.zip",
+ "localities": 189432,
+ "pop_national_total": 126014024.0,
+ "pop_in_localities": 126014024.0,
+ "pop_small_localities_summary_rows": 397479.0,
+ "localities_without_position": 0,
+ "levels": {
+  "adm2": {
+   "units": 2463,
+   "pop_outside_units": 4342.0,
+   "complete": 2457
+  },
+  "adm1": {
+   "units": 36,
+   "pop_outside_units": 4342.0,
+   "complete": 32
+  },
+  "adm0": {
+   "units": 3,
+   "pop_outside_units": 4342.0,
+   "complete": 1
+  }
+ },
+ "country_coverage": {
+  "GTM": 0.0085,
+  "MEX": 1.0,
+  "USA": 0.001
+ },
+ "incomplete_adm0": {
+  "GTM": 0.99,
+  "USA": 0.9965
+ }
+}

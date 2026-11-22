@@ -1,0 +1,40 @@
+{
+ "dataset": "statcan",
+ "year": 2016,
+ "points": 55548,
+ "population": 35151728.0,
+ "file": "2016_92-151_XBB_csv.zip:2016_92-151_XBB.csv",
+ "columns": {
+  "da": "DAuid/ADidu",
+  "lat": "DArplat/Adlat",
+  "lon": "DArplong/ADlong",
+  "pop": "DBpop2016/IDpop2016"
+ },
+ "blocks": 489905,
+ "dissemination_areas": 56590,
+ "pop_total": 35151728.0,
+ "levels": {
+  "adm2": {
+   "units": 293,
+   "pop_outside_units": 321962.0,
+   "complete": 292
+  },
+  "adm1": {
+   "units": 14,
+   "pop_outside_units": 321962.0,
+   "complete": 13
+  },
+  "adm0": {
+   "units": 2,
+   "pop_outside_units": 321962.0,
+   "complete": 1
+  }
+ },
+ "country_coverage": {
+  "CAN": 0.9966,
+  "USA": 0.0003
+ },
+ "incomplete_adm0": {
+  "USA": 0.9994
+ }
+}

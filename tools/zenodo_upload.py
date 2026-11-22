@@ -98,7 +98,7 @@ def metadata(rel: Path) -> dict:
             "<p>Files: one gzip-compressed CSV and one GeoPackage per GADM level (0 countries, 1 regions, "
             "2 municipalities), one row per unit and year, with Barmore and Aboufadel–Austin centroids, flags and "
             "noise levels. README.md describes the columns, the validation against censuses in the United States, "
-            "Europe, Mexico and Brazil, and the limitations; metadata.json holds checksums and the validation "
+            "Europe, Mexico, Brazil, Canada and Japan, and the limitations; metadata.json holds checksums and the validation "
             "tables.</p>")
     return {"metadata": {
         "upload_type": "dataset",

@@ -1,0 +1,49 @@
+{
+ "dataset": "ibge",
+ "year": 2022,
+ "points": 1501555,
+ "population": 203002064.0,
+ "file": "BR1KM_20251002.zip",
+ "cells": 1501555,
+ "pop_total": 203002064.0,
+ "levels": {
+  "adm2": {
+   "units": 5627,
+   "pop_outside_units": 496811.0,
+   "complete": 5572
+  },
+  "adm1": {
+   "units": 51,
+   "pop_outside_units": 496811.0,
+   "complete": 27
+  },
+  "adm0": {
+   "units": 10,
+   "pop_outside_units": 496811.0,
+   "complete": 1
+  }
+ },
+ "country_coverage": {
+  "ARG": 0.0179,
+  "BOL": 0.0536,
+  "BRA": 1.0,
+  "COL": 0.0063,
+  "GUF": 0.0952,
+  "GUY": 0.0259,
+  "PER": 0.0256,
+  "PRY": 0.0596,
+  "URY": 0.0567,
+  "VEN": 0.0059
+ },
+ "incomplete_adm0": {
+  "ARG": 0.991,
+  "BOL": 0.961,
+  "COL": 0.9989,
+  "GUF": 0.9669,
+  "GUY": 0.9996,
+  "PER": 0.9845,
+  "PRY": 0.9089,
+  "URY": 0.9357,
+  "VEN": 0.9978
+ }
+}

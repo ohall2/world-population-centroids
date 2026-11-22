@@ -5,6 +5,22 @@ Befolkningscentroider för världens administrativa enheter (nivå 0–2), berä
 - **v1** (Hall m.fl. 2019, *Scientific Data* 6:235, [doi:10.1038/s41597-019-0250-z](https://doi.org/10.1038/s41597-019-0250-z)) täcker 1992–2013 med DMSP-OLS och GADM 2.8. Originalfilerna ligger orörda i [`legacy/v1/`](legacy/v1/).
 - **v2** räknas om från grunden med en öppen, testad pipeline och förlängs med VIIRS. Arbetet pågår på grenen `v2`.
 
+## Läsare av manuset
+
+Börja i [`READERS.md`](READERS.md) (på engelska). Där står var manus, data, skript och resultat finns,
+vad som går att köra om utan rådata och vad som kräver nedladdning. Hur materialet delas och fylls på:
+[`docs/DELA.md`](docs/DELA.md).
+
+## Status (22 november 2026)
+
+Manuset är omskrivet efter de utökade kontrollerna (grenen `utokade-kontroller`). De omfattar sex
+folkräkningssystem (USA, Europa, Mexiko, Brasilien, Kanada, Japan), jämförelse med GHS-BUILT-S, GHS-POP
+och WorldPop, hybridskattning, trendskattning, en detektionsmodell per enhet och två
+förhandsspecificerade test inom VIIRS-perioden. Plan och avvikelser: `docs/ANALYSIS_PLAN.md`. Resultat:
+`docs/extended/`. Granskningar och talrevision: `docs/review/`. Utgåvans README är omskriven efter
+resultaten (`tools/write_release_docs.py`); datafilerna är oförändrade. Avsnittet nedan beskriver
+utgåvan som den stod den 17 november.
+
 ## Status (17 november 2026)
 
 Version 2.0.0 är klar: GADM 4.1 nivå 0–2, 1992–2025, som `.csv.gz` och

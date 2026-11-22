@@ -1,0 +1,34 @@
+{
+ "dataset": "census",
+ "year": 2010,
+ "points": 219404,
+ "population": 312471327.0,
+ "files": 1,
+ "block_groups": 220334,
+ "without_position_pop0": 0,
+ "levels": {
+  "adm2": {
+   "units": 3145,
+   "pop_outside_units": 3860948.0,
+   "complete": 3144
+  },
+  "adm1": {
+   "units": 130,
+   "pop_outside_units": 135885.0,
+   "complete": 128
+  },
+  "adm0": {
+   "units": 3,
+   "pop_outside_units": 135885.0,
+   "complete": 2
+  }
+ },
+ "country_coverage": {
+  "CAN": 0.0034,
+  "PRI": 1.0,
+  "USA": 0.9987
+ },
+ "incomplete_adm0": {
+  "CAN": 0.9979
+ }
+}

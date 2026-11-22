@@ -9,3 +9,6 @@ __pycache__/
 
 # macOS
 .DS_Store
+
+# Facit och jämförelsecentroider för läsare (små filer, se replication/README.md)
+!/replication/data/

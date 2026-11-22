@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """
-Bygg en läsversion av manuset som PDF: text, tabeller och figurerna på sina
-platser, och först en ruta med länkar till data, kod och dokumentation.
+Bygg läsexemplaret som PDF: manus med figurerna på sina platser, bilaga och
+bilagetabeller, och först en ruta med länkar till data, kod och dokumentation.
 
-Läser docs/manuscript/manuscript.md (export från manusdokumentet) och
-figurerna i docs/figures/*.pdf. Kräver pandoc och xelatex.
+Läser docs/manuscript/{manuscript,supplement,supplement_tables}.md och
+figurerna i docs/figures/*.png. Kräver pandoc och xelatex (med tcolorbox och
+pdflscape). Länkarna pekar på den gren som anges med --branch.
 
 Exempel
-  python tools/build_review_pdf.py --data-link "https://zenodo.org/records/...?preview=1&token=..." \\
-      --out docs/manuscript/manuscript_review.pdf
+  python tools/build_review_pdf.py
+  python tools/build_review_pdf.py --data-link "https://zenodo.org/records/...?preview=1&token=..."
 """
 
 from __future__ import annotations
@@ -23,67 +24,104 @@ from pathlib import Path
 R = Path(__file__).resolve().parents[1]
 REPO = "https://github.com/ohall2/world-population-centroids"
 FIGS = {1: "fig1_location_error", 2: "fig2_map", 3: "fig3_national_bias", 4: "fig4_measured_vs_true",
-        5: "fig5_direction_by_shift", 6: "fig6_seam"}
-WIDTH = {1: "0.85", 2: "1.0", 3: "1.0", 4: "1.0", 5: "0.8", 6: "0.85"}
+        5: "fig5_direction_by_shift", 6: "fig6_sources", 7: "fig7_change_overview"}
+WIDTH = {3: "95%", 5: "80%"}
+# Relativa kolumnbredder för manusets tre tabeller (rubrikradens början -> bredder).
+TABLES = {"| Benchmark | Census years |": [30, 12, 30, 28],
+          "| Benchmark | Units | Light |": [22, 9, 9, 13, 11, 11, 13],
+          "| Benchmark | Level | Period |": [17, 6, 11, 7, 9, 15, 17, 17, 8]}
 
 
-def build_md(src: str, data_link: str) -> str:
-    lines = src.split("\n")
-    title = re.search(r"^\*\*(Can Nighttime.*?)\*\*$", src, re.M).group(1)
-    body = src.split("**Abstract.**", 1)[1]
-    body = "**Abstract.**" + body
-    body = re.sub(r" \\\[\d+ words\\\]", "", body)
-    body = re.sub(r"```latex\n(.*?)\n```", lambda m: "$$" + m.group(1).strip() + "$$", body, flags=re.S)
-    # bildtexter: plocka ut och ta bort avsnittet med dem
-    caps = {int(m.group(1)): m.group(2).strip() for m in
-            re.finditer(r"^\*\*Figure (\d)\.\*\* (.+)$", body, re.M)}
-    body = re.sub(r"^\*\*Figure \d\.\*\* .+\n?", "", body, flags=re.M)
-    body = body.replace("## Data Availability and Figure Captions", "## Data Availability")
-    # intern anteckning över referenslistan
-    body = re.sub(r"^\*Every entry below.*\n", "", body, flags=re.M)
-    # figurerna efter stycket där de först nämns
-    paras = body.split("\n\n")
-    placed = set()
+def esc(text: str) -> str:
+    return text.replace("*", r"\*").replace("_", r"\_")
+
+
+def shift_headings(text: str) -> str:
     out = []
-    for p in paras:
-        out.append(p)
-        for n in sorted(FIGS):
-            if n not in placed and re.search(rf"\(Figure {n}[a-z]?[\);]", p) and not p.startswith("#"):
-                cap = caps[n].replace("[", "(").replace("]", ")")
-                out.append(f"![**Figure {n}.** {cap}]({R / 'docs/figures' / (FIGS[n] + '.pdf')})"
-                           f"{{width={WIDTH[n]}\\textwidth}}")
-                placed.add(n)
-    body = "\n\n".join(out)
-    box = (
-        "::: {.box}\n"
-        "**Review copy, " + dt.date.today().strftime("%d %B %Y").lstrip("0") + ". Not for circulation.**\n\n"
-        f"- **Data** (draft, not yet public): [Zenodo preview]({data_link})\n"
-        f"- **Code and full documentation:** [GitHub, branch v2]({REPO}/tree/v2)\n"
-        f"- **Analyses and decisions, step by step:** [docs/HARMONIZATION.md]({REPO}/blob/v2/docs/HARMONIZATION.md)\n"
-        f"- **Literature with verification status:** [docs/LITERATURE.md]({REPO}/blob/v2/docs/LITERATURE.md)\n"
-        f"- **Independent review of this draft and the changes made:** "
-        f"[docs/review/review-manuscript-2026-11-18.md]({REPO}/blob/v2/docs/review/review-manuscript-2026-11-18.md)\n"
-        f"- **Robustness checks:** [docs/robustness/]({REPO}/tree/v2/docs/robustness)\n"
-        ":::\n\n")
-    head = (f"---\ntitle: \"{title}\"\nauthor: \"Ola Hall, Lund University\"\n"
-            f"date: \"Draft for Annals of the American Association of Geographers\"\n---\n\n")
-    return head + box + body
+    for line in text.split("\n"):
+        if line.startswith("### "):
+            line = "## " + line[4:]
+        elif line.startswith("## "):
+            line = "# " + line[3:]
+        out.append(line)
+    return "\n".join(out)
+
+
+def table_notes(text: str) -> str:
+    """Kursiva tabellnoter med filnamn: skydda *, _ och <> så att pandoc inte tolkar dem."""
+    lines = text.split("\n")
+    for i, l in enumerate(lines):
+        if l.startswith("*") and l.endswith("*") and not l.startswith("**") and (".csv" in l or "<" in l):
+            inner = re.sub(r"(?<!\\)([_<>*])", r"\\\1", l[1:-1])
+            lines[i] = "*" + inner + "*"
+    return "\n".join(lines)
+
+
+def manuscript(src: str) -> tuple[str, str]:
+    title = re.search(r"\*\*(Can Nighttime Lights Track Where People Move\?[^*]*)\*\*", src).group(1)
+    m = src[src.index("**Abstract.**"):]
+    m, n = re.subn(r"```latex\n(.*?)\n```", lambda g: "$$" + g.group(1).strip() + "$$", m, flags=re.S)
+    assert n == 1, "formeln hittades inte"
+    c0, r0 = m.index("## Data Availability and Figure Captions"), m.index("## References")
+    capsec = m[c0:r0]
+    caps = {}
+    for k in FIGS:
+        g = re.search(r"\*\*Figure %d\.\*\* (.*?)(?=\n\n|\Z)" % k, capsec, flags=re.S)
+        assert g, f"bildtext {k} saknas"
+        caps[k] = g.group(1).strip()
+    da = re.search(r"\*\*Data availability\.\*\*.*?(?=\n\n)", capsec, flags=re.S).group(0)
+    m = m[:c0] + "## Data Availability\n\n" + da + "\n\n" + m[r0:]
+    for k in sorted(FIGS):  # figuren efter stycket där den först nämns
+        g = re.search(r"Figure %d[ab]?\b" % k, m[:m.index("## Data Availability")])
+        assert g, f"figur {k} nämns inte"
+        j = m.find("\n\n", g.start())
+        img = "\n\n![%s](%s){width=%s}" % (esc("Figure %d. %s" % (k, caps[k])),
+                                           R / "docs/figures" / (FIGS[k] + ".png"), WIDTH.get(k, "100%"))
+        m = m[:j] + img + m[j:]
+    for head, w in TABLES.items():
+        i = m.index(head)
+        j = m.find("\n", i)
+        k = m.find("\n", j + 1)
+        m = m[:j + 1] + "|" + "|".join("-" * x for x in w) + "|" + m[k:]
+    return title, shift_headings(m)
+
+
+def supplement(src: str) -> str:
+    g = re.search(r"\*\*Figure S1\.\*\* (.*?)(?=\n\n|\Z)", src, flags=re.S)
+    cap = ("Figure S1. " + g.group(1).strip()).replace("*", r"\*")
+    s = src[:g.start()] + "![%s](%s){width=100%%}" % (cap, R / "docs/figures/figS1_seam.png") + src[g.end():]
+    s = s[:s.index("## S3. Supplementary Tables")].rstrip() + "\n"
+    return s.replace('# Supplement to "Can Nighttime Lights Track Where People Move?"', "# Supplement")
+
+
+def box(data_link: str | None, branch: str) -> str:
+    blob, tree = f"{REPO}/blob/{branch}", f"{REPO}/tree/{branch}"
+    data = (f"[Zenodo preview]({data_link})" if data_link
+            else "Zenodo draft, reserved DOI 10.5281/zenodo.24336701; the private preview link is sent with this copy")
+    return ("::: {.box}\n"
+            "**Reading copy, " + dt.date.today().strftime("%d %B %Y").lstrip("0") + ". Not for circulation.**\n\n"
+            f"- **Start here:** [guide for readers]({blob}/READERS.md) – where everything is and what can be rerun\n"
+            f"- **Data** (not yet public): {data}\n"
+            f"- **Code, tests and result tables:** [GitHub, branch {branch}]({tree}) (private; ask for access)\n"
+            f"- **Census benchmarks and comparison centroids per unit:** [replication/]({tree}/replication)\n"
+            f"- **Raw data:** not redistributed; sources and download commands in [docs/DATA.md]({blob}/docs/DATA.md)\n"
+            f"- **Analysis plan and deviations:** [docs/ANALYSIS_PLAN.md]({blob}/docs/ANALYSIS_PLAN.md)\n"
+            f"- **Reviews and the audit of every number:** [docs/review/]({tree}/docs/review)\n"
+            ":::\n\n")
 
 
 TEX_HEADER = r"""
-\usepackage{fontspec}
-\setmainfont{DejaVu Serif}
-\setsansfont{DejaVu Sans}
-\usepackage[margin=2.3cm]{geometry}
 \usepackage{caption}
-\captionsetup{font=small,labelformat=empty}
-\usepackage{tcolorbox}
+\captionsetup[figure]{labelformat=empty,font=small,skip=6pt}
+\usepackage{float}
+\floatplacement{figure}{H}
+\usepackage{pdflscape}
 \usepackage{etoolbox}
-\AtBeginEnvironment{longtable}{\scriptsize}
-\setlength{\parskip}{0.4em}
-\usepackage{xcolor}
+\AtBeginEnvironment{longtable}{\footnotesize}
+\setlength{\LTleft}{0pt}
+\usepackage{microtype}
+\usepackage{tcolorbox}
 \usepackage{xurl}
-\AtBeginDocument{\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black}}
 """
 
 LUA = r"""
@@ -97,20 +135,30 @@ end
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(description="Bygg läsversionen av manuset som PDF.")
-    p.add_argument("--manuscript", type=Path, default=R / "docs/manuscript/manuscript.md")
-    p.add_argument("--data-link", required=True)
+    p = argparse.ArgumentParser(description="Bygg läsexemplaret som PDF.")
+    p.add_argument("--data-link", help="Zenodos förhandslänk; utan den hänvisar rutan till följebrevet.")
+    p.add_argument("--branch", default="utokade-kontroller", help="Gren som länkarna pekar på.")
+    p.add_argument("--font", default="TeX Gyre Pagella")
     p.add_argument("--out", type=Path, default=R / "docs/manuscript/manuscript_review.pdf")
     a = p.parse_args(argv)
-    md = build_md(a.manuscript.read_text(), a.data_link)
+    M = R / "docs/manuscript"
+    title, body = manuscript((M / "manuscript.md").read_text())
+    sup = supplement((M / "supplement.md").read_text())
+    tabs = (M / "supplement_tables.md").read_text().replace("# Supplementary Tables S1–S6", "# Supplementary Tables")
+    front = '---\ntitle: "%s"\nauthor: "Ola Hall, Lund University"\n---\n\n' % title.replace('"', '\\"')
+    doc = table_notes(front + box(a.data_link, a.branch) + body.rstrip() + "\n\n\\newpage\n\n" + sup
+                      + "\n\n```{=latex}\n\\newpage\n\\begin{landscape}\n```\n\n" + tabs.rstrip()
+                      + "\n\n```{=latex}\n\\end{landscape}\n```\n")
     with tempfile.TemporaryDirectory() as td:
         td = Path(td)
-        (td / "m.md").write_text(md)
+        (td / "m.md").write_text(doc)
         (td / "h.tex").write_text(TEX_HEADER)
         (td / "box.lua").write_text(LUA)
         subprocess.run(["pandoc", str(td / "m.md"), "-o", str(a.out), "--pdf-engine=xelatex",
-                        "-H", str(td / "h.tex"), "--lua-filter", str(td / "box.lua"),
-                        "-V", "fontsize=10pt", "-V", "papersize=a4", "--resource-path", str(R)], check=True)
+                        "-H", str(td / "h.tex"), "--lua-filter", str(td / "box.lua"), "--toc", "--toc-depth=1",
+                        "-V", f"mainfont={a.font}", "-V", "monofont=DejaVu Sans Mono", "-V", "fontsize=11pt",
+                        "-V", "linestretch=1.15", "-V", "geometry:a4paper", "-V", "geometry:margin=2.5cm",
+                        "-V", "colorlinks=true", "-V", "linkcolor=black", "-V", "urlcolor=blue"], check=True)
     print(f"skrev {a.out}")
 
 

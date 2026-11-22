@@ -1,0 +1,36 @@
+{
+ "dataset": "census",
+ "year": 2020,
+ "points": 240942,
+ "population": 334735155.0,
+ "files": 1,
+ "block_groups": 242335,
+ "without_position_pop0": 0,
+ "levels": {
+  "adm2": {
+   "units": 3146,
+   "pop_outside_units": 3450781.0,
+   "complete": 3144
+  },
+  "adm1": {
+   "units": 131,
+   "pop_outside_units": 164907.0,
+   "complete": 128
+  },
+  "adm0": {
+   "units": 4,
+   "pop_outside_units": 164907.0,
+   "complete": 2
+  }
+ },
+ "country_coverage": {
+  "CAN": 0.0034,
+  "MEX": 0.0004,
+  "PRI": 1.0,
+  "USA": 0.9987
+ },
+ "incomplete_adm0": {
+  "CAN": 0.9979,
+  "MEX": 0.9949
+ }
+}

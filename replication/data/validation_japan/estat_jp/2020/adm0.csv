@@ -1,0 +1,2 @@
+unit_id,level,year,dataset,pop,n_points,aa_lon,aa_lat,bm_lon,bm_lat,missing_light_share,complete
+JPN,0,2020,estat_jp,125476816.00000000,458882,137.07009443,35.61925099,137.06872445,35.61924847,0.00019323,True

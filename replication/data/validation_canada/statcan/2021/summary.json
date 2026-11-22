@@ -1,0 +1,40 @@
+{
+ "dataset": "statcan",
+ "year": 2021,
+ "points": 56686,
+ "population": 36991981.0,
+ "file": "2021_92-151_X.zip:2021_92-151_X.csv",
+ "columns": {
+  "da": "DAUID_ADIDU",
+  "lat": "DARPLAT_ADLAT",
+  "lon": "DARPLONG_ADLONG",
+  "pop": "DBPOP2021_IDPOP2021"
+ },
+ "blocks": 498786,
+ "dissemination_areas": 57936,
+ "pop_total": 36991981.0,
+ "levels": {
+  "adm2": {
+   "units": 293,
+   "pop_outside_units": 329023.0,
+   "complete": 292
+  },
+  "adm1": {
+   "units": 14,
+   "pop_outside_units": 329023.0,
+   "complete": 13
+  },
+  "adm0": {
+   "units": 2,
+   "pop_outside_units": 329023.0,
+   "complete": 1
+  }
+ },
+ "country_coverage": {
+  "CAN": 0.9966,
+  "USA": 0.0003
+ },
+ "incomplete_adm0": {
+  "USA": 0.9994
+ }
+}

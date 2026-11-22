@@ -1,0 +1,3 @@
+unit_id,level,year,dataset,pop,n_points,aa_lon,aa_lat,bm_lon,bm_lat,missing_light_share,complete
+CAN,0,2021,statcan,36662130.00000000,56157,-87.17682073,48.48122370,-87.29650825,48.51571389,0.00063158,True
+USA,0,2021,statcan,828.00000000,2,-123.07937621,49.00334713,-123.07937621,49.00334713,0.99935122,False

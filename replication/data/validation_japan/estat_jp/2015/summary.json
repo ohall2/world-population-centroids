@@ -1,0 +1,41 @@
+{
+ "dataset": "estat_jp",
+ "year": 2015,
+ "points": 471066,
+ "population": 127094745.0,
+ "files": 47,
+ "pop_column": "T000847001",
+ "pop_label": "　人口総数",
+ "input_rows": 471976,
+ "border_mesh_rows": 1820,
+ "meshes": 471066,
+ "mesh_len": 9,
+ "pop_total": 127094745.0,
+ "secrecy_columns": [
+  "GASSAN",
+  "HTKSAKI",
+  "HTKSYORI"
+ ],
+ "meshes_nonnumeric_pop": 0,
+ "levels": {
+  "adm2": {
+   "units": 1806,
+   "pop_outside_units": 702914.0,
+   "complete": 1806
+  },
+  "adm1": {
+   "units": 47,
+   "pop_outside_units": 702914.0,
+   "complete": 46
+  },
+  "adm0": {
+   "units": 1,
+   "pop_outside_units": 702914.0,
+   "complete": 1
+  }
+ },
+ "country_coverage": {
+  "JPN": 0.9972
+ },
+ "incomplete_adm0": {}
+}
